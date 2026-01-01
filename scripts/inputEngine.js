@@ -13,37 +13,11 @@ const perkinsKeyToDot = {
 
 const perkinsKeys = new Set(Object.keys(perkinsKeyToDot));
 
-let hardwareKeySeen = false;
 let chordDown = new Set();
 let chordUsed = new Set();
-let chordEvalTimer = null;
 
 function setAttemptCallback(cb) {
 	attemptCallback = cb;
-}
-
-function resetInputHeuristics() {
-	hardwareKeySeen = false;
-}
-
-function getHardwareKeySeen() {
-	return hardwareKeySeen;
-}
-
-function clearChordTimer() {
-	if (chordEvalTimer) {
-		clearTimeout(chordEvalTimer);
-		chordEvalTimer = null;
-	}
-}
-
-function dotMaskFromKeys(keysSet) {
-	let mask = 0;
-	for (const key of keysSet) {
-		const dot = perkinsKeyToDot[key];
-		if (dot) mask |= 1 << (dot - 1);
-	}
-	return mask;
 }
 
 function emitAttempt(attempt) {
@@ -66,23 +40,31 @@ function normalizeKey(event) {
 }
 
 function onKeyDown(event) {
-	hardwareKeySeen = true;
-
 	const key = normalizeKey(event);
 
 	if (perkinsKeys.has(key)) {
 		chordDown.add(key);
 		chordUsed.add(key);
-		clearChordTimer();
 		event.preventDefault();
 		event.stopPropagation();
 		return;
 	}
 
 	if (key.length === 1 || key === "space") {
-		event.preventDefault();
-		event.stopPropagation();
+		if (isEditableTarget(event.target)) {
+			event.preventDefault();
+			event.stopPropagation();
+		}
 	}
+}
+
+function dotMaskFromKeys(keysSet) {
+	let mask = 0;
+	for (const key of keysSet) {
+		const dot = perkinsKeyToDot[key];
+		if (dot) mask |= 1 << (dot - 1);
+	}
+	return mask;
 }
 
 function onKeyUp(event) {
@@ -94,15 +76,12 @@ function onKeyUp(event) {
 		event.stopPropagation();
 
 		if (chordDown.size === 0 && chordUsed.size > 0) {
-			clearChordTimer();
-			chordEvalTimer = setTimeout(() => {
-				const mask = dotMaskFromKeys(chordUsed);
-				chordUsed.clear();
-				emitAttempt({
-					type: "perkins",
-					dotMask: mask
-				});
-			}, 30);
+			const mask = dotMaskFromKeys(chordUsed);
+			chordUsed.clear();
+			emitAttempt({
+				type: "perkins",
+				dotMask: mask
+			});
 		}
 		return;
 	}
@@ -112,7 +91,6 @@ function onKeyUp(event) {
 			event.preventDefault();
 			event.stopPropagation();
 		}
-
 		emitAttempt({
 			type: "standard",
 			key: key
@@ -150,7 +128,5 @@ function handleBrailleTextInput(text) {
 export {
 	attachDesktopListeners,
 	setAttemptCallback,
-	handleBrailleTextInput,
-	resetInputHeuristics,
-	getHardwareKeySeen
+	handleBrailleTextInput
 };

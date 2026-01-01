@@ -1,28 +1,24 @@
 "use strict";
 
-import { initGameLoop, startRound, stopRound } from "./gameLoop.js";
+import { initGameLoop, startRound } from "./gameLoop.js";
 import { attachDesktopListeners, handleBrailleTextInput as handleBrailleTextInputEngine } from "./inputEngine.js";
 import { unlockAudio } from "./audioEngine.js";
 import { unlockSpeech } from "./speechEngine.js";
-import { resetInputHeuristics, getHardwareKeySeen } from "./inputEngine.js";
-
 
 const body = document.body;
 const homeContent = document.getElementById("homeContent");
 const gameArea = document.getElementById("gameArea");
 const resultsArea = document.getElementById("resultsArea");
 const startButton = document.getElementById("startGameButton");
-const playAgainButton = document.getElementById("playAgainButton");
+const dropCoinButton = document.getElementById("dropCoinButton");
 const cashOutButton = document.getElementById("cashOutButton");
 const brailleInput = document.getElementById("brailleInput");
-const liveRegion = document.getElementById("srLiveRegion");
 
 const grade1InputModeFieldset = document.getElementById("grade1InputModeFieldset");
-const inputModeQwerty = document.getElementById("inputModeQwerty");
 const inputModePerkins = document.getElementById("inputModePerkins");
+const resultsHeading = document.getElementById("resultsHeading");
 
 let gameState = "home";
-let mobileBrailleActive = false;
 
 function isGrade2Mode(modeId) {
 	return modeId === "grade2Symbols" || modeId === "grade2Words";
@@ -36,25 +32,31 @@ function setGameState(state) {
 		homeContent.inert = false;
 		gameArea.hidden = true;
 		resultsArea.hidden = true;
-		releaseBrailleFocus();
+		if (brailleInput) brailleInput.blur();
 		startButton.focus();
+		return;
 	}
 
 	if (state === "playing") {
 		homeContent.inert = true;
 		gameArea.hidden = false;
 		resultsArea.hidden = true;
-		activateBrailleFocus();
+		if (brailleInput) brailleInput.blur();
+		return;
 	}
 
 	if (state === "results") {
 		homeContent.inert = true;
 		gameArea.hidden = true;
 		resultsArea.hidden = false;
-		releaseBrailleFocus();
-		requestAnimationFrame(() => {
-			document.getElementById("resultsHeading").focus();
-		});
+		resultsArea.inert = false;
+		if (brailleInput) brailleInput.blur();
+
+		if (resultsHeading) {
+			requestAnimationFrame(() => {
+				resultsHeading.focus();
+			});
+		}
 	}
 }
 
@@ -84,7 +86,7 @@ function getSelectedSettings() {
 	};
 }
 
-function startGame() {
+function startGameFromSettings() {
 	unlockAudio();
 	unlockSpeech();
 	const settings = getSelectedSettings();
@@ -92,70 +94,44 @@ function startGame() {
 	startRound(settings.brailleMode, settings.roundTime, settings.inputMode);
 }
 
-function endGame() {
+function endGameToResults() {
 	setGameState("results");
 }
 
-function announce(text) {
-	liveRegion.textContent = "";
-	setTimeout(() => {
-		liveRegion.textContent = text;
-	}, 10);
-}
-
-function announceEndOfRound() {
-	announce("Round complete. Results coming up.");
-}
-
-function activateBrailleFocus() {
-	if (!brailleInput) return;
-
-	resetInputHeuristics();
-	brailleInput.blur();
-
-	setTimeout(() => {
-		if (gameState !== "playing") return;
-		if (getHardwareKeySeen()) return;
-		brailleInput.focus();
-	}, 700);
-}
-
-function releaseBrailleFocus() {
-	mobileBrailleActive = false;
-	if (document.activeElement === brailleInput) {
-		brailleInput.blur();
-	}
-}
-
-function handleBrailleTextInput(text) {
-	if (gameState !== "playing") return;
-	handleBrailleTextInputEngine(text);
-}
-
 function setupEventListeners() {
-	startButton.addEventListener("click", startGame);
+	startButton.addEventListener("click", startGameFromSettings);
 
-	playAgainButton.addEventListener("click", () => {
-		const settings = getSelectedSettings();
-		setGameState("playing");
-		startRound(settings.brailleMode, settings.roundTime, settings.inputMode);
-	});
+	if (dropCoinButton) {
+		dropCoinButton.addEventListener("click", () => {
+			startGameFromSettings();
+		});
+	}
 
-	cashOutButton.addEventListener("click", () => {
-		setGameState("home");
-	});
+	if (cashOutButton) {
+		cashOutButton.addEventListener("click", () => {
+			setGameState("home");
+		});
+	}
 
 	document.querySelectorAll("input[name='brailleMode']").forEach(radio => {
 		radio.addEventListener("change", syncInputModeUI);
 	});
 
-	brailleInput.addEventListener("beforeinput", event => {
-		if (event.inputType === "insertText") {
-			event.preventDefault();
-			handleBrailleTextInput(event.data);
+	if (brailleInput) {
+		brailleInput.addEventListener("beforeinput", event => {
+			if (gameState !== "playing") return;
+			if (event.inputType === "insertText") {
+				event.preventDefault();
+				handleBrailleTextInputEngine(event.data);
+			}
+		});
+	}
+
+	document.addEventListener("wabRoundEnded", () => {
+		if (body.getAttribute("data-game-state") === "playing") {
+			endGameToResults();
 		}
 	});
-
 }
 
 function init() {
@@ -164,14 +140,8 @@ function init() {
 	syncInputModeUI();
 
 	initGameLoop({
-		liveRegion: liveRegion,
 		moleElements: Array.from(document.querySelectorAll("#gameBoard .mole"))
 	});
-document.addEventListener("wabRoundEnded", () => {
-	if (body.getAttribute("data-game-state") === "playing") {
-		endGame();
-	}
-});
 
 	attachDesktopListeners();
 }
