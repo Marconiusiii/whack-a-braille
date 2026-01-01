@@ -50,6 +50,9 @@ function createGain(ctx, value) {
 
 function playHitSound() {
 	if (!isUnlocked) return;
+	if (audioContext.state === "suspended") {
+	audioContext.resume();
+}
 
 	const ctx = getAudioContext();
 	const now = ctx.currentTime;
@@ -76,6 +79,9 @@ function playHitSound() {
 
 function playMissSound() {
 	if (!isUnlocked) return;
+	if (audioContext.state === "suspended") {
+	audioContext.resume();
+}
 
 	const ctx = getAudioContext();
 	const now = ctx.currentTime;

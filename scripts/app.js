@@ -51,7 +51,9 @@ function setGameState(state) {
 		gameArea.hidden = true;
 		resultsArea.hidden = false;
 		releaseBrailleFocus();
-		document.getElementById("resultsHeading").focus();
+		requestAnimationFrame(() => {
+			document.getElementById("resultsHeading").focus();
+		});
 	}
 }
 
@@ -126,7 +128,9 @@ function setupEventListeners() {
 	startButton.addEventListener("click", startGame);
 
 	playAgainButton.addEventListener("click", () => {
-		setGameState("home");
+		const settings = getSelectedSettings();
+		setGameState("playing");
+		startRound(settings.brailleMode, settings.roundTime, settings.inputMode);
 	});
 
 	cashOutButton.addEventListener("click", () => {
