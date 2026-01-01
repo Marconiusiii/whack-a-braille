@@ -13,10 +13,16 @@ const cashOutButton = document.getElementById("cashOutButton");
 const brailleInput = document.getElementById("brailleInput");
 const liveRegion = document.getElementById("srLiveRegion");
 
+const grade1InputModeFieldset = document.getElementById("grade1InputModeFieldset");
+const inputModeQwerty = document.getElementById("inputModeQwerty");
+const inputModePerkins = document.getElementById("inputModePerkins");
+
 let gameState = "home";
-let roundTimer = null;
-let roundDuration = 30;
 let mobileBrailleActive = false;
+
+function isGrade2Mode(modeId) {
+	return modeId === "grade2Symbols" || modeId === "grade2Words";
+}
 
 function setGameState(state) {
 	gameState = state;
@@ -46,21 +52,36 @@ function setGameState(state) {
 	}
 }
 
+function syncInputModeUI() {
+	const selectedMode = document.querySelector("input[name='brailleMode']:checked")?.value;
+	if (!selectedMode || !grade1InputModeFieldset) return;
+
+	if (isGrade2Mode(selectedMode)) {
+		grade1InputModeFieldset.disabled = true;
+		if (inputModePerkins) inputModePerkins.checked = true;
+	} else {
+		grade1InputModeFieldset.disabled = false;
+	}
+}
+
 function getSelectedSettings() {
-	const mode = document.querySelector("input[name='brailleMode']:checked").value;
-	const time = document.querySelector("input[name='roundTime']:checked").value;
+	const brailleMode = document.querySelector("input[name='brailleMode']:checked").value;
+	const roundTime = parseInt(document.querySelector("input[name='roundTime']:checked").value, 10);
+
+	let inputMode = document.querySelector("input[name='inputMode']:checked")?.value || "qwerty";
+	if (isGrade2Mode(brailleMode)) inputMode = "perkins";
+
 	return {
-		brailleMode: mode,
-		roundTime: parseInt(time, 10)
+		brailleMode,
+		roundTime,
+		inputMode
 	};
 }
 
 function startGame() {
 	const settings = getSelectedSettings();
-	roundDuration = settings.roundTime;
-
 	setGameState("playing");
-	startRound(settings.brailleMode, settings.roundTime);
+	startRound(settings.brailleMode, settings.roundTime, settings.inputMode);
 }
 
 function endGame() {
@@ -69,23 +90,9 @@ function endGame() {
 	setGameState("results");
 }
 
-function startRoundTimer() {
-	stopRoundTimer();
-	roundTimer = setTimeout(() => {
-		endGame();
-	}, roundDuration * 1000);
-}
-
-function stopRoundTimer() {
-	if (roundTimer !== null) {
-		clearTimeout(roundTimer);
-		roundTimer = null;
-	}
-}
-
 function announce(text) {
 	liveRegion.textContent = "";
-	window.setTimeout(() => {
+	setTimeout(() => {
 		liveRegion.textContent = text;
 	}, 10);
 }
@@ -112,16 +119,6 @@ function handleBrailleTextInput(text) {
 	handleBrailleTextInputEngine(text);
 }
 
-function handleKeyDown(event) {
-	if (gameState !== "playing") return;
-
-	// Ignore if mobile braille input is active
-	if (mobileBrailleActive) return;
-
-	// Placeholder: chord handling will go here
-	console.log("Key down:", event.key);
-}
-
 function setupEventListeners() {
 	startButton.addEventListener("click", startGame);
 
@@ -133,7 +130,9 @@ function setupEventListeners() {
 		setGameState("home");
 	});
 
-	document.addEventListener("keydown", handleKeyDown);
+	document.querySelectorAll("input[name='brailleMode']").forEach(radio => {
+		radio.addEventListener("change", syncInputModeUI);
+	});
 
 	brailleInput.addEventListener("beforeinput", event => {
 		if (event.inputType === "insertText") {
@@ -142,9 +141,8 @@ function setupEventListeners() {
 		}
 	});
 
-	// Safety net: keep focus on braille input during play
 	document.addEventListener("focusin", () => {
-		if (gameState === "playing" && brailleInput && !brailleInput.contains(document.activeElement)) {
+		if (gameState === "playing" && brailleInput && document.activeElement !== brailleInput) {
 			brailleInput.focus();
 		}
 	});
@@ -153,13 +151,14 @@ function setupEventListeners() {
 function init() {
 	setGameState("home");
 	setupEventListeners();
+	syncInputModeUI();
+
 	initGameLoop({
 		liveRegion: liveRegion,
 		moleElements: Array.from(document.querySelectorAll("#gameBoard .mole"))
 	});
 
 	attachDesktopListeners();
-
 }
 
 init();

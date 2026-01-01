@@ -23,6 +23,7 @@ import { setAttemptCallback } from "./inputEngine.js";
 let liveRegion = null;
 let moleElements = [];
 let roundDurationMs = 30000;
+let currentInputMode = "qwerty";
 
 let availableItems = [];
 let roundItems = [];
@@ -50,8 +51,11 @@ function initGameLoop(options) {
 
 /* Round control */
 
-function startRound(modeId, durationSeconds) {
+function startRound(modeId, durationSeconds, inputMode) {
+
 	if (isRunning) return;
+	currentInputMode = inputMode;
+
 
 	roundDurationMs = durationSeconds * 1000;
 	availableItems = getBrailleItemsForMode(modeId);
@@ -182,6 +186,10 @@ function handleAttempt(attempt) {
 	if (activeMoleIndex === null) return;
 
 	const currentItem = roundItems[activeMoleIndex];
+
+	if (currentInputMode === "perkins" && attempt.type === "standard") {
+		return;
+	}
 
 	if (attempt.item && attempt.item.id === currentItem.id) {
 		handleHit();
