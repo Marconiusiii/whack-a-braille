@@ -1,0 +1,63 @@
+/* Base reset */
+
+html, body { margin: 0; padding: 0; }
+body { font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif; background: #0b1020; color: #f5f7ff; line-height: 1.5; }
+
+/* Layout */
+
+main { max-width: 900px; margin: 0 auto; padding: 1.5rem; }
+
+/* Headings */
+
+h1 { font-size: 2.5rem; margin: 0 0 0.25rem 0; color: #ffe66d; }
+h2 { font-size: 1.75rem; margin: 1.5rem 0 0.75rem 0; color: #7bdff2; }
+
+/* Home content */
+
+#homeContent details { margin-bottom: 1.25rem; }
+#homeContent summary { cursor: pointer; font-weight: 600; color: #cdb4ff; }
+#homeContent ol { margin-left: 1.25rem; }
+#homeContent li { margin-bottom: 0.5rem; }
+
+/* Buttons */
+
+button { font-size: 1rem; padding: 0.6rem 1rem; border-radius: 0.5rem; border: none; cursor: pointer; background: #ff6f91; color: #0b1020; }
+button:hover { background: #ff8fab; }
+button:focus { outline: 3px solid #7bdff2; outline-offset: 2px; }
+
+/* Game area */
+
+#gameArea { text-align: center; }
+
+#gameBoard { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem; margin-top: 2rem; }
+
+.mole { height: 120px; border-radius: 1rem; background: radial-gradient(circle at top, #6c63ff, #3a2dbf); box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.4); }
+
+/* Results */
+
+#resultsActions { display: flex; gap: 1rem; margin-top: 1.5rem; justify-content: center; }
+
+/* Footer */
+
+footer { margin-top: 3rem; font-size: 0.9rem; color: #b8c0ff; }
+
+/* Screen reader live region */
+
+#srLiveRegion { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+
+/* Hidden braille input */
+
+#brailleInput { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+
+/* State-based visibility */
+
+body[data-game-state="playing"] #homeContent,
+body[data-game-state="playing"] footer,
+body[data-game-state="results"] #homeContent,
+body[data-game-state="results"] footer { display: none; }
+
+body[data-game-state="home"] #gameArea,
+body[data-game-state="home"] #resultsArea { display: none; }
+
+body[data-game-state="playing"] #gameArea { display: block; }
+body[data-game-state="results"] #resultsArea { display: block; }
