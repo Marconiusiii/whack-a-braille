@@ -39,7 +39,6 @@ function pickVoice() {
 
 function cancelSpeech() {
 	if (!("speechSynthesis" in window)) return;
-
 	window.speechSynthesis.cancel();
 	currentUtterance = null;
 }
@@ -68,38 +67,64 @@ function unlockSpeech() {
 
 		isUnlocked = true;
 		return true;
-	} catch (e) {
+	} catch {
 		return false;
 	}
 }
 
 function speak(text, options = {}) {
 	if (!("speechSynthesis" in window)) {
-		return Promise.resolve({ ok: false, reason: "unsupported", started: false, ended: false, text });
+		return Promise.resolve({
+			ok: false,
+			reason: "unsupported",
+			started: false,
+			ended: false,
+			text,
+			startedAt: 0,
+			endedAt: 0
+		});
 	}
 
 	const cleanText = String(text ?? "").trim();
 	if (!cleanText) {
-		return Promise.resolve({ ok: false, reason: "empty", started: false, ended: false, text: cleanText });
+		return Promise.resolve({
+			ok: false,
+			reason: "empty",
+			started: false,
+			ended: false,
+			text: cleanText,
+			startedAt: 0,
+			endedAt: 0
+		});
 	}
 
 	const {
 		on = "start",
-		timeoutMs = 350,
+		timeoutMs = 400,
 		cancelPrevious = true,
-		dedupe = true,
+		dedupe = false,
 		rate = ratePreference,
 		pitch = pitchPreference,
 		volume = volumePreference
 	} = options;
 
 	if (dedupe && cleanText === lastSpokenText && window.speechSynthesis.speaking) {
-		return Promise.resolve({ ok: true, reason: "deduped", started: true, ended: false, text: cleanText });
+		return Promise.resolve({
+			ok: true,
+			reason: "deduped",
+			started: true,
+			ended: false,
+			text: cleanText,
+			startedAt: lastSpeakStartedAt,
+			endedAt: lastSpeakEndedAt
+		});
 	}
 
 	if (cancelPrevious) cancelSpeech();
 
 	lastSpokenText = cleanText;
+	lastSpeakStartedAt = 0;
+	lastSpeakEndedAt = 0;
 
 	return new Promise(resolve => {
 		let settled = false;
@@ -116,10 +141,18 @@ function speak(text, options = {}) {
 		const voice = pickVoice();
 		if (voice) u.voice = voice;
 
-		const finish = (reason) => {
+		const finish = reason => {
 			if (settled) return;
 			settled = true;
-			resolve({ ok: true, reason, started, ended, text: cleanText });
+			resolve({
+				ok: true,
+				reason,
+				started,
+				ended,
+				text: cleanText,
+				startedAt: lastSpeakStartedAt,
+				endedAt: lastSpeakEndedAt
+			});
 		};
 
 		u.onstart = () => {
@@ -137,15 +170,31 @@ function speak(text, options = {}) {
 		u.onerror = () => {
 			if (settled) return;
 			settled = true;
-			resolve({ ok: false, reason: "error", started, ended, text: cleanText });
+			resolve({
+				ok: false,
+				reason: "error",
+				started,
+				ended,
+				text: cleanText,
+				startedAt: lastSpeakStartedAt,
+				endedAt: lastSpeakEndedAt
+			});
 		};
 
 		try {
 			window.speechSynthesis.speak(u);
-		} catch (e) {
+		} catch {
 			if (settled) return;
 			settled = true;
-			resolve({ ok: false, reason: "exception", started, ended, text: cleanText });
+			resolve({
+				ok: false,
+				reason: "exception",
+				started,
+				ended,
+				text: cleanText,
+				startedAt: lastSpeakStartedAt,
+				endedAt: lastSpeakEndedAt
+			});
 			return;
 		}
 

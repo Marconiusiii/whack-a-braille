@@ -6,15 +6,32 @@ function clamp(value, min, max) {
 	return value;
 }
 
-function computeMoleWindowMs({ speechResult, baseUpTimeMs, extraPadMs = 120, minUpTimeMs = 220, maxUpTimeMs = 1200 } = {}) {
-	let pad = 0;
+function computeMoleWindowMs({
+	speechResult,
+	baseUpTimeMs,
+	reactionBufferMs = 260,
+	minUpTimeMs = 400,
+	maxUpTimeMs = 1800
+} = {}) {
+	let speechDuration = 0;
 
-	if (!speechResult || speechResult.ok !== true) pad = 220;
-	else if (speechResult.started !== true) pad = 220;
-	else if (speechResult.reason === "timeout") pad = 180;
+	if (speechResult && speechResult.started && speechResult.ended) {
+		const startedAt = speechResult.startedAt ?? 0;
+		const endedAt = speechResult.endedAt ?? 0;
+		if (endedAt > startedAt) {
+			speechDuration = endedAt - startedAt;
+		}
+	}
 
-	const windowMs = baseUpTimeMs + pad + extraPadMs;
-	return clamp(windowMs, minUpTimeMs, maxUpTimeMs);
+	if (!speechDuration) {
+		speechDuration = 300;
+	}
+
+	const windowMs = baseUpTimeMs + speechDuration + reactionBufferMs;
+
+	if (windowMs < minUpTimeMs) return minUpTimeMs;
+	if (windowMs > maxUpTimeMs) return maxUpTimeMs;
+	return windowMs;
 }
 
 function computeRoundEndGraceMs({ baseGraceMs = 350, maxGraceMs = 750 } = {}) {
