@@ -90,8 +90,6 @@ function startGame() {
 }
 
 function endGame() {
-	stopRound();
-	announceEndOfRound();
 	setGameState("results");
 }
 
@@ -162,6 +160,11 @@ function init() {
 		liveRegion: liveRegion,
 		moleElements: Array.from(document.querySelectorAll("#gameBoard .mole"))
 	});
+document.addEventListener("wabRoundEnded", () => {
+	if (body.getAttribute("data-game-state") === "playing") {
+		endGame();
+	}
+});
 
 	attachDesktopListeners();
 }

@@ -230,7 +230,9 @@ function handleAttempt(attempt) {
 }
 
 function handleHit() {
-	playHitSound();
+	requestAnimationFrame(() => {
+		playHitSound();
+	});
 	clearTimeout(moleUpTimer);
 	moleUpTimer = null;
 	clearActiveMole();
@@ -238,7 +240,9 @@ function handleHit() {
 }
 
 function handleMiss() {
-	playMissSound();
+	requestAnimationFrame(() => {
+		playMissSound();
+	});
 }
 
 export {
