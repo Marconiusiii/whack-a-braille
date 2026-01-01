@@ -6,7 +6,7 @@
 <title>Whack a Braille!</title>
 <meta name="description" content="Whack a Braille is a braille-first arcade game where fast fingers, sharp ears, and solid braille skills win tickets and prizes.">
 <meta name="author" content="Marco Salsiccia">
-<link rel="stylesheet" href="css/main.css">
+<link rel="stylesheet" href="css/wab.css">
 </head>
 
 <body>
@@ -45,20 +45,33 @@
 <fieldset>
 <legend>Braille Mode</legend>
 
-<div><input type="radio" name="brailleMode" id="modeGrade1Letters" value="grade1Letters" checked><label for="modeGrade1Letters">Letters only (Grade 1)</label></div>
-<div><input type="radio" name="brailleMode" id="modeGrade1Numbers" value="grade1Numbers"><label for="modeGrade1Numbers">Numbers only (Grade 1)</label></div>
-<div><input type="radio" name="brailleMode" id="modeGrade1LettersNumbers" value="grade1LettersNumbers"><label for="modeGrade1LettersNumbers">Letters and numbers (Grade 1)</label></div>
-<div><input type="radio" name="brailleMode" id="modeGrade2Symbols" value="grade2Symbols"><label for="modeGrade2Symbols">Grade 2 contractions (symbols)</label></div>
-<div><input type="radio" name="brailleMode" id="modeGrade2Words" value="grade2Words"><label for="modeGrade2Words">Grade 2 whole-word contractions</label></div>
+<input type="radio" name="brailleMode" id="modeGrade1Letters" value="grade1Letters" checked>
+<label for="modeGrade1Letters">Letters only (Grade 1)</label>
 
+<input type="radio" name="brailleMode" id="modeGrade1Numbers" value="grade1Numbers">
+<label for="modeGrade1Numbers">Numbers only (Grade 1)</label>
+
+<input type="radio" name="brailleMode" id="modeGrade1LettersNumbers" value="grade1LettersNumbers">
+<label for="modeGrade1LettersNumbers">Letters and numbers (Grade 1)</label>
+
+<input type="radio" name="brailleMode" id="modeGrade2Symbols" value="grade2Symbols">
+<label for="modeGrade2Symbols">Grade 2 contractions (symbols)</label>
+
+<input type="radio" name="brailleMode" id="modeGrade2Words" value="grade2Words">
+<label for="modeGrade2Words">Grade 2 whole-word contractions</label>
 </fieldset>
 
 <fieldset>
 <legend>Round Length</legend>
 
-<div><input type="radio" name="roundTime" id="time30" value="30" checked><label for="time30">30 seconds</label></div>
-<div><input type="radio" name="roundTime" id="time45" value="45"><label for="time45">45 seconds</label></div>
-<div><input type="radio" name="roundTime" id="time60" value="60"><label for="time60">60 seconds (Does it ever stop?)</label></div>
+<input type="radio" name="roundTime" id="time30" value="30" checked>
+<label for="time30">30 seconds</label>
+
+<input type="radio" name="roundTime" id="time45" value="45">
+<label for="time45">45 seconds</label>
+
+<input type="radio" name="roundTime" id="time60" value="60">
+<label for="time60">60 seconds (Does it ever stop?)</label>
 
 </fieldset>
 
@@ -106,7 +119,7 @@
 <p>Footer content will be added later.</p>
 </footer>
 
-<script src="js/app.js"></script>
+<script src="scripts/app.js"></script>
 
 </body>
 </html>
