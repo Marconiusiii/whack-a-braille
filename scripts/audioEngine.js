@@ -23,9 +23,18 @@ function unlockAudio() {
 	if (isUnlocked) return;
 
 	const ctx = getAudioContext();
+
 	if (ctx.state === "suspended") {
 		ctx.resume();
 	}
+
+	// Chrome unlock hack: play a silent buffer immediately
+	const buffer = ctx.createBuffer(1, 1, 22050);
+	const source = ctx.createBufferSource();
+	source.buffer = buffer;
+	source.connect(ctx.destination);
+	source.start(0);
+
 	isUnlocked = true;
 }
 

@@ -1,12 +1,5 @@
 "use strict";
 
-/*
-	Dot numbering reference
-	1 4
-	2 5
-	3 6
-*/
-
 function dotsToMask(dots) {
 	let mask = 0;
 	for (const dot of dots) {
@@ -15,61 +8,128 @@ function dotsToMask(dots) {
 	return mask;
 }
 
-const brailleModes = {
-	grade1Letters: { id: "grade1Letters", label: "Letters only (Grade 1)" },
-	grade1Numbers: { id: "grade1Numbers", label: "Numbers only (Grade 1)" },
-	grade1LettersNumbers: { id: "grade1LettersNumbers", label: "Letters and numbers (Grade 1)" },
-	grade2Symbols: { id: "grade2Symbols", label: "Grade 2 contractions (symbols)" },
-	grade2Words: { id: "grade2Words", label: "Grade 2 whole-word contractions" }
-};
+function dotsToPerkinsKeys(dots) {
+	const map = { 1:"f", 2:"d", 3:"s", 4:"j", 5:"k", 6:"l" };
+	return dots.map(dot => map[dot]);
+}
+
+function makeItem(id, announceText, dots, modes, standardKey = null) {
+	return {
+		id,
+		modeTags: modes,
+		displayLabel: id,
+		announceText,
+		dots,
+		dotMask: dotsToMask(dots),
+		perkinsKeys: dotsToPerkinsKeys(dots),
+		standardKey
+	};
+}
+
+const grade1Letters = [
+	makeItem("a","a",[1],["grade1Letters","grade1LettersNumbers"],"a"),
+	makeItem("b","b",[1,2],["grade1Letters","grade1LettersNumbers"],"b"),
+	makeItem("c","c",[1,4],["grade1Letters","grade1LettersNumbers"],"c"),
+	makeItem("d","d",[1,4,5],["grade1Letters","grade1LettersNumbers"],"d"),
+	makeItem("e","e",[1,5],["grade1Letters","grade1LettersNumbers"],"e"),
+	makeItem("f","f",[1,2,4],["grade1Letters","grade1LettersNumbers"],"f"),
+	makeItem("g","g",[1,2,4,5],["grade1Letters","grade1LettersNumbers"],"g"),
+	makeItem("h","h",[1,2,5],["grade1Letters","grade1LettersNumbers"],"h"),
+	makeItem("i","i",[2,4],["grade1Letters","grade1LettersNumbers"],"i"),
+	makeItem("j","j",[2,4,5],["grade1Letters","grade1LettersNumbers"],"j"),
+	makeItem("k","k",[1,3],["grade1Letters","grade1LettersNumbers"],"k"),
+	makeItem("l","l",[1,2,3],["grade1Letters","grade1LettersNumbers"],"l"),
+	makeItem("m","m",[1,3,4],["grade1Letters","grade1LettersNumbers"],"m"),
+	makeItem("n","n",[1,3,4,5],["grade1Letters","grade1LettersNumbers"],"n"),
+	makeItem("o","o",[1,3,5],["grade1Letters","grade1LettersNumbers"],"o"),
+	makeItem("p","p",[1,2,3,4],["grade1Letters","grade1LettersNumbers"],"p"),
+	makeItem("q","q",[1,2,3,4,5],["grade1Letters","grade1LettersNumbers"],"q"),
+	makeItem("r","r",[1,2,3,5],["grade1Letters","grade1LettersNumbers"],"r"),
+	makeItem("s","s",[2,3,4],["grade1Letters","grade1LettersNumbers"],"s"),
+	makeItem("t","t",[2,3,4,5],["grade1Letters","grade1LettersNumbers"],"t"),
+	makeItem("u","u",[1,3,6],["grade1Letters","grade1LettersNumbers"],"u"),
+	makeItem("v","v",[1,2,3,6],["grade1Letters","grade1LettersNumbers"],"v"),
+	makeItem("w","w",[2,4,5,6],["grade1Letters","grade1LettersNumbers"],"w"),
+	makeItem("x","x",[1,3,4,6],["grade1Letters","grade1LettersNumbers"],"x"),
+	makeItem("y","y",[1,3,4,5,6],["grade1Letters","grade1LettersNumbers"],"y"),
+	makeItem("z","z",[1,3,5,6],["grade1Letters","grade1LettersNumbers"],"z")
+];
+
+const grade1Numbers = [
+	makeItem("1","1",[1],["grade1Numbers","grade1LettersNumbers"],"1"),
+	makeItem("2","2",[1,2],["grade1Numbers","grade1LettersNumbers"],"2"),
+	makeItem("3","3",[1,4],["grade1Numbers","grade1LettersNumbers"],"3"),
+	makeItem("4","4",[1,4,5],["grade1Numbers","grade1LettersNumbers"],"4"),
+	makeItem("5","5",[1,5],["grade1Numbers","grade1LettersNumbers"],"5"),
+	makeItem("6","6",[1,2,4],["grade1Numbers","grade1LettersNumbers"],"6"),
+	makeItem("7","7",[1,2,4,5],["grade1Numbers","grade1LettersNumbers"],"7"),
+	makeItem("8","8",[1,2,5],["grade1Numbers","grade1LettersNumbers"],"8"),
+	makeItem("9","9",[2,4],["grade1Numbers","grade1LettersNumbers"],"9"),
+	makeItem("0","0",[2,4,5],["grade1Numbers","grade1LettersNumbers"],"0")
+];
+
+const grade2Symbols = [
+	makeItem("er","E R",[1,2,4,5,6],["grade2Symbols"]),
+	makeItem("ed","E D",[1,2,4,6],["grade2Symbols"]),
+	makeItem("gh","G H",[1,2,6],["grade2Symbols"]),
+	makeItem("ar","A R",[3,4,5],["grade2Symbols"]),
+	makeItem("ow","O W",[2,4,6],["grade2Symbols"]),
+	makeItem("ou","O U",[1,2,5,6],["grade2Symbols"]),
+	makeItem("st","S T",[3,4],["grade2Symbols"]),
+	makeItem("ch","C H",[1,6],["grade2Symbols"]),
+	makeItem("wh","W H",[1,5,6],["grade2Symbols"]),
+	makeItem("ing","I N G",[3,4,6],["grade2Symbols"]),
+	makeItem("dis","dis",[2,3,4,6],["grade2Symbols"]),
+	makeItem("con","con",[2,5,6],["grade2Symbols"]),
+	makeItem("of","of",[1,2,3,5,6],["grade2Symbols"]),
+	makeItem("with","with",[2,3,4,5,6],["grade2Symbols"]),
+	makeItem("and","and",[1,2,3,4,6],["grade2Symbols"]),
+	makeItem("for","for",[1,2,3,4,5,6],["grade2Symbols"]),
+	makeItem("the","the",[2,3,4,6],["grade2Symbols"])
+];
+
+const grade2Words = [
+	makeItem("but","but",[1,2],["grade2Words"]),
+	makeItem("can","can",[1,4],["grade2Words"]),
+	makeItem("do","do",[1,4,5],["grade2Words"]),
+	makeItem("every","every",[1,5],["grade2Words"]),
+	makeItem("from","from",[1,2,4],["grade2Words"]),
+	makeItem("go","go",[1,2,4,5],["grade2Words"]),
+	makeItem("have","have",[1,2,5],["grade2Words"]),
+	makeItem("just","just",[2,4,5],["grade2Words"]),
+	makeItem("knowledge","knowledge",[1,3,4,5],["grade2Words"]),
+	makeItem("like","like",[1,2,3],["grade2Words"]),
+	makeItem("more","more",[1,3,4],["grade2Words"]),
+	makeItem("not","not",[1,3,4,5],["grade2Words"]),
+	makeItem("people","people",[1,2,3,4],["grade2Words"]),
+	makeItem("quite","quite",[1,2,3,4,5],["grade2Words"]),
+	makeItem("rather","rather",[1,2,3,5],["grade2Words"]),
+	makeItem("so","so",[2,3,4],["grade2Words"]),
+	makeItem("that","that",[2,3,4,5],["grade2Words"]),
+	makeItem("us","us",[1,3,6],["grade2Words"]),
+	makeItem("very","very",[1,2,3,6],["grade2Words"]),
+	makeItem("will","will",[2,4,5,6],["grade2Words"]),
+	makeItem("it","it",[1,3],["grade2Words"]),
+	makeItem("you","you",[1,3,4,6],["grade2Words"]),
+	makeItem("as","as",[1,3,5],["grade2Words"]),
+	makeItem("this","this",[1,4,5,6],["grade2Words"]),
+	makeItem("which","which",[1,5,6],["grade2Words"]),
+	makeItem("child","child",[1,6],["grade2Words"]),
+	makeItem("shall","shall",[1,4,6],["grade2Words"])
+];
 
 const brailleRegistry = [
-
-	/* Grade 1 Letters */
-
-	{ id: "a", modeTags: ["grade1Letters", "grade1LettersNumbers"], displayLabel: "a", announceText: "a", dots: [1], dotMask: dotsToMask([1]), perkinsKeys: ["f"], standardKey: "a" },
-	{ id: "b", modeTags: ["grade1Letters", "grade1LettersNumbers"], displayLabel: "b", announceText: "b", dots: [1,2], dotMask: dotsToMask([1,2]), perkinsKeys: ["f","d"], standardKey: "b" },
-	{ id: "c", modeTags: ["grade1Letters", "grade1LettersNumbers"], displayLabel: "c", announceText: "c", dots: [1,4], dotMask: dotsToMask([1,4]), perkinsKeys: ["f","j"], standardKey: "c" },
-	{ id: "d", modeTags: ["grade1Letters", "grade1LettersNumbers"], displayLabel: "d", announceText: "d", dots: [1,4,5], dotMask: dotsToMask([1,4,5]), perkinsKeys: ["f","j","k"], standardKey: "d" },
-	{ id: "e", modeTags: ["grade1Letters", "grade1LettersNumbers"], displayLabel: "e", announceText: "e", dots: [1,5], dotMask: dotsToMask([1,5]), perkinsKeys: ["f","k"], standardKey: "e" },
-
-	/* continue full alphabet later */
-
-	/* Grade 1 Numbers (no number sign) */
-
-	{ id: "1", modeTags: ["grade1Numbers", "grade1LettersNumbers"], displayLabel: "1", announceText: "1", dots: [1], dotMask: dotsToMask([1]), perkinsKeys: ["f"], standardKey: "1" },
-	{ id: "2", modeTags: ["grade1Numbers", "grade1LettersNumbers"], displayLabel: "2", announceText: "2", dots: [1,2], dotMask: dotsToMask([1,2]), perkinsKeys: ["f","d"], standardKey: "2" },
-	{ id: "3", modeTags: ["grade1Numbers", "grade1LettersNumbers"], displayLabel: "3", announceText: "3", dots: [1,4], dotMask: dotsToMask([1,4]), perkinsKeys: ["f","j"], standardKey: "3" },
-
-	/* continue 4–0 later */
-
-	/* Grade 2 Symbol Contractions (two-letter, announce letters individually) */
-
-	{ id: "er", modeTags: ["grade2Symbols"], displayLabel: "er", announceText: "E R", dots: [1,2,4,5], dotMask: dotsToMask([1,2,4,5]), perkinsKeys: ["f","d","j","k"], standardKey: null },
-	{ id: "ed", modeTags: ["grade2Symbols"], displayLabel: "ed", announceText: "E D", dots: [1,2,4,6], dotMask: dotsToMask([1,2,4,6]), perkinsKeys: ["f","d","j","l"], standardKey: null },
-	{ id: "ou", modeTags: ["grade2Symbols"], displayLabel: "ou", announceText: "O U", dots: [1,2,5,6], dotMask: dotsToMask([1,2,5,6]), perkinsKeys: ["f","d","k","l"], standardKey: null },
-	{ id: "sh", modeTags: ["grade2Symbols"], displayLabel: "sh", announceText: "S H", dots: [1,4,6], dotMask: dotsToMask([1,4,6]), perkinsKeys: ["f","j","l"], standardKey: null },
-	{ id: "th", modeTags: ["grade2Symbols"], displayLabel: "th", announceText: "T H", dots: [1,4,5,6], dotMask: dotsToMask([1,4,5,6]), perkinsKeys: ["f","j","k","l"], standardKey: null },
-
-	/* Grade 2 Symbol Contractions (word-like, spoken as words) */
-
-	{ id: "and", modeTags: ["grade2Symbols"], displayLabel: "and", announceText: "and", dots: [1,2,3,4,6], dotMask: dotsToMask([1,2,3,4,6]), perkinsKeys: ["f","d","s","j","l"], standardKey: null },
-	{ id: "for", modeTags: ["grade2Symbols"], displayLabel: "for", announceText: "for", dots: [1,2,3,4], dotMask: dotsToMask([1,2,3,4]), perkinsKeys: ["f","d","s","j"], standardKey: null },
-	{ id: "the", modeTags: ["grade2Symbols"], displayLabel: "the", announceText: "the", dots: [2,3,4,6], dotMask: dotsToMask([2,3,4,6]), perkinsKeys: ["d","s","j","l"], standardKey: null },
-	{ id: "with", modeTags: ["grade2Symbols"], displayLabel: "with", announceText: "with", dots: [2,3,4,5,6], dotMask: dotsToMask([2,3,4,5,6]), perkinsKeys: ["d","s","j","k","l"], standardKey: null },
-	{ id: "ing", modeTags: ["grade2Symbols"], displayLabel: "ing", announceText: "ing", dots: [3,4,6], dotMask: dotsToMask([3,4,6]), perkinsKeys: ["s","j","l"], standardKey: null },
-
-	/* Grade 2 Whole-Word Contractions */
-
-	{ id: "but", modeTags: ["grade2Words"], displayLabel: "but", announceText: "but", dots: [1,2], dotMask: dotsToMask([1,2]), perkinsKeys: ["f","d"], standardKey: null },
-	{ id: "can", modeTags: ["grade2Words"], displayLabel: "can", announceText: "can", dots: [1,4], dotMask: dotsToMask([1,4]), perkinsKeys: ["f","j"], standardKey: null },
-	{ id: "do", modeTags: ["grade2Words"], displayLabel: "do", announceText: "do", dots: [1,4,5], dotMask: dotsToMask([1,4,5]), perkinsKeys: ["f","j","k"], standardKey: null },
-	{ id: "knowledge", modeTags: ["grade2Words"], displayLabel: "knowledge", announceText: "knowledge", dots: [1,3,4,5], dotMask: dotsToMask([1,3,4,5]), perkinsKeys: ["f","s","j","k"], standardKey: null }
-
+	...grade1Letters,
+	...grade1Numbers,
+	...grade2Symbols,
+	...grade2Words
 ];
 
 function getBrailleItemsForMode(modeId) {
 	return brailleRegistry.filter(item => item.modeTags.includes(modeId));
 }
 
-export { brailleModes, brailleRegistry, getBrailleItemsForMode };
+export {
+	brailleRegistry,
+	getBrailleItemsForMode
+};

@@ -133,7 +133,7 @@ function showRandomMole() {
 	activeMoleIndex = pickNextMoleIndex();
 	const moleItem = roundItems[activeMoleIndex];
 
-	announceMole(moleItem);
+//	announceMole(moleItem);
 	activateMoleVisual(activeMoleIndex);
 
 	const upTime = getCurrentUpTime();
