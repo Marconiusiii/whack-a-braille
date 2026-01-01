@@ -1,6 +1,7 @@
 "use strict";
 
 let attemptCallback = null;
+let captureEnabled = false;
 
 const perkinsKeyToDot = {
 	f: 1,
@@ -20,42 +21,23 @@ function setAttemptCallback(cb) {
 	attemptCallback = cb;
 }
 
+function setCaptureEnabled(isEnabled) {
+	captureEnabled = !!isEnabled;
+	if (!captureEnabled) {
+		chordDown.clear();
+		chordUsed.clear();
+	}
+}
+
 function emitAttempt(attempt) {
 	if (!attemptCallback) return;
 	attemptCallback(attempt);
-}
-
-function isEditableTarget(target) {
-	if (!target) return false;
-	const tag = (target.tagName || "").toLowerCase();
-	if (tag === "input" || tag === "textarea") return true;
-	if (target.isContentEditable) return true;
-	return false;
 }
 
 function normalizeKey(event) {
 	const key = (event.key || "").toLowerCase();
 	if (key === " ") return "space";
 	return key;
-}
-
-function onKeyDown(event) {
-	const key = normalizeKey(event);
-
-	if (perkinsKeys.has(key)) {
-		chordDown.add(key);
-		chordUsed.add(key);
-		event.preventDefault();
-		event.stopPropagation();
-		return;
-	}
-
-	if (key.length === 1 || key === "space") {
-		if (isEditableTarget(event.target)) {
-			event.preventDefault();
-			event.stopPropagation();
-		}
-	}
 }
 
 function dotMaskFromKeys(keysSet) {
@@ -67,7 +49,28 @@ function dotMaskFromKeys(keysSet) {
 	return mask;
 }
 
+function onKeyDown(event) {
+	if (!captureEnabled) return;
+
+	const key = normalizeKey(event);
+
+	if (perkinsKeys.has(key)) {
+		chordDown.add(key);
+		chordUsed.add(key);
+		event.preventDefault();
+		event.stopPropagation();
+		return;
+	}
+
+	if (key.length === 1 || key === "space") {
+		event.preventDefault();
+		event.stopPropagation();
+	}
+}
+
 function onKeyUp(event) {
+	if (!captureEnabled) return;
+
 	const key = normalizeKey(event);
 
 	if (perkinsKeys.has(key)) {
@@ -87,10 +90,8 @@ function onKeyUp(event) {
 	}
 
 	if (key.length === 1) {
-		if (isEditableTarget(event.target)) {
-			event.preventDefault();
-			event.stopPropagation();
-		}
+		event.preventDefault();
+		event.stopPropagation();
 		emitAttempt({
 			type: "standard",
 			key: key
@@ -99,10 +100,8 @@ function onKeyUp(event) {
 	}
 
 	if (key === "space") {
-		if (isEditableTarget(event.target)) {
-			event.preventDefault();
-			event.stopPropagation();
-		}
+		event.preventDefault();
+		event.stopPropagation();
 		emitAttempt({
 			type: "standard",
 			key: " "
@@ -116,7 +115,9 @@ function attachDesktopListeners() {
 }
 
 function handleBrailleTextInput(text) {
-	const clean = String(text ?? "");
+	if (!captureEnabled) return;
+
+	const clean = String(text ?? "").trim();
 	if (!clean) return;
 
 	emitAttempt({
@@ -128,5 +129,6 @@ function handleBrailleTextInput(text) {
 export {
 	attachDesktopListeners,
 	setAttemptCallback,
+	setCaptureEnabled,
 	handleBrailleTextInput
 };
