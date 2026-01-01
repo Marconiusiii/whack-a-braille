@@ -222,11 +222,21 @@ function handleAttempt(attempt) {
 
 	const currentItem = roundItems[activeMoleIndex];
 
-	if (attempt.item && attempt.item.id === currentItem.id) {
-		handleHit();
-	} else {
-		handleMiss();
+	let isHit = false;
+
+	if (attempt.type === "perkins") {
+		isHit = attempt.dotMask === currentItem.dotMask;
+	} else if (attempt.type === "standard") {
+		if (typeof currentItem.standardKey === "string") {
+			isHit = attempt.key === currentItem.standardKey;
+		}
+	} else if (attempt.type === "bsi") {
+		const text = String(attempt.text || "").trim().toLowerCase();
+		isHit = text === String(currentItem.id || "").toLowerCase();
 	}
+
+	if (isHit) handleHit();
+	else handleMiss();
 }
 
 function handleHit() {

@@ -1,17 +1,6 @@
 "use strict";
 
-import { brailleRegistry } from "./brailleRegistry.js";
-
-/*
-	InputEngine responsibilities:
-
-	- Track Perkins-style key chords
-	- Resolve chords to dot masks
-	- Resolve mobile braille text input
-	- Emit a normalized "attempt" object
-	- Never touch the DOM
-	- Never announce anything
-*/
+let attemptCallback = null;
 
 const perkinsKeyToDot = {
 	f: 1,
@@ -22,145 +11,146 @@ const perkinsKeyToDot = {
 	l: 6
 };
 
-let activeKeys = new Set();
-let chordTimer = null;
-let chordWindowMs = 80;
+const perkinsKeys = new Set(Object.keys(perkinsKeyToDot));
 
-let attemptCallback = null;
+let hardwareKeySeen = false;
+let chordDown = new Set();
+let chordUsed = new Set();
+let chordEvalTimer = null;
 
-function setAttemptCallback(callback) {
-	attemptCallback = callback;
+function setAttemptCallback(cb) {
+	attemptCallback = cb;
 }
 
-function resetChord() {
-	activeKeys.clear();
-	if (chordTimer !== null) {
-		clearTimeout(chordTimer);
-		chordTimer = null;
+function resetInputHeuristics() {
+	hardwareKeySeen = false;
+}
+
+function getHardwareKeySeen() {
+	return hardwareKeySeen;
+}
+
+function clearChordTimer() {
+	if (chordEvalTimer) {
+		clearTimeout(chordEvalTimer);
+		chordEvalTimer = null;
 	}
 }
 
-function buildDotMaskFromKeys(keys) {
+function dotMaskFromKeys(keysSet) {
 	let mask = 0;
-	for (const key of keys) {
+	for (const key of keysSet) {
 		const dot = perkinsKeyToDot[key];
-		if (dot) {
-			mask |= 1 << (dot - 1);
-		}
+		if (dot) mask |= 1 << (dot - 1);
 	}
 	return mask;
 }
 
-function resolvePerkinsChord(dotMask) {
-	if (dotMask === 0) return null;
+function emitAttempt(attempt) {
+	if (!attemptCallback) return;
+	attemptCallback(attempt);
+}
 
-	for (const item of brailleRegistry) {
-		if (item.dotMask === dotMask) {
-			return item;
+function isEditableTarget(target) {
+	if (!target) return false;
+	const tag = (target.tagName || "").toLowerCase();
+	if (tag === "input" || tag === "textarea") return true;
+	if (target.isContentEditable) return true;
+	return false;
+}
+
+function normalizeKey(event) {
+	const key = (event.key || "").toLowerCase();
+	if (key === " ") return "space";
+	return key;
+}
+
+function onKeyDown(event) {
+	hardwareKeySeen = true;
+
+	const key = normalizeKey(event);
+
+	if (perkinsKeys.has(key)) {
+		chordDown.add(key);
+		chordUsed.add(key);
+		clearChordTimer();
+		event.preventDefault();
+		event.stopPropagation();
+		return;
+	}
+
+	if (key.length === 1 || key === "space") {
+		event.preventDefault();
+		event.stopPropagation();
+	}
+}
+
+function onKeyUp(event) {
+	const key = normalizeKey(event);
+
+	if (perkinsKeys.has(key)) {
+		chordDown.delete(key);
+		event.preventDefault();
+		event.stopPropagation();
+
+		if (chordDown.size === 0 && chordUsed.size > 0) {
+			clearChordTimer();
+			chordEvalTimer = setTimeout(() => {
+				const mask = dotMaskFromKeys(chordUsed);
+				chordUsed.clear();
+				emitAttempt({
+					type: "perkins",
+					dotMask: mask
+				});
+			}, 30);
 		}
-	}
-	return null;
-}
-
-function handlePerkinsKeyDown(event) {
-	const key = event.key.toLowerCase();
-	if (!(key in perkinsKeyToDot)) return;
-
-	activeKeys.add(key);
-
-	if (chordTimer === null) {
-		chordTimer = setTimeout(resolveChord, chordWindowMs);
-	}
-}
-
-function handlePerkinsKeyUp(event) {
-	const key = event.key.toLowerCase();
-	if (!(key in perkinsKeyToDot)) return;
-
-	// keyup is intentionally ignored
-	// resolution happens on timer
-}
-
-function resolveChord() {
-	const dotMask = buildDotMaskFromKeys(activeKeys);
-	const match = resolvePerkinsChord(dotMask);
-
-	if (attemptCallback) {
-		attemptCallback({
-			type: "perkins",
-			dotMask: dotMask,
-			item: match
-		});
+		return;
 	}
 
-	resetChord();
-}
-
-function resolveStandardKeyInput(key) {
-	const normalizedKey = key.toLowerCase();
-
-	for (const item of brailleRegistry) {
-		if (item.standardKey === normalizedKey) {
-			return item;
+	if (key.length === 1) {
+		if (isEditableTarget(event.target)) {
+			event.preventDefault();
+			event.stopPropagation();
 		}
-	}
-	return null;
-}
 
-function handleStandardKey(event) {
-	if (event.key.length !== 1) return;
-
-	const match = resolveStandardKeyInput(event.key);
-
-	if (attemptCallback) {
-		attemptCallback({
+		emitAttempt({
 			type: "standard",
-			key: event.key,
-			item: match
+			key: key
 		});
+		return;
 	}
-}
 
-function normalizeBrailleText(text) {
-	return text.trim().toLowerCase();
-}
-
-function resolveBrailleTextInput(text) {
-	const normalized = normalizeBrailleText(text);
-	if (!normalized) return null;
-
-	for (const item of brailleRegistry) {
-		if (item.id === normalized) return item;
-	}
-	return null;
-}
-
-function handleBrailleTextInput(text) {
-	const match = resolveBrailleTextInput(text);
-
-	if (attemptCallback) {
-		attemptCallback({
-			type: "brailleText",
-			text: text,
-			item: match
+	if (key === "space") {
+		if (isEditableTarget(event.target)) {
+			event.preventDefault();
+			event.stopPropagation();
+		}
+		emitAttempt({
+			type: "standard",
+			key: " "
 		});
 	}
 }
 
 function attachDesktopListeners() {
-	document.addEventListener("keydown", event => {
-		if (event.key.toLowerCase() in perkinsKeyToDot) {
-			handlePerkinsKeyDown(event);
-		} else {
-			handleStandardKey(event);
-		}
-	});
+	window.addEventListener("keydown", onKeyDown, true);
+	window.addEventListener("keyup", onKeyUp, true);
+}
 
-	document.addEventListener("keyup", handlePerkinsKeyUp);
+function handleBrailleTextInput(text) {
+	const clean = String(text ?? "");
+	if (!clean) return;
+
+	emitAttempt({
+		type: "bsi",
+		text: clean
+	});
 }
 
 export {
+	attachDesktopListeners,
 	setAttemptCallback,
 	handleBrailleTextInput,
-	attachDesktopListeners
+	resetInputHeuristics,
+	getHardwareKeySeen
 };

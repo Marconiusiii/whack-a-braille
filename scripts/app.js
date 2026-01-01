@@ -4,6 +4,7 @@ import { initGameLoop, startRound, stopRound } from "./gameLoop.js";
 import { attachDesktopListeners, handleBrailleTextInput as handleBrailleTextInputEngine } from "./inputEngine.js";
 import { unlockAudio } from "./audioEngine.js";
 import { unlockSpeech } from "./speechEngine.js";
+import { resetInputHeuristics, getHardwareKeySeen } from "./inputEngine.js";
 
 
 const body = document.body;
@@ -108,8 +109,15 @@ function announceEndOfRound() {
 
 function activateBrailleFocus() {
 	if (!brailleInput) return;
-	mobileBrailleActive = true;
-	brailleInput.focus();
+
+	resetInputHeuristics();
+	brailleInput.blur();
+
+	setTimeout(() => {
+		if (gameState !== "playing") return;
+		if (getHardwareKeySeen()) return;
+		brailleInput.focus();
+	}, 700);
 }
 
 function releaseBrailleFocus() {
@@ -148,11 +156,6 @@ function setupEventListeners() {
 		}
 	});
 
-	document.addEventListener("focusin", () => {
-		if (gameState === "playing" && brailleInput && document.activeElement !== brailleInput) {
-			brailleInput.focus();
-		}
-	});
 }
 
 function init() {
