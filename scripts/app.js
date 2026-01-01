@@ -1,5 +1,9 @@
 "use strict";
 
+import { initGameLoop, startRound, stopRound } from "./gameLoop.js";
+import { attachDesktopListeners, handleBrailleTextInput } from "./inputEngine.js";
+import { handleBrailleTextInput as handleBrailleTextInputEngine } from "./inputEngine.js";
+
 const body = document.body;
 const homeContent = document.getElementById("homeContent");
 const gameArea = document.getElementById("gameArea");
@@ -55,12 +59,13 @@ function getSelectedSettings() {
 function startGame() {
 	const settings = getSelectedSettings();
 	roundDuration = settings.roundTime;
+
 	setGameState("playing");
-	startRoundTimer();
+	startRound(settings.brailleMode, settings.roundTime);
 }
 
 function endGame() {
-	stopRoundTimer();
+	stopRound();
 	announceEndOfRound();
 	setGameState("results");
 }
@@ -105,10 +110,7 @@ function releaseBrailleFocus() {
 
 function handleBrailleTextInput(text) {
 	if (gameState !== "playing") return;
-	if (!text) return;
-
-	// Placeholder: route text to game engine later
-	console.log("Braille input:", text);
+	handleBrailleTextInputEngine(text);
 }
 
 function handleKeyDown(event) {
@@ -152,6 +154,13 @@ function setupEventListeners() {
 function init() {
 	setGameState("home");
 	setupEventListeners();
+	initGameLoop({
+		liveRegion: liveRegion,
+		moleElements: Array.from(document.querySelectorAll("#gameBoard .mole"))
+	});
+
+	attachDesktopListeners();
+
 }
 
 init();
