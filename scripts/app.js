@@ -1,8 +1,7 @@
 "use strict";
 
 import { initGameLoop, startRound, stopRound } from "./gameLoop.js";
-import { attachDesktopListeners, handleBrailleTextInput } from "./inputEngine.js";
-import { handleBrailleTextInput as handleBrailleTextInputEngine } from "./inputEngine.js";
+import { attachDesktopListeners, handleBrailleTextInput as handleBrailleTextInputEngine } from "./inputEngine.js";
 
 const body = document.body;
 const homeContent = document.getElementById("homeContent");
