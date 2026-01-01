@@ -2,6 +2,7 @@
 
 import { getBrailleItemsForMode } from "./brailleRegistry.js";
 import { setAttemptCallback } from "./inputEngine.js";
+import { playHitSound, playMissSound } from "./audioEngine.js";
 
 /*
 	GameLoop responsibilities:
@@ -199,12 +200,13 @@ function handleAttempt(attempt) {
 }
 
 function handleHit() {
+	playHitSound();
 	clearActiveMole();
 	scheduleNextMole();
 }
 
 function handleMiss() {
-	// Miss feedback will be audio-only later
+	playMissSound();
 }
 
 /* Exports */

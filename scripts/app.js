@@ -2,6 +2,8 @@
 
 import { initGameLoop, startRound, stopRound } from "./gameLoop.js";
 import { attachDesktopListeners, handleBrailleTextInput as handleBrailleTextInputEngine } from "./inputEngine.js";
+import { unlockAudio } from "./audioEngine.js";
+
 
 const body = document.body;
 const homeContent = document.getElementById("homeContent");
@@ -79,6 +81,7 @@ function getSelectedSettings() {
 }
 
 function startGame() {
+	unlockAudio();
 	const settings = getSelectedSettings();
 	setGameState("playing");
 	startRound(settings.brailleMode, settings.roundTime, settings.inputMode);
