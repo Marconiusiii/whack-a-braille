@@ -2,7 +2,7 @@
 
 import { getBrailleItemsForMode } from "./brailleRegistry.js";
 import { setAttemptCallback, setCurrentMoleId } from "./inputEngine.js";
-import { playHitSound, playMissSound } from "./audioEngine.js";
+import { playHitSound, playMissSound, playRetreatSound } from "./audioEngine.js";
 import { speak, cancelSpeech } from "./speechEngine.js";
 import { computeMoleWindowMs, computeRoundEndGraceMs } from "./speechTuning.js";
 
@@ -194,14 +194,19 @@ async function showRandomMole() {
 	});
 
 	clearTimeout(moleUpTimer);
-	moleUpTimer = setTimeout(() => {
-		if (!isRunning || roundEnding) return;
-		if (thisMoleId !== activeMoleId) return;
+moleUpTimer = setTimeout(() => {
+	if (!isRunning || roundEnding) return;
+	if (thisMoleId !== activeMoleId) return;
 
-		clearActiveMole();
-		setCurrentMoleId(0);
-		scheduleNextMole(0);
-	}, upTime);
+	requestAnimationFrame(() => {
+		if (thisMoleId !== activeMoleId) return;
+		playRetreatSound();
+	});
+
+	clearActiveMole();
+	setCurrentMoleId(0);
+	scheduleNextMole(0);
+}, upTime);
 }
 
 function pickNextMoleIndex() {

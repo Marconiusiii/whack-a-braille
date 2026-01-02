@@ -43,31 +43,33 @@ function playStartFlourish() {
 	ensureRunning(ctx);
 
 	const now = ctx.currentTime;
-
 	const master = ctx.createGain();
 	master.gain.value = 0.35;
 	master.connect(ctx.destination);
 
-	const osc = ctx.createOscillator();
-	osc.type = "triangle";
+	const notes = [392, 523, 659, 784];
+	const dur = 0.25;
 
-	osc.frequency.setValueAtTime(660, now);
-	osc.frequency.setValueAtTime(880, now + 0.12);
-	osc.frequency.setValueAtTime(1320, now + 0.24);
+	notes.forEach((freq, i) => {
+		const osc = ctx.createOscillator();
+		const gain = ctx.createGain();
 
-	const gain = ctx.createGain();
-	gain.gain.setValueAtTime(0.0001, now);
-	gain.gain.exponentialRampToValueAtTime(0.9, now + 0.02);
-	gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.35);
+		osc.type = "triangle";
+		osc.frequency.setValueAtTime(freq, now + i * dur);
 
-	osc.connect(gain);
-	gain.connect(master);
+		gain.gain.setValueAtTime(0.0001, now + i * dur);
+		gain.gain.exponentialRampToValueAtTime(0.8, now + i * dur + 0.05);
+		gain.gain.exponentialRampToValueAtTime(0.0001, now + i * dur + 0.22);
 
-	osc.start(now);
-	osc.stop(now + 0.4);
+		osc.connect(gain);
+		gain.connect(master);
+
+		osc.start(now + i * dur);
+		osc.stop(now + i * dur + 0.24);
+	});
 }
 
-/* ---------- HIT SOUND (PUNCH + SPRING) ---------- */
+/* ---------- HIT SOUND ---------- */
 
 function playHitSound() {
 	if (!isUnlocked) return;
@@ -76,18 +78,15 @@ function playHitSound() {
 	ensureRunning(ctx);
 
 	const now = ctx.currentTime;
-
 	const master = ctx.createGain();
 	master.gain.value = 0.5;
 	master.connect(ctx.destination);
 
-	/* Low punch body */
 	const bodyOsc = ctx.createOscillator();
 	bodyOsc.type = "sine";
 	bodyOsc.frequency.setValueAtTime(140, now);
 	bodyOsc.frequency.exponentialRampToValueAtTime(90, now + 0.08);
 
-	/* Noise impact */
 	const noiseBuffer = ctx.createBuffer(1, ctx.sampleRate * 0.05, ctx.sampleRate);
 	const noiseData = noiseBuffer.getChannelData(0);
 	for (let i = 0; i < noiseData.length; i++) {
@@ -101,7 +100,6 @@ function playHitSound() {
 	noiseFilter.type = "lowpass";
 	noiseFilter.frequency.value = 500;
 
-	/* Springy rebound */
 	const springOsc = ctx.createOscillator();
 	springOsc.type = "triangle";
 	springOsc.frequency.setValueAtTime(420, now + 0.05);
@@ -127,7 +125,7 @@ function playHitSound() {
 	springOsc.stop(now + 0.25);
 }
 
-/* ---------- MISS SOUND (SAD, UNCHANGED) ---------- */
+/* ---------- MISS SOUND ---------- */
 
 function playMissSound() {
 	if (!isUnlocked) return;
@@ -136,7 +134,6 @@ function playMissSound() {
 	ensureRunning(ctx);
 
 	const now = ctx.currentTime;
-
 	const master = ctx.createGain();
 	master.gain.value = 0.35;
 	master.connect(ctx.destination);
@@ -158,7 +155,45 @@ function playMissSound() {
 	osc.stop(now + 0.5);
 }
 
-/* ---------- END OF ROUND FANFARE (HAPPY UPWARDS) ---------- */
+/* ---------- MOLE RETREAT (SILLY CHITTER) ---------- */
+
+function playRetreatSound() {
+	if (!isUnlocked) return;
+
+	const ctx = getAudioContext();
+	ensureRunning(ctx);
+
+	const now = ctx.currentTime;
+	const master = ctx.createGain();
+	master.gain.value = 0.2;
+	master.connect(ctx.destination);
+
+	for (let i = 0; i < 3; i++) {
+		const osc = ctx.createOscillator();
+		const gain = ctx.createGain();
+		const filter = ctx.createBiquadFilter();
+
+		osc.type = "triangle";
+		osc.frequency.setValueAtTime(900 - i * 120, now + i * 0.06);
+		osc.frequency.exponentialRampToValueAtTime(700 - i * 120, now + i * 0.06 + 0.05);
+
+		filter.type = "bandpass";
+		filter.frequency.value = 1000;
+
+		gain.gain.setValueAtTime(0.0001, now + i * 0.06);
+		gain.gain.exponentialRampToValueAtTime(0.6, now + i * 0.06 + 0.01);
+		gain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.06 + 0.08);
+
+		osc.connect(filter);
+		filter.connect(gain);
+		gain.connect(master);
+
+		osc.start(now + i * 0.06);
+		osc.stop(now + i * 0.1);
+	}
+}
+
+/* ---------- END OF ROUND FANFARE ---------- */
 
 function playEndBuzzer() {
 	if (!isUnlocked) return;
@@ -167,37 +202,40 @@ function playEndBuzzer() {
 	ensureRunning(ctx);
 
 	const now = ctx.currentTime;
-
 	const master = ctx.createGain();
 	master.gain.value = 0.45;
 	master.connect(ctx.destination);
 
-	const osc1 = ctx.createOscillator();
-	const osc2 = ctx.createOscillator();
+	const sequence = [
+		{ notes: [261.63, 329.63, 392.0], duration: 0.5 },   // C major (quarter)
+		{ notes: [261.63, 329.63, 392.0], duration: 0.5 },   // C major (quarter)
+		{ notes: [277.18, 329.63, 392.0], duration: 1.0 },   // C# diminished (half)
+		{ notes: [329.63, 415.3, 493.88, 622.25], duration: 2.0 } // Emaj7 (whole)
+	];
 
-	osc1.type = "triangle";
-	osc2.type = "sine";
+	let t = now;
 
-	osc1.frequency.setValueAtTime(330, now);
-	osc1.frequency.exponentialRampToValueAtTime(660, now + 0.9);
+	sequence.forEach(chord => {
+		chord.notes.forEach(freq => {
+			const osc = ctx.createOscillator();
+			const gain = ctx.createGain();
 
-	osc2.frequency.setValueAtTime(220, now);
-	osc2.frequency.exponentialRampToValueAtTime(440, now + 0.9);
+			osc.type = "triangle";
+			osc.frequency.setValueAtTime(freq, t);
 
-	const gain = ctx.createGain();
-	gain.gain.setValueAtTime(0.0001, now);
-	gain.gain.exponentialRampToValueAtTime(1.0, now + 0.08);
-	gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.2);
+			gain.gain.setValueAtTime(0.0001, t);
+			gain.gain.exponentialRampToValueAtTime(0.9, t + 0.08);
+			gain.gain.exponentialRampToValueAtTime(0.0001, t + chord.duration);
 
-	osc1.connect(gain);
-	osc2.connect(gain);
-	gain.connect(master);
+			osc.connect(gain);
+			gain.connect(master);
 
-	osc1.start(now);
-	osc2.start(now);
+			osc.start(t);
+			osc.stop(t + chord.duration);
+		});
 
-	osc1.stop(now + 1.2);
-	osc2.stop(now + 1.2);
+		t += chord.duration;
+	});
 }
 
 export {
@@ -205,5 +243,6 @@ export {
 	playStartFlourish,
 	playHitSound,
 	playMissSound,
+	playRetreatSound,
 	playEndBuzzer
 };
