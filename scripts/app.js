@@ -175,9 +175,29 @@ function setupEventListeners() {
 	});
 }
 
+function setupScoreListener() {
+	const scoreText = document.getElementById("scoreText");
+	if (!scoreText) return;
+
+	document.addEventListener("wabScoreUpdated", e => {
+		const newScore = e.detail?.score;
+		if (typeof newScore !== "number") return;
+		scoreText.textContent = "Score: " + newScore;
+	});
+}
+
+function scoreToTickets(score) {
+	if (score >= 200) return 20;
+	if (score >= 150) return 15;
+	if (score >= 100) return 10;
+	if (score >= 50) return 5;
+	return 0;
+}
+
 function init() {
 	setGameState("home");
 	setupEventListeners();
+	setupScoreListener();
 	syncInputModeUI();
 
 	initGameLoop({

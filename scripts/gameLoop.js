@@ -20,6 +20,11 @@ let roundEnding = false;
 
 let roundDurationMs = 30000;
 let roundStartTime = 0;
+let score = 0;
+let hitStreak = 0;
+let hitsThisRound = 0;
+let missesThisRound = 0;
+let escapesThisRound = 0;
 
 let roundTimer = null;
 let moleTimer = null;
@@ -41,6 +46,12 @@ function initGameLoop(options) {
 
 function startRound(modeId, durationSeconds, inputMode) {
 	if (isRunning) return;
+
+	score = 0;
+	hitStreak = 0;
+	hitsThisRound = 0;
+	missesThisRound = 0;
+	escapesThisRound = 0;
 
 	currentModeId = modeId;
 	currentDurationSeconds = durationSeconds;
@@ -117,6 +128,10 @@ function endRoundNow(canceled) {
 			modeId: currentModeId,
 			inputMode: currentInputMode,
 			durationSeconds: currentDurationSeconds,
+			score,
+			hits: hitsThisRound,
+			misses: missesThisRound,
+			escapes: escapesThisRound,
 			canceled: !!canceled
 		}
 	}));
@@ -200,6 +215,8 @@ async function showRandomMole() {
 	moleUpTimer = setTimeout(() => {
 		if (!isRunning || roundEnding) return;
 		if (thisMoleId !== activeMoleId) return;
+		escapesThisRound += 1;
+hitStreak = 0;
 
 		playRetreatSound();
 
@@ -271,23 +288,47 @@ function handleAttempt(attempt) {
 }
 
 function handleHit() {
-	// Immediate feedback: do not wait for requestAnimationFrame.
+	hitsThisRound += 1;
+	hitStreak += 1;
+
+	score += 10;
+
+	if (hitStreak % 5 === 0) {
+		score += 10;
+	}
+
 	playHitSound();
 
 	clearTimeout(moleUpTimer);
 	moleUpTimer = null;
 
-	// Prevent any extra miss noise on the same mole.
 	missRegisteredForMole = true;
 
 	clearActiveMole();
 	setCurrentMoleId(0);
 	scheduleNextMole(0);
+
+	document.dispatchEvent(new CustomEvent("wabScoreUpdated", {
+		detail: {
+			score,
+			hitStreak
+		}
+	}));
 }
 
 function handleMiss() {
-	// Immediate feedback: do not wait for requestAnimationFrame.
+	missesThisRound += 1;
+	hitStreak = 0;
+	score = Math.max(0, score - 2);
+
 	playMissSound();
+
+	document.dispatchEvent(new CustomEvent("wabScoreUpdated", {
+		detail: {
+			score,
+			hitStreak
+		}
+	}));
 }
 
 export {
