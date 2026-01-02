@@ -1,25 +1,29 @@
 "use strict";
 
 import { getBrailleItemsForMode } from "./brailleRegistry.js";
-import { setAttemptCallback } from "./inputEngine.js";
+import { setAttemptCallback, setCurrentMoleId } from "./inputEngine.js";
 import { playHitSound, playMissSound } from "./audioEngine.js";
 import { speak, cancelSpeech } from "./speechEngine.js";
 import { computeMoleWindowMs, computeRoundEndGraceMs } from "./speechTuning.js";
 
 let moleElements = [];
-let roundDurationMs = 30000;
 
 let availableItems = [];
 let roundItems = [];
-let activeMoleIndex = null;
 
-let roundStartTime = 0;
-let roundTimer = null;
-let moleTimer = null;
-let moleUpTimer = null;
+let activeMoleIndex = null;
+let activeMoleId = 0;
+let missRegisteredForMole = false;
 
 let isRunning = false;
 let roundEnding = false;
+
+let roundDurationMs = 30000;
+let roundStartTime = 0;
+
+let roundTimer = null;
+let moleTimer = null;
+let moleUpTimer = null;
 
 let currentModeId = "";
 let currentInputMode = "qwerty";
@@ -27,6 +31,7 @@ let currentDurationSeconds = 30;
 
 const startIntervalMs = 900;
 const endIntervalMs = 300;
+
 const startUpTimeMs = 650;
 const endUpTimeMs = 250;
 
@@ -47,8 +52,14 @@ function startRound(modeId, durationSeconds, inputMode) {
 
 	isRunning = true;
 	roundEnding = false;
+
 	roundStartTime = Date.now();
 
+	activeMoleIndex = null;
+	activeMoleId = 0;
+	missRegisteredForMole = false;
+
+	setCurrentMoleId(0);
 	setAttemptCallback(handleAttempt);
 
 	clearTimeout(roundTimer);
@@ -63,17 +74,21 @@ function stopRound() {
 
 function requestRoundEnd() {
 	if (!isRunning) return;
+
 	roundEnding = true;
 
 	clearTimeout(moleTimer);
 	moleTimer = null;
 
-	const grace = computeRoundEndGraceMs({ baseGraceMs: 350, maxGraceMs: 750 });
+	const graceMs = computeRoundEndGraceMs({
+		baseGraceMs: 350,
+		maxGraceMs: 750
+	});
 
 	clearTimeout(roundTimer);
 	roundTimer = setTimeout(() => {
 		endRoundNow(false);
-	}, grace);
+	}, graceMs);
 }
 
 function endRoundNow(canceled) {
@@ -83,15 +98,15 @@ function endRoundNow(canceled) {
 	roundEnding = false;
 
 	clearTimeout(roundTimer);
-	roundTimer = null;
-
 	clearTimeout(moleTimer);
-	moleTimer = null;
-
 	clearTimeout(moleUpTimer);
+
+	roundTimer = null;
+	moleTimer = null;
 	moleUpTimer = null;
 
 	clearActiveMole();
+	setCurrentMoleId(0);
 
 	setAttemptCallback(null);
 
@@ -138,8 +153,7 @@ function randomJitter() {
 }
 
 function scheduleNextMole(extraDelayMs = 0) {
-	if (!isRunning) return;
-	if (roundEnding) return;
+	if (!isRunning || roundEnding) return;
 
 	const delay = getCurrentInterval() + randomJitter() + extraDelayMs;
 
@@ -150,50 +164,51 @@ function scheduleNextMole(extraDelayMs = 0) {
 }
 
 async function showRandomMole() {
-	if (!isRunning) return;
-	if (roundEnding) return;
+	if (!isRunning || roundEnding) return;
 
 	clearActiveMole();
 
+	activeMoleId++;
+	missRegisteredForMole = false;
+
 	activeMoleIndex = pickNextMoleIndex();
 	const moleItem = roundItems[activeMoleIndex];
+	const thisMoleId = activeMoleId;
 
 	const speechResult = await speak(moleItem.announceText, {
 		on: "start",
-		timeoutMs: 350,
+		timeoutMs: 400,
 		cancelPrevious: true,
 		dedupe: false
 	});
 
-	if (!isRunning) return;
-	if (roundEnding) return;
+	if (!isRunning || roundEnding) return;
+	if (thisMoleId !== activeMoleId) return;
 
+	setCurrentMoleId(thisMoleId);
 	activateMoleVisual(activeMoleIndex);
 
-	const baseUpTime = getCurrentUpTime();
 	const upTime = computeMoleWindowMs({
 		speechResult,
-		baseUpTimeMs: baseUpTime,
-		extraPadMs: 120,
-		minUpTimeMs: 220,
-		maxUpTimeMs: 1200
+		baseUpTimeMs: getCurrentUpTime()
 	});
 
 	clearTimeout(moleUpTimer);
 	moleUpTimer = setTimeout(() => {
+		if (!isRunning || roundEnding) return;
+		if (thisMoleId !== activeMoleId) return;
+
 		clearActiveMole();
+		setCurrentMoleId(0);
 		scheduleNextMole(0);
 	}, upTime);
 }
 
 function pickNextMoleIndex() {
 	let index;
-	if (roundItems.length < 2) return 0;
-
 	do {
-		index = Math.floor(Math.random() * 5);
+		index = Math.floor(Math.random() * roundItems.length);
 	} while (index === activeMoleIndex);
-
 	return index;
 }
 
@@ -214,43 +229,58 @@ function deactivateMoleVisual(index) {
 }
 
 function handleAttempt(attempt) {
-	if (!isRunning) return;
-	if (roundEnding) return;
+	if (!isRunning || roundEnding) return;
 	if (activeMoleIndex === null) return;
-
-	if (currentInputMode === "perkins" && attempt.type === "standard") return;
+	if (attempt.moleId !== activeMoleId) return;
 
 	const currentItem = roundItems[activeMoleIndex];
-
 	let isHit = false;
 
 	if (attempt.type === "perkins") {
 		isHit = attempt.dotMask === currentItem.dotMask;
-	} else if (attempt.type === "standard") {
+	}
+
+	if (attempt.type === "standard") {
 		if (typeof currentItem.standardKey === "string") {
 			isHit = attempt.key === currentItem.standardKey;
 		}
-	} else if (attempt.type === "bsi") {
-		const text = String(attempt.text || "").trim().toLowerCase();
-		isHit = text === String(currentItem.id || "").toLowerCase();
 	}
 
-	if (isHit) handleHit();
-	else handleMiss();
+	if (attempt.type === "brailleText") {
+		isHit = attempt.char === String(currentItem.id).toLowerCase();
+	}
+
+	if (isHit) {
+		handleHit();
+		return;
+	}
+
+	if (missRegisteredForMole) return;
+	missRegisteredForMole = true;
+	handleMiss();
 }
 
 function handleHit() {
+	const hitMoleId = activeMoleId;
+
 	requestAnimationFrame(() => {
+		if (hitMoleId !== activeMoleId) return;
 		playHitSound();
 	});
+
 	clearTimeout(moleUpTimer);
 	moleUpTimer = null;
+
 	clearActiveMole();
+	setCurrentMoleId(0);
 	scheduleNextMole(0);
 }
 
 function handleMiss() {
+	const missMoleId = activeMoleId;
+
 	requestAnimationFrame(() => {
+		if (missMoleId !== activeMoleId) return;
 		playMissSound();
 	});
 }

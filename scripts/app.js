@@ -1,9 +1,11 @@
 "use strict";
 
 import { initGameLoop, startRound } from "./gameLoop.js";
-import { attachDesktopListeners, setCaptureEnabled } from "./inputEngine.js";
 import { unlockAudio } from "./audioEngine.js";
 import { unlockSpeech } from "./speechEngine.js";
+import { attachKeyboardListeners, setInputMode, handleCommittedText, setCurrentMoleId } from "./inputEngine.js";
+
+
 
 const body = document.body;
 
@@ -16,11 +18,10 @@ const startButton = document.getElementById("startGameButton");
 const playAgainButton = document.getElementById("playAgainButton");
 const cashOutButton = document.getElementById("cashOutButton");
 
+const brailleInput = document.getElementById("brailleInput");
 const grade1InputModeFieldset = document.getElementById("grade1InputModeFieldset");
 const inputModePerkins = document.getElementById("inputModePerkins");
-
 const resultsHeading = document.getElementById("resultsHeading");
-const brailleInput = document.getElementById("brailleInput");
 
 let gameState = "home";
 
@@ -28,69 +29,41 @@ function isGrade2Mode(modeId) {
 	return modeId === "grade2Symbols" || modeId === "grade2Words";
 }
 
-function setBrailleInputGameplayLock(isLocked) {
-	if (!brailleInput) return;
-
-	if (isLocked) {
-		brailleInput.blur();
-		brailleInput.textContent = "";
-		brailleInput.setAttribute("inert", "");
-		brailleInput.setAttribute("hidden", "");
-		brailleInput.setAttribute("tabindex", "-1");
-		brailleInput.contentEditable = "false";
-	} else {
-		brailleInput.removeAttribute("inert");
-		brailleInput.removeAttribute("hidden");
-		brailleInput.setAttribute("tabindex", "-1");
-		brailleInput.contentEditable = "true";
-	}
-}
-
 function setGameState(state) {
 	gameState = state;
 	body.setAttribute("data-game-state", state);
 
 	if (state === "home") {
-		setCaptureEnabled(false);
-		setBrailleInputGameplayLock(false);
-
 		homeContent.hidden = false;
 		homeContent.inert = false;
-
 		gameArea.hidden = true;
 		resultsArea.hidden = true;
-
 		if (footer) footer.hidden = false;
-
 		startButton.focus();
 		return;
 	}
 
 	if (state === "playing") {
-		setBrailleInputGameplayLock(true);
-		setCaptureEnabled(true);
-
 		homeContent.hidden = true;
 		homeContent.inert = true;
-
 		gameArea.hidden = false;
 		resultsArea.hidden = true;
-
 		if (footer) footer.hidden = true;
 
+		if (brailleInput) {
+requestAnimationFrame(() => {
+	brailleInput.value = "";
+	brailleInput.focus();
+});
+		}
 		return;
 	}
 
 	if (state === "results") {
-		setCaptureEnabled(false);
-		setBrailleInputGameplayLock(false);
-
 		homeContent.hidden = true;
 		homeContent.inert = true;
-
 		gameArea.hidden = true;
 		resultsArea.hidden = false;
-
 		if (footer) footer.hidden = true;
 
 		if (resultsHeading) {
@@ -132,6 +105,10 @@ function startGameFromSettings() {
 	unlockSpeech();
 
 	const settings = getSelectedSettings();
+	setInputMode(settings.inputMode);
+	setCurrentMoleId(0);
+
+
 	setGameState("playing");
 	startRound(settings.brailleMode, settings.roundTime, settings.inputMode);
 }
@@ -143,6 +120,35 @@ function setupEventListeners() {
 		startGameFromSettings();
 	});
 
+if (brailleInput) {
+	brailleInput.addEventListener("beforeinput", event => {
+		if (gameState !== "playing") return;
+
+		const type = String(event.inputType || "");
+
+		if (!type.startsWith("insert")) return;
+
+		const text = event.data ?? "";
+
+		event.preventDefault();
+		event.stopImmediatePropagation();
+
+		if (text) handleCommittedText(text);
+
+		brailleInput.value = "";
+	}, true);
+
+	brailleInput.addEventListener("input", () => {
+		if (gameState !== "playing") return;
+
+		const text = brailleInput.value || "";
+		if (text) handleCommittedText(text);
+
+		brailleInput.value = "";
+	}, true);
+}
+
+	
 	cashOutButton.addEventListener("click", () => {
 		setGameState("home");
 	});
@@ -152,18 +158,11 @@ function setupEventListeners() {
 	});
 
 	document.addEventListener("wabRoundEnded", () => {
-		if (body.getAttribute("data-game-state") === "playing") {
-			setGameState("results");
-		}
-	});
-
-	document.addEventListener("focusin", (event) => {
-		if (gameState !== "playing") return;
-		if (!brailleInput) return;
-		if (event.target === brailleInput) {
-			brailleInput.blur();
-		}
-	}, true);
+	if (gameState === "playing") {
+		setCurrentMoleId(0);
+		setGameState("results");
+	}
+});
 }
 
 function init() {
@@ -175,7 +174,7 @@ function init() {
 		moleElements: Array.from(document.querySelectorAll("#gameBoard .mole"))
 	});
 
-	attachDesktopListeners();
+	attachKeyboardListeners();
 }
 
 init();

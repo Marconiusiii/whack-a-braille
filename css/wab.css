@@ -47,7 +47,6 @@ footer { margin-top: 3rem; font-size: 0.9rem; color: #b8c0ff; }
 
 /* Hidden braille input */
 
-#brailleInput { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
 
 /* State-based visibility */
 
@@ -61,3 +60,11 @@ body[data-game-state="home"] #resultsArea { display: none; }
 
 body[data-game-state="playing"] #gameArea { display: block; }
 body[data-game-state="results"] #resultsArea { display: block; }
+#brailleInput {
+	position: absolute;
+	left: -9999px;
+	top: 0;
+	width: 1px;
+	height: 1px;
+	opacity: 0.01;
+}
