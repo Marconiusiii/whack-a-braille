@@ -39,7 +39,46 @@ button:focus { outline: 3px solid #7bdff2; outline-offset: 2px; }
 
 /* Footer */
 
-footer { margin-top: 3rem; font-size: 0.9rem; color: #b8c0ff; }
+footer {
+	background: linear-gradient(180deg, #0b1020, #050814);
+	color: #e6e6e6;
+	padding: 1.25rem 1rem;
+	border-top: 4px solid #ffbe0b;
+}
+.footer-links a {
+	color: #7bdff2;
+	text-decoration: none;
+	font-weight: 600;
+}
+
+.footer-links a:hover,
+.footer-links a:focus {
+	color: #ffbe0b;
+	text-decoration: underline;
+	outline: none;
+}
+
+.footer-links {
+	list-style: none;
+	padding: 0;
+	margin: 0 0 0.75rem 0;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.75rem 1.25rem;
+}
+
+.footer-copy {
+	margin: 0;
+}
+
+.small {
+	font-size: 0.875rem;
+}
+
+.muted {
+	color: #a0a0a0;
+}
+
 
 /* Screen reader live region */
 
