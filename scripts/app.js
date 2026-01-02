@@ -3,9 +3,7 @@
 import { initGameLoop, startRound } from "./gameLoop.js";
 import { unlockAudio } from "./audioEngine.js";
 import { unlockSpeech } from "./speechEngine.js";
-import { attachKeyboardListeners, setInputMode, handleCommittedText, setCurrentMoleId } from "./inputEngine.js";
-
-
+import { attachKeyboardListeners, setInputMode, setCurrentMoleId } from "./inputEngine.js";
 
 const body = document.body;
 
@@ -18,9 +16,9 @@ const startButton = document.getElementById("startGameButton");
 const playAgainButton = document.getElementById("playAgainButton");
 const cashOutButton = document.getElementById("cashOutButton");
 
-const brailleInput = document.getElementById("brailleInput");
 const grade1InputModeFieldset = document.getElementById("grade1InputModeFieldset");
 const inputModePerkins = document.getElementById("inputModePerkins");
+
 const resultsHeading = document.getElementById("resultsHeading");
 
 let gameState = "home";
@@ -34,41 +32,54 @@ function setGameState(state) {
 	body.setAttribute("data-game-state", state);
 
 	if (state === "home") {
-		homeContent.hidden = false;
-		homeContent.inert = false;
-		gameArea.hidden = true;
-		resultsArea.hidden = true;
+		if (homeContent) {
+			homeContent.hidden = false;
+			homeContent.inert = false;
+		}
+
+		if (gameArea) gameArea.hidden = true;
+		if (resultsArea) resultsArea.hidden = true;
+
 		if (footer) footer.hidden = false;
-		startButton.focus();
+
+		setCurrentMoleId(0);
+
+		if (startButton) startButton.focus();
 		return;
 	}
 
 	if (state === "playing") {
-		homeContent.hidden = true;
-		homeContent.inert = true;
-		gameArea.hidden = false;
-		resultsArea.hidden = true;
+		if (homeContent) {
+			homeContent.hidden = true;
+			homeContent.inert = true;
+		}
+
+		if (gameArea) gameArea.hidden = false;
+		if (resultsArea) resultsArea.hidden = true;
+
 		if (footer) footer.hidden = true;
 
-		if (brailleInput) {
-requestAnimationFrame(() => {
-	brailleInput.value = "";
-	brailleInput.focus();
-});
-		}
+		setCurrentMoleId(0);
 		return;
 	}
 
 	if (state === "results") {
-		homeContent.hidden = true;
-		homeContent.inert = true;
-		gameArea.hidden = true;
-		resultsArea.hidden = false;
+		if (homeContent) {
+			homeContent.hidden = true;
+			homeContent.inert = true;
+		}
+
+		if (gameArea) gameArea.hidden = true;
+		if (resultsArea) resultsArea.hidden = false;
+
 		if (footer) footer.hidden = true;
+
+		setCurrentMoleId(0);
 
 		if (resultsHeading) {
 			requestAnimationFrame(() => {
-				resultsHeading.focus();
+				resultsHeading.focus({ preventScroll: true });
+				setTimeout(() => resultsHeading.focus({ preventScroll: true }), 75);
 			});
 		}
 	}
@@ -87,15 +98,16 @@ function syncInputModeUI() {
 }
 
 function getSelectedSettings() {
-	const brailleMode = document.querySelector("input[name='brailleMode']:checked").value;
-	const roundTime = parseInt(document.querySelector("input[name='roundTime']:checked").value, 10);
+	const brailleMode = document.querySelector("input[name='brailleMode']:checked")?.value || "lettersOnly";
+	const roundTimeRaw = document.querySelector("input[name='roundTime']:checked")?.value || "30";
+	const roundTime = parseInt(roundTimeRaw, 10);
 
 	let inputMode = document.querySelector("input[name='inputMode']:checked")?.value || "qwerty";
 	if (isGrade2Mode(brailleMode)) inputMode = "perkins";
 
 	return {
 		brailleMode,
-		roundTime,
+		roundTime: Number.isFinite(roundTime) ? roundTime : 30,
 		inputMode
 	};
 }
@@ -105,64 +117,38 @@ function startGameFromSettings() {
 	unlockSpeech();
 
 	const settings = getSelectedSettings();
+
 	setInputMode(settings.inputMode);
 	setCurrentMoleId(0);
-
 
 	setGameState("playing");
 	startRound(settings.brailleMode, settings.roundTime, settings.inputMode);
 }
 
 function setupEventListeners() {
-	startButton.addEventListener("click", startGameFromSettings);
+	if (startButton) startButton.addEventListener("click", startGameFromSettings);
 
-	playAgainButton.addEventListener("click", () => {
-		startGameFromSettings();
-	});
+	if (playAgainButton) {
+		playAgainButton.addEventListener("click", () => {
+			startGameFromSettings();
+		});
+	}
 
-if (brailleInput) {
-	brailleInput.addEventListener("beforeinput", event => {
-		if (gameState !== "playing") return;
+	if (cashOutButton) {
+		cashOutButton.addEventListener("click", () => {
+			setGameState("home");
+		});
+	}
 
-		const type = String(event.inputType || "");
-
-		if (!type.startsWith("insert")) return;
-
-		const text = event.data ?? "";
-
-		event.preventDefault();
-		event.stopImmediatePropagation();
-
-		if (text) handleCommittedText(text);
-
-		brailleInput.value = "";
-	}, true);
-
-	brailleInput.addEventListener("input", () => {
-		if (gameState !== "playing") return;
-
-		const text = brailleInput.value || "";
-		if (text) handleCommittedText(text);
-
-		brailleInput.value = "";
-	}, true);
-}
-
-	
-	cashOutButton.addEventListener("click", () => {
-		setGameState("home");
-	});
-
-	document.querySelectorAll("input[name='brailleMode']").forEach(radio => {
+	document.querySelectorAll("input[name='brailleMode']").forEach((radio) => {
 		radio.addEventListener("change", syncInputModeUI);
 	});
 
 	document.addEventListener("wabRoundEnded", () => {
-	if (gameState === "playing") {
+		if (gameState !== "playing") return;
 		setCurrentMoleId(0);
 		setGameState("results");
-	}
-});
+	});
 }
 
 function init() {

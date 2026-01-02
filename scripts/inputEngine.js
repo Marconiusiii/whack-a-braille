@@ -19,8 +19,6 @@ let chordDown = new Set();
 let chordUsed = new Set();
 let chordMoleId = 0;
 
-const keyDownMoleId = new Map();
-
 function setAttemptCallback(cb) {
 	attemptCallback = cb;
 }
@@ -30,22 +28,20 @@ function setInputMode(mode) {
 	chordDown.clear();
 	chordUsed.clear();
 	chordMoleId = 0;
-	keyDownMoleId.clear();
 }
 
 function setCurrentMoleId(id) {
-	currentMoleId = Number.isFinite(id) ? id : 0;
+	currentMoleId = id;
 }
 
-function emitAttempt(attempt, moleIdForAttempt) {
+function emitAttempt(attempt) {
 	if (!attemptCallback) return;
-	attempt.moleId = moleIdForAttempt;
+	attempt.moleId = currentMoleId;
 	attemptCallback(attempt);
 }
 
 function normalizeKey(event) {
 	const key = (event.key || "").toLowerCase();
-	if (key === " ") return "space";
 	return key;
 }
 
@@ -61,6 +57,7 @@ function dotMaskFromKeys(keys) {
 function onKeyDown(event) {
 	const key = normalizeKey(event);
 
+	/* ONLY intercept Perkins keys in Perkins mode */
 	if (currentInputMode === "perkins" && perkinsKeys.has(key)) {
 		if (chordUsed.size === 0) chordMoleId = currentMoleId;
 		chordDown.add(key);
@@ -70,11 +67,8 @@ function onKeyDown(event) {
 		return;
 	}
 
-	if (key.length === 1 || key === "space") {
-		if (!keyDownMoleId.has(key)) keyDownMoleId.set(key, currentMoleId);
-		event.preventDefault();
-		event.stopPropagation();
-	}
+	/* Otherwise: DO NOT BLOCK
+	   This allows braille displays (keyboard emulation) to work */
 }
 
 function onKeyUp(event) {
@@ -87,43 +81,23 @@ function onKeyUp(event) {
 
 		if (chordDown.size === 0 && chordUsed.size > 0) {
 			const mask = dotMaskFromKeys(chordUsed);
-			const moleIdForChord = chordMoleId || currentMoleId;
 			chordUsed.clear();
 			chordMoleId = 0;
 
 			emitAttempt({
 				type: "perkins",
 				dotMask: mask
-			}, moleIdForChord);
+			});
 		}
 		return;
 	}
 
+	/* Normal keyboard / braille-display characters */
 	if (key.length === 1) {
-		const moleIdForKey = keyDownMoleId.get(key) ?? currentMoleId;
-		keyDownMoleId.delete(key);
-
-		event.preventDefault();
-		event.stopPropagation();
-
 		emitAttempt({
 			type: "standard",
 			key
-		}, moleIdForKey);
-		return;
-	}
-
-	if (key === "space") {
-		const moleIdForKey = keyDownMoleId.get("space") ?? currentMoleId;
-		keyDownMoleId.delete("space");
-
-		event.preventDefault();
-		event.stopPropagation();
-
-		emitAttempt({
-			type: "standard",
-			key: " "
-		}, moleIdForKey);
+		});
 	}
 }
 
@@ -132,30 +106,9 @@ function attachKeyboardListeners() {
 	window.addEventListener("keyup", onKeyUp, true);
 }
 
-/*
-	Text from braille displays / BSI:
-	We must treat it as committed characters.
-	Spaces are ignored to avoid “commit-space” causing misses.
-*/
-function handleCommittedText(text) {
-	const raw = String(text ?? "");
-	if (!raw) return;
-
-	for (let i = 0; i < raw.length; i++) {
-		const ch = raw[i].toLowerCase();
-		if (ch === " ") continue;
-
-		emitAttempt({
-			type: "brailleText",
-			char: ch
-		}, currentMoleId);
-	}
-}
-
 export {
 	attachKeyboardListeners,
 	setAttemptCallback,
 	setInputMode,
-	setCurrentMoleId,
-	handleCommittedText
+	setCurrentMoleId
 };
