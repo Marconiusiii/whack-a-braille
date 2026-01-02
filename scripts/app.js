@@ -20,8 +20,30 @@ const grade1InputModeFieldset = document.getElementById("grade1InputModeFieldset
 const inputModePerkins = document.getElementById("inputModePerkins");
 
 const resultsHeading = document.getElementById("resultsHeading");
+const resultsScoreValue = document.getElementById("resultsScoreValue");
+const resultsTicketsRoundValue = document.getElementById("resultsTicketsRoundValue");
+const resultsTicketsTotalValue = document.getElementById("resultsTicketsTotalValue");
+const resultsHitsValue = document.getElementById("resultsHitsValue");
+const resultsMissesValue = document.getElementById("resultsMissesValue");
+const resultsEscapesValue = document.getElementById("resultsEscapesValue");
 
 let gameState = "home";
+let totalTickets = 0;
+
+function loadTotalTickets() {
+	const raw = localStorage.getItem("wabTotalTickets");
+	const n = parseInt(raw, 10);
+	totalTickets = Number.isFinite(n) && n > 0 ? n : 0;
+}
+
+function saveTotalTickets() {
+	localStorage.setItem("wabTotalTickets", String(totalTickets));
+}
+
+function resetTotalTickets() {
+	totalTickets = 0;
+	localStorage.removeItem("wabTotalTickets");
+}
 
 function isGrade2Mode(modeId) {
 	return modeId === "grade2Symbols" || modeId === "grade2Words";
@@ -160,6 +182,7 @@ function setupEventListeners() {
 
 	if (cashOutButton) {
 		cashOutButton.addEventListener("click", () => {
+			resetTotalTickets();
 			setGameState("home");
 		});
 	}
@@ -168,11 +191,31 @@ function setupEventListeners() {
 		radio.addEventListener("change", syncInputModeUI);
 	});
 
-	document.addEventListener("wabRoundEnded", () => {
-		if (gameState === "playing") {
-			setGameState("results");
-		}
-	});
+document.addEventListener("wabRoundEnded", (e) => {
+	if (gameState !== "playing") return;
+
+	const detail = e.detail || {};
+
+	const score = Number.isFinite(detail.score) ? detail.score : 0;
+	const hits = Number.isFinite(detail.hits) ? detail.hits : 0;
+	const misses = Number.isFinite(detail.misses) ? detail.misses : 0;
+	const escapes = Number.isFinite(detail.escapes) ? detail.escapes : 0;
+
+	const ticketsThisRound = scoreToTickets(score);
+
+	totalTickets += ticketsThisRound;
+	saveTotalTickets();
+
+	if (resultsScoreValue) resultsScoreValue.textContent = String(score);
+	if (resultsTicketsRoundValue) resultsTicketsRoundValue.textContent = String(ticketsThisRound);
+	if (resultsTicketsTotalValue) resultsTicketsTotalValue.textContent = String(totalTickets);
+
+	if (resultsHitsValue) resultsHitsValue.textContent = String(hits);
+	if (resultsMissesValue) resultsMissesValue.textContent = String(misses);
+	if (resultsEscapesValue) resultsEscapesValue.textContent = String(escapes);
+
+	setGameState("results");
+});
 }
 
 function setupScoreListener() {
@@ -195,6 +238,7 @@ function scoreToTickets(score) {
 }
 
 function init() {
+	loadTotalTickets();
 	setGameState("home");
 	setupEventListeners();
 	setupScoreListener();

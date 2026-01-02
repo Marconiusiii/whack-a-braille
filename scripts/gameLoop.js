@@ -288,6 +288,8 @@ function handleAttempt(attempt) {
 }
 
 function handleHit() {
+		playHitSound();
+
 	hitsThisRound += 1;
 	hitStreak += 1;
 
@@ -297,7 +299,6 @@ function handleHit() {
 		score += 10;
 	}
 
-	playHitSound();
 
 	clearTimeout(moleUpTimer);
 	moleUpTimer = null;

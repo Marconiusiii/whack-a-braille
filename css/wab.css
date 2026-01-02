@@ -89,3 +89,53 @@ body[data-game-state="results"] #resultsArea { display: block; }
 	color: #0b1020;
 	letter-spacing: 0.05em;
 }
+
+#resultsScores {
+	margin-top: 1.5rem;
+	padding: 1.25rem;
+	border-radius: 1rem;
+	background: linear-gradient(135deg, #8338ec, #3a86ff);
+	box-shadow: 0 0.6rem 0 rgba(0,0,0,0.45);
+	color: #ffffff;
+	max-width: 28rem;
+}
+
+#resultsScores:focus {
+	outline: 4px solid #ffbe0b;
+	outline-offset: 4px;
+}
+
+#resultsScores [role="text"] {
+	font-size: 1.1rem;
+	margin-bottom: 0.5rem;
+	letter-spacing: 0.04em;
+}
+
+#resultsScores [role="text"]:last-child {
+	margin-bottom: 0;
+}
+#resultsSummary {
+	margin-top: 1.5rem;
+	display: inline-block;
+	padding: 1rem 1.25rem;
+	border-radius: 1rem;
+	background: linear-gradient(135deg, #8338ec, #3a86ff);
+	box-shadow: 0 0.6rem 0 rgba(0,0,0,0.45);
+	max-width: 32rem;
+	text-align: left;
+}
+
+#resultsSummary p {
+	margin: 0 0 0.75rem 0;
+	font-size: 1.1rem;
+	letter-spacing: 0.03em;
+}
+
+#resultsSummary p:last-child {
+	margin-bottom: 0;
+}
+
+#resultsSummary p:focus {
+	outline: 3px solid #ffbe0b;
+	outline-offset: 3px;
+}
