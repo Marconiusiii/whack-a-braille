@@ -86,7 +86,6 @@ function playHitSound() {
 	bodyOsc.type = "sine";
 	bodyOsc.frequency.setValueAtTime(140, now);
 	bodyOsc.frequency.exponentialRampToValueAtTime(90, now + 0.08);
-
 	const noiseBuffer = ctx.createBuffer(1, ctx.sampleRate * 0.05, ctx.sampleRate);
 	const noiseData = noiseBuffer.getChannelData(0);
 	for (let i = 0; i < noiseData.length; i++) {
@@ -155,7 +154,7 @@ function playMissSound() {
 	osc.stop(now + 0.5);
 }
 
-/* ---------- MOLE RETREAT (SILLY CHITTER) ---------- */
+/* ---------- MOLE RETREAT (LONGER SILLY CHITTER) ---------- */
 
 function playRetreatSound() {
 	if (!isUnlocked) return;
@@ -165,35 +164,35 @@ function playRetreatSound() {
 
 	const now = ctx.currentTime;
 	const master = ctx.createGain();
-	master.gain.value = 0.2;
+	master.gain.value = 0.22;
 	master.connect(ctx.destination);
 
-	for (let i = 0; i < 3; i++) {
+	for (let i = 0; i < 6; i++) {
 		const osc = ctx.createOscillator();
 		const gain = ctx.createGain();
 		const filter = ctx.createBiquadFilter();
 
 		osc.type = "triangle";
-		osc.frequency.setValueAtTime(900 - i * 120, now + i * 0.06);
-		osc.frequency.exponentialRampToValueAtTime(700 - i * 120, now + i * 0.06 + 0.05);
+		osc.frequency.setValueAtTime(900 - i * 80, now + i * 0.07);
+		osc.frequency.exponentialRampToValueAtTime(700 - i * 80, now + i * 0.07 + 0.06);
 
 		filter.type = "bandpass";
-		filter.frequency.value = 1000;
+		filter.frequency.value = 1100;
 
-		gain.gain.setValueAtTime(0.0001, now + i * 0.06);
-		gain.gain.exponentialRampToValueAtTime(0.6, now + i * 0.06 + 0.01);
-		gain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.06 + 0.08);
+		gain.gain.setValueAtTime(0.0001, now + i * 0.07);
+		gain.gain.exponentialRampToValueAtTime(0.6, now + i * 0.07 + 0.015);
+		gain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.07 + 0.1);
 
 		osc.connect(filter);
 		filter.connect(gain);
 		gain.connect(master);
 
-		osc.start(now + i * 0.06);
-		osc.stop(now + i * 0.1);
+		osc.start(now + i * 0.07);
+		osc.stop(now + i * 0.14);
 	}
 }
 
-/* ---------- END OF ROUND FANFARE ---------- */
+/* ---------- END OF ROUND FANFARE (150 BPM, VIBRATO FINAL) ---------- */
 
 function playEndBuzzer() {
 	if (!isUnlocked) return;
@@ -206,11 +205,14 @@ function playEndBuzzer() {
 	master.gain.value = 0.45;
 	master.connect(ctx.destination);
 
+	const beat = 60 / 150; // 150 BPM
+
 	const sequence = [
-		{ notes: [261.63, 329.63, 392.0], duration: 0.5 },   // C major (quarter)
-		{ notes: [261.63, 329.63, 392.0], duration: 0.5 },   // C major (quarter)
-		{ notes: [277.18, 329.63, 392.0], duration: 1.0 },   // C# diminished (half)
-		{ notes: [329.63, 415.3, 493.88, 622.25], duration: 2.0 } // Emaj7 (whole)
+		{ notes: [261.63, 329.63, 392.0], duration: beat }, // C major
+		{ notes: [261.63, 329.63, 392.0], duration: beat }, // C major
+		{ notes: [277.18, 329.63, 392.0], duration: beat }, // C# dim
+		{ notes: [293.66, 369.99, 440.0], duration: beat }, // D major
+		{ notes: [196.0, 246.94, 392.0, 493.88], duration: beat * 4, vibrato: true } // Gmaj7
 	];
 
 	let t = now;
@@ -222,6 +224,19 @@ function playEndBuzzer() {
 
 			osc.type = "triangle";
 			osc.frequency.setValueAtTime(freq, t);
+
+			if (chord.vibrato) {
+				const lfo = ctx.createOscillator();
+				const lfoGain = ctx.createGain();
+				lfo.frequency.value = 6;
+				lfoGain.gain.value = 6;
+
+				lfo.connect(lfoGain);
+				lfoGain.connect(osc.frequency);
+
+				lfo.start(t);
+				lfo.stop(t + chord.duration);
+			}
 
 			gain.gain.setValueAtTime(0.0001, t);
 			gain.gain.exponentialRampToValueAtTime(0.9, t + 0.08);
