@@ -1,225 +1,136 @@
 "use strict";
 
-let currentUtterance = null;
+let voicesReady = false;
+let cachedVoices = [];
 let lastSpokenText = "";
-let lastSpeakStartedAt = 0;
-let lastSpeakEndedAt = 0;
+let unlockPerformed = false;
 
-let voiceNamePreference = "";
-let ratePreference = 1;
-let pitchPreference = 1;
-let volumePreference = 1;
+function ensureVoicesReady() {
+	if (voicesReady && cachedVoices.length) {
+		return Promise.resolve();
+	}
 
-let isUnlocked = false;
+	return new Promise(resolve => {
+		const voices = window.speechSynthesis.getVoices();
+		if (voices.length) {
+			cachedVoices = voices;
+			voicesReady = true;
+			resolve();
+			return;
+		}
 
-function nowMs() {
-	return performance.now();
-}
+		const handler = () => {
+			cachedVoices = window.speechSynthesis.getVoices();
+			voicesReady = true;
+			window.speechSynthesis.removeEventListener("voiceschanged", handler);
+			resolve();
+		};
 
-function getVoicesSafe() {
-	if (!("speechSynthesis" in window)) return [];
-	return window.speechSynthesis.getVoices() || [];
+		window.speechSynthesis.addEventListener("voiceschanged", handler);
+	});
 }
 
 function pickVoice() {
-	if (!("speechSynthesis" in window)) return null;
-	const voices = getVoicesSafe();
-	if (!voices.length) return null;
+	if (!cachedVoices.length) return null;
 
-	if (voiceNamePreference) {
-		const exact = voices.find(v => v.name === voiceNamePreference);
-		if (exact) return exact;
-	}
+	const preferred = cachedVoices.find(v =>
+		v.lang &&
+		v.lang.toLowerCase().startsWith(document.documentElement.lang || "en")
+	);
 
-	const english = voices.find(v => (v.lang || "").toLowerCase().startsWith("en"));
-	if (english) return english;
-
-	return voices[0] || null;
-}
-
-function cancelSpeech() {
-	if (!("speechSynthesis" in window)) return;
-	window.speechSynthesis.cancel();
-	currentUtterance = null;
-}
-
-function setSpeechPreferences({ voiceName = "", rate = 1, pitch = 1, volume = 1 } = {}) {
-	voiceNamePreference = voiceName;
-	ratePreference = rate;
-	pitchPreference = pitch;
-	volumePreference = volume;
+	return preferred || cachedVoices[0];
 }
 
 function unlockSpeech() {
-	if (!("speechSynthesis" in window)) return false;
-	if (isUnlocked) return true;
+	if (unlockPerformed) return;
 
 	try {
 		const u = new SpeechSynthesisUtterance(" ");
 		u.volume = 0;
-		u.rate = ratePreference;
-		u.pitch = pitchPreference;
-		const voice = pickVoice();
-		if (voice) u.voice = voice;
-
-		window.speechSynthesis.cancel();
 		window.speechSynthesis.speak(u);
-
-		isUnlocked = true;
-		return true;
-	} catch {
-		return false;
+		unlockPerformed = true;
+	} catch (e) {
 	}
 }
 
-function speak(text, options = {}) {
-	if (!("speechSynthesis" in window)) {
-		return Promise.resolve({
-			ok: false,
-			reason: "unsupported",
-			started: false,
-			ended: false,
-			text,
-			startedAt: 0,
-			endedAt: 0
-		});
+function cancelSpeech() {
+	try {
+		window.speechSynthesis.cancel();
+	} catch (e) {
 	}
+}
 
-	const cleanText = String(text ?? "").trim();
-	if (!cleanText) {
-		return Promise.resolve({
-			ok: false,
-			reason: "empty",
-			started: false,
-			ended: false,
-			text: cleanText,
-			startedAt: 0,
-			endedAt: 0
-		});
+async function speak(text, options = {}) {
+	if (!text) {
+		return { spoken: false, reason: "empty" };
 	}
 
 	const {
-		on = "start",
-		timeoutMs = 400,
+		rate = 1,
+		pitch = 1,
+		volume = 1,
 		cancelPrevious = true,
-		dedupe = false,
-		rate = ratePreference,
-		pitch = pitchPreference,
-		volume = volumePreference
+		dedupe = true,
+		timeoutMs = 0
 	} = options;
 
-	if (dedupe && cleanText === lastSpokenText && window.speechSynthesis.speaking) {
-		return Promise.resolve({
-			ok: true,
-			reason: "deduped",
-			started: true,
-			ended: false,
-			text: cleanText,
-			startedAt: lastSpeakStartedAt,
-			endedAt: lastSpeakEndedAt
-		});
+	if (dedupe && text === lastSpokenText) {
+		return { spoken: false, reason: "deduped" };
 	}
 
-	if (cancelPrevious) cancelSpeech();
+	await ensureVoicesReady();
 
-	lastSpokenText = cleanText;
-	lastSpeakStartedAt = 0;
-	lastSpeakEndedAt = 0;
+	if (cancelPrevious && window.speechSynthesis.speaking) {
+		cancelSpeech();
+		await Promise.resolve();
+	}
 
-	return new Promise(resolve => {
-		let settled = false;
-		let started = false;
-		let ended = false;
+	const utterance = new SpeechSynthesisUtterance(text);
+	const voice = pickVoice();
 
-		const u = new SpeechSynthesisUtterance(cleanText);
-		currentUtterance = u;
+	if (voice) {
+		utterance.voice = voice;
+	}
 
-		u.rate = rate;
-		u.pitch = pitch;
-		u.volume = volume;
+	utterance.rate = rate;
+	utterance.pitch = pitch;
+	utterance.volume = volume;
 
-		const voice = pickVoice();
-		if (voice) u.voice = voice;
+	let finished = false;
 
-		const finish = reason => {
-			if (settled) return;
-			settled = true;
-			resolve({
-				ok: true,
-				reason,
-				started,
-				ended,
-				text: cleanText,
-				startedAt: lastSpeakStartedAt,
-				endedAt: lastSpeakEndedAt
-			});
+	const resultPromise = new Promise(resolve => {
+		utterance.onend = () => {
+			finished = true;
+			resolve({ spoken: true, finished: true });
 		};
 
-		u.onstart = () => {
-			started = true;
-			lastSpeakStartedAt = nowMs();
-			if (on === "start") finish("start");
+		utterance.onerror = () => {
+			finished = true;
+			resolve({ spoken: false, error: true });
 		};
-
-		u.onend = () => {
-			ended = true;
-			lastSpeakEndedAt = nowMs();
-			if (on === "end") finish("end");
-		};
-
-		u.onerror = () => {
-			if (settled) return;
-			settled = true;
-			resolve({
-				ok: false,
-				reason: "error",
-				started,
-				ended,
-				text: cleanText,
-				startedAt: lastSpeakStartedAt,
-				endedAt: lastSpeakEndedAt
-			});
-		};
-
-		try {
-			window.speechSynthesis.speak(u);
-		} catch {
-			if (settled) return;
-			settled = true;
-			resolve({
-				ok: false,
-				reason: "exception",
-				started,
-				ended,
-				text: cleanText,
-				startedAt: lastSpeakStartedAt,
-				endedAt: lastSpeakEndedAt
-			});
-			return;
-		}
-
-		setTimeout(() => {
-			if (settled) return;
-			finish("timeout");
-		}, timeoutMs);
 	});
-}
 
-function getSpeechTelemetry() {
-	return {
-		lastSpokenText,
-		lastSpeakStartedAt,
-		lastSpeakEndedAt,
-		isUnlocked,
-		isSpeaking: ("speechSynthesis" in window) ? window.speechSynthesis.speaking : false
-	};
+	window.speechSynthesis.speak(utterance);
+	lastSpokenText = text;
+
+	if (timeoutMs > 0) {
+		return Promise.race([
+			resultPromise,
+			new Promise(resolve => {
+				setTimeout(() => {
+					if (!finished) {
+						resolve({ spoken: true, timedOut: true });
+					}
+				}, timeoutMs);
+			})
+		]);
+	}
+
+	return resultPromise;
 }
 
 export {
-	getVoicesSafe,
-	setSpeechPreferences,
 	unlockSpeech,
-	cancelSpeech,
 	speak,
-	getSpeechTelemetry
+	cancelSpeech
 };

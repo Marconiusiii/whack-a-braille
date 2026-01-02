@@ -2,7 +2,7 @@
 
 import { initGameLoop, startRound } from "./gameLoop.js";
 import { unlockAudio, playEndBuzzer, playStartFlourish } from "./audioEngine.js";
-import { unlockSpeech } from "./speechEngine.js";
+import { unlockSpeech, speak } from "./speechEngine.js";
 import { attachKeyboardListeners, setInputMode, setCurrentMoleId } from "./inputEngine.js";
 
 const body = document.body;
@@ -90,6 +90,11 @@ function setGameState(state) {
 		}
 	}
 }
+function primeSpeech() {
+	const utterance = new SpeechSynthesisUtterance(" ");
+	utterance.volume = 0;
+	window.speechSynthesis.speak(utterance);
+}
 
 function syncInputModeUI() {
 	const selectedMode = document.querySelector("input[name='brailleMode']:checked")?.value;
@@ -130,9 +135,10 @@ function startGameFromSettings() {
 	setGameState("playing");
 
 	playStartFlourish();
-	window.speechSynthesis.cancel();
-	window.speechSynthesis.speak(new SpeechSynthesisUtterance("Ready?"));
-
+	speak("Ready?", {
+		cancelPrevious: true,
+		dedupe: false
+	});
 	setTimeout(() => {
 		startRound(settings.brailleMode, settings.roundTime, settings.inputMode);
 	}, 650);
@@ -140,7 +146,10 @@ function startGameFromSettings() {
 
 function setupEventListeners() {
 	if (startButton) {
-		startButton.addEventListener("click", startGameFromSettings);
+		startButton.addEventListener("click", () => {
+			primeSpeech();
+			startGameFromSettings();
+		});
 	}
 
 	if (playAgainButton) {

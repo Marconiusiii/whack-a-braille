@@ -175,6 +175,10 @@ async function showRandomMole() {
 	const moleItem = roundItems[activeMoleIndex];
 	const thisMoleId = activeMoleId;
 
+	// Critical: allow whacks during speech.
+	// This makes attempt.moleId line up immediately.
+	setCurrentMoleId(thisMoleId);
+
 	const speechResult = await speak(moleItem.announceText, {
 		on: "start",
 		timeoutMs: 400,
@@ -185,7 +189,6 @@ async function showRandomMole() {
 	if (!isRunning || roundEnding) return;
 	if (thisMoleId !== activeMoleId) return;
 
-	setCurrentMoleId(thisMoleId);
 	activateMoleVisual(activeMoleIndex);
 
 	const upTime = computeMoleWindowMs({
@@ -194,19 +197,16 @@ async function showRandomMole() {
 	});
 
 	clearTimeout(moleUpTimer);
-moleUpTimer = setTimeout(() => {
-	if (!isRunning || roundEnding) return;
-	if (thisMoleId !== activeMoleId) return;
-
-	requestAnimationFrame(() => {
+	moleUpTimer = setTimeout(() => {
+		if (!isRunning || roundEnding) return;
 		if (thisMoleId !== activeMoleId) return;
-		playRetreatSound();
-	});
 
-	clearActiveMole();
-	setCurrentMoleId(0);
-	scheduleNextMole(0);
-}, upTime);
+		playRetreatSound();
+
+		clearActiveMole();
+		setCurrentMoleId(0);
+		scheduleNextMole(0);
+	}, upTime);
 }
 
 function pickNextMoleIndex() {
@@ -238,6 +238,9 @@ function handleAttempt(attempt) {
 	if (activeMoleIndex === null) return;
 	if (attempt.moleId !== activeMoleId) return;
 
+	// If perkins mode is active, ignore standard keyboard attempts.
+	if (currentInputMode === "perkins" && attempt.type === "standard") return;
+
 	const currentItem = roundItems[activeMoleIndex];
 	let isHit = false;
 
@@ -247,12 +250,14 @@ function handleAttempt(attempt) {
 
 	if (attempt.type === "standard") {
 		if (typeof currentItem.standardKey === "string") {
-			isHit = attempt.key === currentItem.standardKey;
+			const a = String(attempt.key || "").toLowerCase();
+			const b = String(currentItem.standardKey || "").toLowerCase();
+			isHit = a === b;
 		}
 	}
 
 	if (attempt.type === "brailleText") {
-		isHit = attempt.char === String(currentItem.id).toLowerCase();
+		isHit = String(attempt.char || "").toLowerCase() === String(currentItem.id || "").toLowerCase();
 	}
 
 	if (isHit) {
@@ -266,15 +271,14 @@ function handleAttempt(attempt) {
 }
 
 function handleHit() {
-	const hitMoleId = activeMoleId;
-
-	requestAnimationFrame(() => {
-		if (hitMoleId !== activeMoleId) return;
-		playHitSound();
-	});
+	// Immediate feedback: do not wait for requestAnimationFrame.
+	playHitSound();
 
 	clearTimeout(moleUpTimer);
 	moleUpTimer = null;
+
+	// Prevent any extra miss noise on the same mole.
+	missRegisteredForMole = true;
 
 	clearActiveMole();
 	setCurrentMoleId(0);
@@ -282,12 +286,8 @@ function handleHit() {
 }
 
 function handleMiss() {
-	const missMoleId = activeMoleId;
-
-	requestAnimationFrame(() => {
-		if (missMoleId !== activeMoleId) return;
-		playMissSound();
-	});
+	// Immediate feedback: do not wait for requestAnimationFrame.
+	playMissSound();
 }
 
 export {
