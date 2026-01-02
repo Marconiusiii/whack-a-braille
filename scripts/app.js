@@ -1,7 +1,7 @@
 "use strict";
 
 import { initGameLoop, startRound } from "./gameLoop.js";
-import { unlockAudio } from "./audioEngine.js";
+import { unlockAudio, playEndBuzzer, playStartFlourish } from "./audioEngine.js";
 import { unlockSpeech } from "./speechEngine.js";
 import { attachKeyboardListeners, setInputMode, setCurrentMoleId } from "./inputEngine.js";
 
@@ -27,59 +27,65 @@ function isGrade2Mode(modeId) {
 	return modeId === "grade2Symbols" || modeId === "grade2Words";
 }
 
+function setHiddenInert(el, hide) {
+	if (!el) return;
+	el.hidden = hide;
+	el.inert = hide;
+}
+
 function setGameState(state) {
 	gameState = state;
 	body.setAttribute("data-game-state", state);
 
 	if (state === "home") {
-		if (homeContent) {
-			homeContent.hidden = false;
-			homeContent.inert = false;
-		}
-
-		if (gameArea) gameArea.hidden = true;
-		if (resultsArea) resultsArea.hidden = true;
-
-		if (footer) footer.hidden = false;
+		setHiddenInert(homeContent, false);
+		setHiddenInert(gameArea, true);
+		setHiddenInert(resultsArea, true);
+		setHiddenInert(footer, false);
 
 		setCurrentMoleId(0);
 
-		if (startButton) startButton.focus();
+		if (startButton) {
+			requestAnimationFrame(() => {
+				startButton.focus({ preventScroll: true });
+			});
+		}
 		return;
 	}
 
 	if (state === "playing") {
-		if (homeContent) {
-			homeContent.hidden = true;
-			homeContent.inert = true;
+		setHiddenInert(homeContent, true);
+		setHiddenInert(resultsArea, true);
+		setHiddenInert(footer, true);
+
+		if (gameArea) {
+			gameArea.hidden = false;
+			gameArea.inert = false;
 		}
-
-		if (gameArea) gameArea.hidden = false;
-		if (resultsArea) resultsArea.hidden = true;
-
-		if (footer) footer.hidden = true;
 
 		setCurrentMoleId(0);
 		return;
 	}
 
 	if (state === "results") {
-		if (homeContent) {
-			homeContent.hidden = true;
-			homeContent.inert = true;
+		setHiddenInert(homeContent, true);
+		setHiddenInert(gameArea, true);
+		setHiddenInert(footer, true);
+
+		if (resultsArea) {
+			resultsArea.hidden = false;
+			resultsArea.inert = false;
 		}
-
-		if (gameArea) gameArea.hidden = true;
-		if (resultsArea) resultsArea.hidden = false;
-
-		if (footer) footer.hidden = true;
 
 		setCurrentMoleId(0);
 
+		playEndBuzzer();
+
 		if (resultsHeading) {
 			requestAnimationFrame(() => {
-				resultsHeading.focus({ preventScroll: true });
-				setTimeout(() => resultsHeading.focus({ preventScroll: true }), 75);
+				requestAnimationFrame(() => {
+					resultsHeading.focus({ preventScroll: true });
+				});
 			});
 		}
 	}
@@ -98,9 +104,9 @@ function syncInputModeUI() {
 }
 
 function getSelectedSettings() {
-	const brailleMode = document.querySelector("input[name='brailleMode']:checked")?.value || "lettersOnly";
-	const roundTimeRaw = document.querySelector("input[name='roundTime']:checked")?.value || "30";
-	const roundTime = parseInt(roundTimeRaw, 10);
+	const brailleMode = document.querySelector("input[name='brailleMode']:checked")?.value || "grade1Letters";
+	const roundTimeValue = document.querySelector("input[name='roundTime']:checked")?.value || "30";
+	const roundTime = parseInt(roundTimeValue, 10);
 
 	let inputMode = document.querySelector("input[name='inputMode']:checked")?.value || "qwerty";
 	if (isGrade2Mode(brailleMode)) inputMode = "perkins";
@@ -122,11 +128,20 @@ function startGameFromSettings() {
 	setCurrentMoleId(0);
 
 	setGameState("playing");
-	startRound(settings.brailleMode, settings.roundTime, settings.inputMode);
+
+	playStartFlourish();
+	window.speechSynthesis.cancel();
+	window.speechSynthesis.speak(new SpeechSynthesisUtterance("Ready?"));
+
+	setTimeout(() => {
+		startRound(settings.brailleMode, settings.roundTime, settings.inputMode);
+	}, 650);
 }
 
 function setupEventListeners() {
-	if (startButton) startButton.addEventListener("click", startGameFromSettings);
+	if (startButton) {
+		startButton.addEventListener("click", startGameFromSettings);
+	}
 
 	if (playAgainButton) {
 		playAgainButton.addEventListener("click", () => {
@@ -140,14 +155,14 @@ function setupEventListeners() {
 		});
 	}
 
-	document.querySelectorAll("input[name='brailleMode']").forEach((radio) => {
+	document.querySelectorAll("input[name='brailleMode']").forEach(radio => {
 		radio.addEventListener("change", syncInputModeUI);
 	});
 
 	document.addEventListener("wabRoundEnded", () => {
-		if (gameState !== "playing") return;
-		setCurrentMoleId(0);
-		setGameState("results");
+		if (gameState === "playing") {
+			setGameState("results");
+		}
 	});
 }
 
