@@ -112,23 +112,12 @@ function onKeyUp(event) {
 function attachDesktopListeners() {
 	window.addEventListener("keydown", onKeyDown, true);
 	window.addEventListener("keyup", onKeyUp, true);
-}
-
-function handleBrailleTextInput(text) {
-	if (!captureEnabled) return;
-
-	const clean = String(text ?? "").trim();
-	if (!clean) return;
-
-	emitAttempt({
-		type: "bsi",
-		text: clean
-	});
+	document.addEventListener("keydown", onKeyDown, true);
+	document.addEventListener("keyup", onKeyUp, true);
 }
 
 export {
 	attachDesktopListeners,
 	setAttemptCallback,
-	setCaptureEnabled,
-	handleBrailleTextInput
+	setCaptureEnabled
 };
