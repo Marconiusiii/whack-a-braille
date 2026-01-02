@@ -86,6 +86,7 @@ function playHitSound() {
 	bodyOsc.type = "sine";
 	bodyOsc.frequency.setValueAtTime(140, now);
 	bodyOsc.frequency.exponentialRampToValueAtTime(90, now + 0.08);
+
 	const noiseBuffer = ctx.createBuffer(1, ctx.sampleRate * 0.05, ctx.sampleRate);
 	const noiseData = noiseBuffer.getChannelData(0);
 	for (let i = 0; i < noiseData.length; i++) {
@@ -154,7 +155,7 @@ function playMissSound() {
 	osc.stop(now + 0.5);
 }
 
-/* ---------- MOLE RETREAT (LONGER SILLY CHITTER) ---------- */
+/* ---------- MOLE RETREAT ---------- */
 
 function playRetreatSound() {
 	if (!isUnlocked) return;
@@ -192,7 +193,7 @@ function playRetreatSound() {
 	}
 }
 
-/* ---------- END OF ROUND FANFARE (150 BPM, VIBRATO FINAL) ---------- */
+/* ---------- END OF ROUND FANFARE (180 BPM, RANDOMIZED, BASS) ---------- */
 
 function playEndBuzzer() {
 	if (!isUnlocked) return;
@@ -205,51 +206,97 @@ function playEndBuzzer() {
 	master.gain.value = 0.45;
 	master.connect(ctx.destination);
 
-	const beat = 60 / 150; // 150 BPM
+	const beat = 60 / 180;
 
-	const sequence = [
-		{ notes: [261.63, 329.63, 392.0], duration: beat }, // C major
-		{ notes: [261.63, 329.63, 392.0], duration: beat }, // C major
-		{ notes: [277.18, 329.63, 392.0], duration: beat }, // C# dim
-		{ notes: [293.66, 369.99, 440.0], duration: beat }, // D major
-		{ notes: [196.0, 246.94, 392.0, 493.88], duration: beat * 4, vibrato: true } // Gmaj7
+	const chordPool = {
+		cMajor: [
+			[261.63, 329.63, 392.0],
+			[261.63, 392.0, 523.25],
+			[261.63, 329.63, 392.0, 523.25],
+			[261.63, 329.63, 440.0]
+		],
+		cSharpDim: [
+			[277.18, 329.63, 392.0],
+			[277.18, 369.99, 392.0],
+			[277.18, 329.63, 466.16]
+		],
+		dMajor: [
+			[293.66, 369.99, 440.0],
+			[293.66, 369.99, 493.88],
+			[293.66, 440.0, 587.33]
+		],
+		gMaj7: [
+			[196.0, 246.94, 392.0, 493.88],
+			[196.0, 246.94, 392.0, 587.33],
+			[196.0, 293.66, 392.0, 493.88]
+		]
+	};
+
+	const progression = [
+		{ pool: "cMajor", duration: beat },
+		{ pool: "cMajor", duration: beat },
+		{ pool: "cSharpDim", duration: beat },
+		{ pool: "dMajor", duration: beat },
+		{ pool: "gMaj7", duration: beat * 4, vibrato: true }
 	];
 
 	let t = now;
 
-	sequence.forEach(chord => {
-		chord.notes.forEach(freq => {
+	progression.forEach(step => {
+		const notes = chordPool[step.pool][Math.floor(Math.random() * chordPool[step.pool].length)];
+
+		notes.forEach(freq => {
 			const osc = ctx.createOscillator();
 			const gain = ctx.createGain();
 
 			osc.type = "triangle";
 			osc.frequency.setValueAtTime(freq, t);
 
-			if (chord.vibrato) {
+			if (step.vibrato) {
 				const lfo = ctx.createOscillator();
 				const lfoGain = ctx.createGain();
-				lfo.frequency.value = 6;
+				lfo.frequency.value = 5.5;
 				lfoGain.gain.value = 6;
-
 				lfo.connect(lfoGain);
 				lfoGain.connect(osc.frequency);
-
 				lfo.start(t);
-				lfo.stop(t + chord.duration);
+				lfo.stop(t + step.duration);
 			}
 
 			gain.gain.setValueAtTime(0.0001, t);
-			gain.gain.exponentialRampToValueAtTime(0.9, t + 0.08);
-			gain.gain.exponentialRampToValueAtTime(0.0001, t + chord.duration);
+			gain.gain.exponentialRampToValueAtTime(0.9, t + 0.06);
+			gain.gain.exponentialRampToValueAtTime(0.0001, t + step.duration);
 
 			osc.connect(gain);
 			gain.connect(master);
 
 			osc.start(t);
-			osc.stop(t + chord.duration);
+			osc.stop(t + step.duration);
 		});
 
-		t += chord.duration;
+		const bassFreq =
+			step.pool === "cMajor" ? 130.81 :
+			step.pool === "cSharpDim" ? 138.59 :
+			step.pool === "dMajor" ? 146.83 :
+			98.0;
+
+		const bassOsc = ctx.createOscillator();
+		const bassGain = ctx.createGain();
+
+		bassOsc.type = "sine";
+		bassOsc.frequency.setValueAtTime(bassFreq, t);
+
+		bassGain.gain.setValueAtTime(0.0001, t);
+		bassGain.gain.exponentialRampToValueAtTime(0.6, t + 0.05);
+		bassGain.gain.exponentialRampToValueAtTime(0.0001, t + step.duration);
+
+		bassOsc.connect(bassGain);
+		bassGain.connect(master);
+
+		bassOsc.start(t);
+		bassOsc.stop(t + step.duration);
+
+		t += step.duration;
 	});
 }
 
