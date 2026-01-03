@@ -153,3 +153,39 @@ body[data-game-state="results"] #resultsArea { display: block; }
 	font-size: 1.1rem;
 	letter-spacing: 0.03em;
 }
+/* Cash Out */
+
+#cashOutArea {
+	margin-top: 2rem;
+}
+
+#cashOutPrizeList {
+	list-style: none;
+	padding: 0;
+	margin: 1.5rem 0;
+	display: grid;
+	gap: 1rem;
+}
+
+.cashOutPrize {
+	padding: 1rem;
+	border-radius: 0.75rem;
+	background: linear-gradient(135deg, #3a2dbf, #6c63ff);
+	cursor: pointer;
+}
+
+.cashOutPrize:focus {
+	outline: 3px solid #7bdff2;
+	outline-offset: 2px;
+}
+
+.cashOutPrize[data-selected="true"] {
+	background: linear-gradient(135deg, #ffbe0b, #fb5607);
+	color: #0b1020;
+}
+
+#cashOutActions {
+	display: flex;
+	gap: 1rem;
+	justify-content: center;
+}

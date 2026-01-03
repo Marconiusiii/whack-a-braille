@@ -4,6 +4,7 @@ import { initGameLoop, startRound } from "./gameLoop.js";
 import { unlockAudio, playEndBuzzer, playStartFlourish } from "./audioEngine.js";
 import { unlockSpeech, speak } from "./speechEngine.js";
 import { attachKeyboardListeners, setInputMode, setCurrentMoleId } from "./inputEngine.js";
+import { prizeCatalog } from "./prizeCatalog.js";
 
 const body = document.body;
 
@@ -11,6 +12,13 @@ const homeContent = document.getElementById("homeContent");
 const gameArea = document.getElementById("gameArea");
 const resultsArea = document.getElementById("resultsArea");
 const footer = document.querySelector("footer");
+const cashOutArea = document.getElementById("cashOutArea");
+const cashOutHeading = document.getElementById("cashOutHeading");
+const cashOutPrizeOptions = document.getElementById("cashOutPrizeOptions");
+const cashOutTicketCount = document.getElementById("cashOutTicketCount");
+
+const confirmPrizeButton = document.getElementById("confirmPrizeButton");
+const cancelCashOutButton = document.getElementById("cancelCashOutButton");
 
 const startButton = document.getElementById("startGameButton");
 const playAgainButton = document.getElementById("playAgainButton");
@@ -58,6 +66,8 @@ function setHiddenInert(el, hide) {
 function setGameState(state) {
 	gameState = state;
 	body.setAttribute("data-game-state", state);
+	setHiddenInert(cashOutArea, true);
+
 
 	if (state === "home") {
 		setHiddenInert(homeContent, false);
@@ -111,7 +121,26 @@ function setGameState(state) {
 			});
 		}
 	}
+
+if (state === "cashout") {
+	setHiddenInert(homeContent, true);
+	setHiddenInert(gameArea, true);
+	setHiddenInert(resultsArea, true);
+	setHiddenInert(footer, true);
+
+	setHiddenInert(cashOutArea, false);
+
+	if (cashOutHeading) {
+		requestAnimationFrame(() => {
+			cashOutHeading.focus({ preventScroll: true });
+		});
+	}
 }
+
+
+}
+
+
 function primeSpeech() {
 	const utterance = new SpeechSynthesisUtterance(" ");
 	utterance.volume = 0;
@@ -182,10 +211,25 @@ function setupEventListeners() {
 
 	if (cashOutButton) {
 		cashOutButton.addEventListener("click", () => {
-			resetTotalTickets();
-			setGameState("home");
+			renderCashOut();
+			setGameState("cashout");
 		});
 	}
+if (confirmPrizeButton) {
+	confirmPrizeButton.addEventListener("click", () => {
+		if (!selectedPrizeId) return;
+
+		resetTotalTickets();
+		setGameState("home");
+	});
+}
+
+if (cancelCashOutButton) {
+	cancelCashOutButton.addEventListener("click", () => {
+		setGameState("playing");
+	});
+}
+
 
 	document.querySelectorAll("input[name='brailleMode']").forEach(radio => {
 		radio.addEventListener("change", syncInputModeUI);
@@ -235,6 +279,70 @@ function scoreToTickets(score) {
 	if (score >= 100) return 10;
 	if (score >= 50) return 5;
 	return 0;
+}
+
+function getEligiblePrizes(ticketCount) {
+	return prizeCatalog.filter(prize => {
+		if (ticketCount < prize.minTickets) return false;
+		if (prize.maxTickets !== null && ticketCount > prize.maxTickets) return false;
+		return true;
+	});
+}
+
+function pickRandomPrizes(prizes, count = 3) {
+	const shuffled = prizes.slice().sort(() => Math.random() - 0.5);
+	return shuffled.slice(0, count);
+}
+
+let selectedPrizeId = null;
+
+function renderCashOut() {
+	selectedPrizeId = null;
+
+	if (confirmPrizeButton) {
+		confirmPrizeButton.disabled = true;
+	}
+
+	if (cashOutTicketCount) {
+		cashOutTicketCount.textContent = String(totalTickets);
+	}
+
+	const eligible = getEligiblePrizes(totalTickets);
+	const picks = pickRandomPrizes(eligible, 3);
+
+	const existingRadios = document.querySelectorAll("input[name='cashOutPrize']");
+existingRadios.forEach(radio => {
+	radio.checked = false;
+});
+
+	cashOutPrizeOptions.innerHTML = "";
+
+	picks.forEach((prize, index) => {
+		const wrapper = document.createElement("div");
+
+		const input = document.createElement("input");
+		input.type = "radio";
+		input.name = "cashOutPrize";
+		input.id = "cashOutPrize_" + prize.id;
+		input.value = prize.id;
+
+		const label = document.createElement("label");
+		label.setAttribute("for", input.id);
+		label.textContent = prize.label;
+
+		input.addEventListener("change", () => {
+			selectedPrizeId = prize.id;
+			if (confirmPrizeButton) {
+				confirmPrizeButton.disabled = false;
+			}
+		});
+
+		wrapper.appendChild(input);
+		wrapper.appendChild(label);
+
+		cashOutPrizeOptions.appendChild(wrapper);
+
+	});
 }
 
 function init() {
