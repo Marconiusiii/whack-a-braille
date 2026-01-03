@@ -216,7 +216,12 @@ async function showRandomMole() {
 		if (!isRunning || roundEnding) return;
 		if (thisMoleId !== activeMoleId) return;
 		escapesThisRound += 1;
-hitStreak = 0;
+		hitStreak = 0;
+
+		const mole = moleElements[activeMoleIndex];
+		if (mole) {
+			mole.classList.add("isMiss");
+		}
 
 		playRetreatSound();
 
@@ -242,12 +247,20 @@ function clearActiveMole() {
 
 function activateMoleVisual(index) {
 	const mole = moleElements[index];
-	if (mole) mole.classList.add("active");
+	if (!mole) return;
+
+	const item = roundItems[index];
+
+	mole.dataset.label = item?.id || "";
+	mole.classList.add("isUp");
 }
 
 function deactivateMoleVisual(index) {
 	const mole = moleElements[index];
-	if (mole) mole.classList.remove("active");
+	if (!mole) return;
+
+	mole.classList.remove("isUp", "isHit", "isMiss");
+	delete mole.dataset.label;
 }
 
 function handleAttempt(attempt) {
@@ -299,11 +312,17 @@ function handleHit() {
 		score += 10;
 	}
 
+	const mole = moleElements[activeMoleIndex];
+	if (mole) {
+		mole.classList.add("isHit");
+	}
+
 
 	clearTimeout(moleUpTimer);
 	moleUpTimer = null;
 
 	missRegisteredForMole = true;
+
 
 	clearActiveMole();
 	setCurrentMoleId(0);
