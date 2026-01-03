@@ -8,7 +8,7 @@ let hitGainNode = null;
 async function loadHitSound() {
 	if (hitBuffer) return;
 
-	const response = await fetch("../files/ChanceyBonk.m4a");
+	const response = await fetch("files/ChanceyBonk_6.m4a");
 	const arrayBuffer = await response.arrayBuffer();
 
 	hitBuffer = await audioContext.decodeAudioData(arrayBuffer);
