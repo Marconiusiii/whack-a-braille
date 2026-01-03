@@ -67,6 +67,22 @@ function setGameState(state) {
 	gameState = state;
 	body.setAttribute("data-game-state", state);
 	setHiddenInert(cashOutArea, true);
+	switch (state) {
+	case "playing":
+		document.title = "Currently Whacking Some Braille";
+		break;
+
+	case "results":
+		document.title = "Results - Whack a Braille";
+		break;
+
+	case "cashout":
+		document.title = "Prize Counter - Whack a Braille";
+		break;
+
+	default:
+		document.title = "Whack a Braille!";
+}
 
 
 	if (state === "home") {
