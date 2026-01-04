@@ -2,7 +2,7 @@
 
 import { getBrailleItemsForMode } from "./brailleRegistry.js";
 import { setAttemptCallback, setCurrentMoleId } from "./inputEngine.js";
-import { playHitSound, playMissSound, playRetreatSound } from "./audioEngine.js";
+import { playHitSound, playMissSound, playMolePopSound, playRetreatSound } from "./audioEngine.js";
 import { speak, cancelSpeech } from "./speechEngine.js";
 import { computeMoleWindowMs, computeRoundEndGraceMs } from "./speechTuning.js";
 
@@ -206,6 +206,7 @@ async function showRandomMole() {
 	if (thisMoleId !== activeMoleId) return;
 
 	activateMoleVisual(activeMoleIndex);
+	playMolePopSound(activeMoleIndex);
 
 	const upTime = computeMoleWindowMs({
 		speechResult,

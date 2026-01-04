@@ -324,6 +324,74 @@ function playMissSound(moleIndex) {
 }
 
 /* ---------- MOLE RETREAT ---------- */
+function playMolePopSound(moleIndex) {
+	if (!isUnlocked) return;
+
+	const ctx = getAudioContext();
+	ensureRunning(ctx);
+
+	const now = ctx.currentTime;
+
+	const panValue = molePanMap[moleIndex] ?? 0.0;
+
+	const pan = ctx.createStereoPanner();
+	pan.pan.value = panValue;
+
+	const master = ctx.createGain();
+	master.gain.value = 0.18; // deliberately quiet
+	pan.connect(master);
+	master.connect(ctx.destination);
+
+	/* ---- Rising tone ---- */
+
+	const toneOsc = ctx.createOscillator();
+	toneOsc.type = "triangle";
+	toneOsc.frequency.setValueAtTime(220, now);
+	toneOsc.frequency.exponentialRampToValueAtTime(520, now + 0.14);
+
+	const toneGain = ctx.createGain();
+	toneGain.gain.setValueAtTime(0.0001, now);
+	toneGain.gain.exponentialRampToValueAtTime(0.35, now + 0.04);
+	toneGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
+
+	toneOsc.connect(toneGain);
+	toneGain.connect(pan);
+
+	/* ---- Chitter noise ---- */
+
+	const noiseBuffer = ctx.createBuffer(1, ctx.sampleRate * 0.15, ctx.sampleRate);
+	const noiseData = noiseBuffer.getChannelData(0);
+	for (let i = 0; i < noiseData.length; i++) {
+		noiseData[i] = Math.random() * 2 - 1;
+	}
+
+	const noise = ctx.createBufferSource();
+	noise.buffer = noiseBuffer;
+
+	const noiseFilter = ctx.createBiquadFilter();
+	noiseFilter.type = "bandpass";
+	noiseFilter.frequency.setValueAtTime(900, now);
+	noiseFilter.frequency.exponentialRampToValueAtTime(1600, now + 0.12);
+	noiseFilter.Q.value = 8;
+
+	const noiseGain = ctx.createGain();
+	noiseGain.gain.setValueAtTime(0.0001, now);
+	noiseGain.gain.exponentialRampToValueAtTime(0.25, now + 0.05);
+	noiseGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.17);
+
+	noise.connect(noiseFilter);
+	noiseFilter.connect(noiseGain);
+	noiseGain.connect(pan);
+
+	/* ---- Start / stop ---- */
+
+	toneOsc.start(now);
+	noise.start(now);
+
+	toneOsc.stop(now + 0.2);
+	noise.stop(now + 0.18);
+}
+
 
 function playRetreatSound(moleIndex) {
 	if (!isUnlocked) return;
@@ -364,6 +432,7 @@ function playRetreatSound(moleIndex) {
 }
 
 /* ---------- END OF ROUND FANFARE (180 BPM, RANDOMIZED, BASS) ---------- */
+
 
 function playEndBuzzer() {
 	if (!isUnlocked) return;
@@ -476,6 +545,7 @@ export {
 	playHitSound,
 	playMissSound,
 	playRetreatSound,
+	playMolePopSound,
 	playEndBuzzer,
 	setGameAudioMode
 };
