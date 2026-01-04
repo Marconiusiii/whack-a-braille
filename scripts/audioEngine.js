@@ -331,65 +331,64 @@ function playMolePopSound(moleIndex) {
 	ensureRunning(ctx);
 
 	const now = ctx.currentTime;
-
 	const panValue = molePanMap[moleIndex] ?? 0.0;
 
 	const pan = ctx.createStereoPanner();
 	pan.pan.value = panValue;
 
 	const master = ctx.createGain();
-	master.gain.value = 0.18; // deliberately quiet
+	master.gain.value = 0.38;
 	pan.connect(master);
 	master.connect(ctx.destination);
 
-	/* ---- Rising tone ---- */
+	/* ---------------- Slide whistle body ---------------- */
 
-	const toneOsc = ctx.createOscillator();
-	toneOsc.type = "triangle";
-	toneOsc.frequency.setValueAtTime(220, now);
-	toneOsc.frequency.exponentialRampToValueAtTime(520, now + 0.14);
+	const osc = ctx.createOscillator();
+	osc.type = "sine";
 
-	const toneGain = ctx.createGain();
-	toneGain.gain.setValueAtTime(0.0001, now);
-	toneGain.gain.exponentialRampToValueAtTime(0.35, now + 0.04);
-	toneGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
+	// Quick pitch nudge for attack, then full rise
+	osc.frequency.setValueAtTime(170, now);
+	osc.frequency.exponentialRampToValueAtTime(260, now + 0.018);
+	osc.frequency.exponentialRampToValueAtTime(760, now + 0.24);
 
-	toneOsc.connect(toneGain);
-	toneGain.connect(pan);
+	/* ---------------- Gentle vibrato ---------------- */
 
-	/* ---- Chitter noise ---- */
+	const vibrato = ctx.createOscillator();
+	vibrato.type = "sine";
+	vibrato.frequency.value = 6.8;
 
-	const noiseBuffer = ctx.createBuffer(1, ctx.sampleRate * 0.15, ctx.sampleRate);
-	const noiseData = noiseBuffer.getChannelData(0);
-	for (let i = 0; i < noiseData.length; i++) {
-		noiseData[i] = Math.random() * 2 - 1;
-	}
+	const vibratoGain = ctx.createGain();
+	vibratoGain.gain.value = 20;
 
-	const noise = ctx.createBufferSource();
-	noise.buffer = noiseBuffer;
+	vibrato.connect(vibratoGain);
+	vibratoGain.connect(osc.frequency);
 
-	const noiseFilter = ctx.createBiquadFilter();
-	noiseFilter.type = "bandpass";
-	noiseFilter.frequency.setValueAtTime(900, now);
-	noiseFilter.frequency.exponentialRampToValueAtTime(1600, now + 0.12);
-	noiseFilter.Q.value = 8;
+	/* ---------------- Sharper but smooth gain envelope ---------------- */
 
-	const noiseGain = ctx.createGain();
-	noiseGain.gain.setValueAtTime(0.0001, now);
-	noiseGain.gain.exponentialRampToValueAtTime(0.25, now + 0.05);
-	noiseGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.17);
+	const gain = ctx.createGain();
 
-	noise.connect(noiseFilter);
-	noiseFilter.connect(noiseGain);
-	noiseGain.connect(pan);
+	gain.gain.setValueAtTime(0.0001, now);
+	gain.gain.linearRampToValueAtTime(0.65, now + 0.018);
+	gain.gain.linearRampToValueAtTime(0.0001, now + 0.28);
 
-	/* ---- Start / stop ---- */
+	/* ---------------- Soft tone shaping ---------------- */
 
-	toneOsc.start(now);
-	noise.start(now);
+	const filter = ctx.createBiquadFilter();
+	filter.type = "lowpass";
+	filter.frequency.value = 1900;
+	filter.Q.value = 0.6;
 
-	toneOsc.stop(now + 0.2);
-	noise.stop(now + 0.18);
+	osc.connect(filter);
+	filter.connect(gain);
+	gain.connect(pan);
+
+	/* ---------------- Start / stop ---------------- */
+
+	vibrato.start(now);
+	osc.start(now);
+
+	osc.stop(now + 0.30);
+	vibrato.stop(now + 0.30);
 }
 
 

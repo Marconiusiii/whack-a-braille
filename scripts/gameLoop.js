@@ -199,7 +199,6 @@ async function showRandomMole() {
 		timeoutMs: 400,
 		cancelPrevious: true,
 		dedupe: false,
-		pan: molePanMap[activeMoleIndex]
 	});
 
 	if (!isRunning || roundEnding) return;
