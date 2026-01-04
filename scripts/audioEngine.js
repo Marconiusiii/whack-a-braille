@@ -9,7 +9,11 @@ let sillyHitBuffer = null;
 let fiftyPointBuffer = null;
 let sillyGainNode = null;
 
+const enableFiftyPointSound = true;
+
 function checkFiftyPointSound(score) {
+	if (!enableFiftyPointSound) return;
+
 	if (score >= 50 && lastScoreAnnounced < 50) {
 		playFiftyPointSound();
 	}
@@ -64,6 +68,7 @@ function getAudioContext() {
 
 function unlockAudio() {
 	if (isUnlocked) return;
+	lastScoreAnnounced = 0;
 
 	const ctx = getAudioContext();
 
@@ -98,13 +103,59 @@ function playSillyHitSound() {
 	const ctx = getAudioContext();
 	ensureRunning(ctx);
 
+	const now = ctx.currentTime;
+
 	const src = ctx.createBufferSource();
 	src.buffer = sillyHitBuffer;
 
-	src.playbackRate.value = 0.95 + Math.random() * 0.2;
+	// More noticeable speed variation
+	src.playbackRate.value = 0.9 + Math.random() * 0.2;
 
-	src.connect(sillyGainNode);
-	src.start();
+	// Base detune
+	src.detune.value = (Math.random() * 120) - 60;
+
+	// Pitch wobble (this is what makes it obviously silly)
+	const lfo = ctx.createOscillator();
+	const lfoGain = ctx.createGain();
+	lfo.frequency.value = 7 + Math.random() * 4;
+	lfoGain.gain.value = 35 + Math.random() * 20;
+
+	lfo.connect(lfoGain);
+	lfoGain.connect(src.detune);
+
+	// Big, playful lowpass sweep (opens instead of choking)
+	const filter = ctx.createBiquadFilter();
+	filter.type = "lowpass";
+
+	const startCutoff = 1200 + Math.random() * 800;
+	const endCutoff = 3800 + Math.random() * 1200;
+
+	filter.frequency.setValueAtTime(startCutoff, now);
+	filter.frequency.exponentialRampToValueAtTime(endCutoff, now + 0.18);
+
+	// Gain envelope that respects full duration
+	const gain = ctx.createGain();
+
+	const attack = 0.01;
+	const release = 0.08;
+	const peak = 1.0;
+
+	const duration = src.buffer.duration / src.playbackRate.value;
+	const releaseStart = Math.max(now + duration - release, now + attack);
+
+	gain.gain.setValueAtTime(0.0001, now);
+	gain.gain.linearRampToValueAtTime(peak, now + attack);
+	gain.gain.setValueAtTime(peak, releaseStart);
+	gain.gain.linearRampToValueAtTime(0.0001, releaseStart + release);
+
+	src.connect(filter);
+	filter.connect(gain);
+	gain.connect(sillyGainNode);
+
+	lfo.start(now);
+	lfo.stop(now + duration);
+
+	src.start(now);
 }
 
 function playFiftyPointSound() {
