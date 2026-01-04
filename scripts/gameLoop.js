@@ -14,6 +14,7 @@ let roundItems = [];
 let activeMoleIndex = null;
 let activeMoleId = 0;
 let missRegisteredForMole = false;
+let activeMoleShownAtMs = 0;
 
 let isRunning = false;
 let roundEnding = false;
@@ -26,10 +27,13 @@ let hitsThisRound = 0;
 let missesThisRound = 0;
 let escapesThisRound = 0;
 let streakBonusCount = 0;
+let speedHitCount = 0;
+let speedBonusTickets = 0;
 
 let roundTimer = null;
 let moleTimer = null;
 let moleUpTimer = null;
+let activeMoleUpTimeMs = 0;
 
 let currentModeId = "";
 let currentInputMode = "qwerty";
@@ -54,6 +58,8 @@ function startRound(modeId, durationSeconds, inputMode) {
 	missesThisRound = 0;
 	escapesThisRound = 0;
 	streakBonusCount = 0;
+	speedHitCount = 0;
+	speedBonusTickets = 0;
 
 	currentModeId = modeId;
 	currentDurationSeconds = durationSeconds;
@@ -136,7 +142,7 @@ function endRoundNow(canceled) {
 
 	const baseTickets = scoreToTickets(score);
 	const streakBonusTickets = streakBonusCount;
-	const speedBonusTickets = 0;
+	const speedTickets = speedBonusTickets;
 
 	document.dispatchEvent(new CustomEvent("wabRoundEnded", {
 		detail: {
@@ -152,7 +158,7 @@ function endRoundNow(canceled) {
 			tickets: {
 				base: baseTickets,
 				streakBonus: streakBonusTickets,
-				speedBonus: speedBonusTickets,
+				speedBonus: speedTickets,
 				total: baseTickets + streakBonusTickets + speedBonusTickets
 			}
 		}
@@ -228,11 +234,13 @@ async function showRandomMole() {
 
 	activateMoleVisual(activeMoleIndex);
 	playMolePopSound(activeMoleIndex);
+	activeMoleShownAtMs = performance.now();
 
 	const upTime = computeMoleWindowMs({
 		speechResult,
 		baseUpTimeMs: getCurrentUpTime()
 	});
+	activeMoleUpTimeMs = upTime;
 
 	clearTimeout(moleUpTimer);
 	moleUpTimer = setTimeout(() => {
@@ -334,6 +342,18 @@ function handleHit() {
 	if (hitStreak % 5 === 0) {
 		score += 10;
 		streakBonusCount += 1;
+	}
+	const nowMs = performance.now();
+	const reactionMs = nowMs - activeMoleShownAtMs;
+
+	const speedThresholdMs = activeMoleUpTimeMs * 0.4;
+
+	if (reactionMs <= speedThresholdMs) {
+		speedHitCount += 1;
+
+		if (speedHitCount % 3 === 0 && speedBonusTickets < 5) {
+			speedBonusTickets += 1;
+		}
 	}
 
 	const mole = moleElements[activeMoleIndex];
