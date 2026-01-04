@@ -205,8 +205,8 @@ const prizeCatalog = [
 		category: "title"
 	},
 	{
-		id: "tier3_trainingManual",
-		label: "The Mole's Secret Training Manual",
+		id: "tier3_warpedCane",
+		label: "A SLightly Warped White Cane",
 		minTickets: 25,
 		maxTickets: 49,
 		category: "absurd"
@@ -242,6 +242,13 @@ const prizeCatalog = [
 	{
 		id: "tier3_bigTrophy",
 		label: "A Trophy That's Way Too Big",
+		minTickets: 25,
+		maxTickets: 49,
+		category: "absurd"
+	},
+	{
+		id: "tier3_fidget",
+		label: "A Nifty Fidget Spinner",
 		minTickets: 25,
 		maxTickets: 49,
 		category: "absurd"
@@ -305,6 +312,27 @@ const prizeCatalog = [
 	{
 		id: "tier5_brava",
 		label: "A Shiny Brava Oven filled with Chicken Nuggets",
+		minTickets: 100,
+		maxTickets: null,
+		category: "legend"
+	},
+	{
+		id: "tier5_brlStylus",
+		label: "Louis Braille's Original Stylus",
+		minTickets: 100,
+		maxTickets: null,
+		category: "legend"
+	},
+	{
+		id: "tier5_microbraille",
+		label: "A Japanese MicroBraille Slate",
+		minTickets: 100,
+		maxTickets: null,
+		category: "legend"
+	},
+	{
+		id: "tier5_A Challenging 3D Wave Puzzle",
+		label: "",
 		minTickets: 100,
 		maxTickets: null,
 		category: "legend"
