@@ -9,7 +9,23 @@ let sillyHitBuffer = null;
 let fiftyPointBuffer = null;
 let sillyGainNode = null;
 
+const molePanMap = [
+	-1.0,	// Mole 1: far left
+	-0.5,	// Mole 2: mid left
+	0.0,	// Mole 3: center
+	0.5,	// Mole 4: mid right
+	1.0		// Mole 5: far right
+];
+
 const enableFiftyPointSound = true;
+
+function createMolePanner(ctx, moleIndex) {
+	const pan = ctx.createStereoPanner();
+	pan.pan.value = molePanMap[moleIndex] ?? 0.0;
+	return pan;
+}
+
+
 
 function checkFiftyPointSound(score) {
 	if (!enableFiftyPointSound) return;
@@ -96,7 +112,7 @@ function ensureRunning(ctx) {
 
 /* ---------- START ROUND FLOURISH ---------- */
 
-function playSillyHitSound() {
+function playSillyHitSound(moleIndex) {
 	if (!isUnlocked) return;
 	if (!sillyHitBuffer || !sillyGainNode) return;
 
@@ -150,7 +166,9 @@ function playSillyHitSound() {
 
 	src.connect(filter);
 	filter.connect(gain);
-	gain.connect(sillyGainNode);
+	const pan = createMolePanner(ctx, moleIndex);
+	gain.connect(pan);
+	pan.connect(sillyGainNode);
 
 	lfo.start(now);
 	lfo.stop(now + duration);
@@ -208,7 +226,7 @@ function playStartFlourish() {
 
 /* ---------- HIT SOUND ---------- */
 
-function playOriginalHitSound() {
+function playOriginalHitSound(moleIndex) {
 	if (!isUnlocked) return;
 
 	const ctx = getAudioContext();
@@ -251,7 +269,9 @@ function playOriginalHitSound() {
 	noise.connect(noiseFilter);
 	noiseFilter.connect(gain);
 	springOsc.connect(gain);
-	gain.connect(master);
+	const pan = createMolePanner(ctx, moleIndex);
+	gain.connect(pan);
+	pan.connect(master);
 
 	bodyOsc.start(now);
 	noise.start(now);
@@ -262,18 +282,18 @@ function playOriginalHitSound() {
 	springOsc.stop(now + 0.25);
 }
 
-function playHitSound(score) {
+function playHitSound(score, moleIndex) {
 	if (gameAudioMode === "silly") {
-		playSillyHitSound();
+		playSillyHitSound(moleIndex);
 		checkFiftyPointSound(score);
 		return;
 	}
 
-	playOriginalHitSound();
+	playOriginalHitSound(moleIndex);
 }
 
 
-function playMissSound() {
+function playMissSound(moleIndex) {
 	if (!isUnlocked) return;
 
 	const ctx = getAudioContext();
@@ -295,7 +315,9 @@ function playMissSound() {
 	gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.45);
 
 	osc.connect(gain);
-	gain.connect(master);
+	const pan = createMolePanner(ctx, moleIndex);
+	gain.connect(pan);
+	pan.connect(master);
 
 	osc.start(now);
 	osc.stop(now + 0.5);
@@ -303,7 +325,7 @@ function playMissSound() {
 
 /* ---------- MOLE RETREAT ---------- */
 
-function playRetreatSound() {
+function playRetreatSound(moleIndex) {
 	if (!isUnlocked) return;
 
 	const ctx = getAudioContext();
@@ -332,7 +354,9 @@ function playRetreatSound() {
 
 		osc.connect(filter);
 		filter.connect(gain);
-		gain.connect(master);
+		const pan = createMolePanner(ctx, moleIndex);
+		gain.connect(pan);
+		pan.connect(master);
 
 		osc.start(now + i * 0.07);
 		osc.stop(now + i * 0.14);

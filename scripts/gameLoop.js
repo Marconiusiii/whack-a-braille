@@ -198,7 +198,8 @@ async function showRandomMole() {
 		on: "start",
 		timeoutMs: 400,
 		cancelPrevious: true,
-		dedupe: false
+		dedupe: false,
+		pan: molePanMap[activeMoleIndex]
 	});
 
 	if (!isRunning || roundEnding) return;
@@ -223,7 +224,7 @@ async function showRandomMole() {
 			mole.classList.add("isMiss");
 		}
 
-		playRetreatSound();
+		playRetreatSound(activeMoleIndex);
 
 		clearActiveMole();
 		setCurrentMoleId(0);
@@ -301,7 +302,7 @@ function handleAttempt(attempt) {
 }
 
 function handleHit() {
-		playHitSound(score);
+		playHitSound(score, activeMoleIndex);
 
 	hitsThisRound += 1;
 	hitStreak += 1;
@@ -341,7 +342,7 @@ function handleMiss() {
 	hitStreak = 0;
 	score = Math.max(0, score - 2);
 
-	playMissSound();
+	playMissSound(activeMoleIndex);
 
 	document.dispatchEvent(new CustomEvent("wabScoreUpdated", {
 		detail: {

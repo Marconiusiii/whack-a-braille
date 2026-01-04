@@ -101,16 +101,36 @@ function kickSpeechQueue() {
 	}
 }
 
+function clampNumber(value, min, max, fallback) {
+	const n = typeof value === "number" ? value : parseFloat(value);
+	if (!Number.isFinite(n)) return fallback;
+	return Math.min(Math.max(n, min), max);
+}
+
 async function speak(text, options = {}) {
 	const startedAtMs = performance.now();
 
 	if (!isSpeechSupported()) {
-		return { spoken: false, reason: "unsupported", startedAtMs, endedAtMs: startedAtMs };
+		return {
+			spoken: false,
+			reason: "unsupported",
+			startedAtMs,
+			endedAtMs: startedAtMs,
+			panRequested: false,
+			panApplied: false
+		};
 	}
 
 	const t = String(text || "");
 	if (!t) {
-		return { spoken: false, reason: "empty", startedAtMs, endedAtMs: performance.now() };
+		return {
+			spoken: false,
+			reason: "empty",
+			startedAtMs,
+			endedAtMs: performance.now(),
+			panRequested: false,
+			panApplied: false
+		};
 	}
 
 	const {
@@ -121,11 +141,21 @@ async function speak(text, options = {}) {
 		dedupe = true,
 		timeoutMs = 0,
 		startWatchdogMs = 350,
-		retryOnce = true
+		retryOnce = true,
+		pan
 	} = options;
 
+	const panRequested = typeof pan === "number" && Number.isFinite(pan) && pan !== 0;
+
 	if (dedupe && t === lastSpokenText) {
-		return { spoken: false, reason: "deduped", startedAtMs, endedAtMs: performance.now() };
+		return {
+			spoken: false,
+			reason: "deduped",
+			startedAtMs,
+			endedAtMs: performance.now(),
+			panRequested,
+			panApplied: false
+		};
 	}
 
 	await ensureVoicesReady();
@@ -147,9 +177,10 @@ async function speak(text, options = {}) {
 	currentUtterance = utterance;
 
 	if (voice) utterance.voice = voice;
-	utterance.rate = rate;
-	utterance.pitch = pitch;
-	utterance.volume = volume;
+
+	utterance.rate = clampNumber(rate, 0.1, 3, 1);
+	utterance.pitch = clampNumber(pitch, 0, 2, 1);
+	utterance.volume = clampNumber(volume, 0, 1, 1);
 
 	const resultPromise = new Promise(resolve => {
 		utterance.onstart = () => {
@@ -165,7 +196,9 @@ async function speak(text, options = {}) {
 				finished: true,
 				startedAtMs,
 				onstartAtMs,
-				endedAtMs: onendAtMs
+				endedAtMs: onendAtMs,
+				panRequested,
+				panApplied: false
 			});
 		};
 
@@ -177,7 +210,9 @@ async function speak(text, options = {}) {
 				error: true,
 				startedAtMs,
 				onstartAtMs: didStart ? onstartAtMs : 0,
-				endedAtMs: onendAtMs
+				endedAtMs: onendAtMs,
+				panRequested,
+				panApplied: false
 			});
 		};
 	});
@@ -213,7 +248,9 @@ async function speak(text, options = {}) {
 				spoken: false,
 				reason: "no-start",
 				startedAtMs,
-				endedAtMs: performance.now()
+				endedAtMs: performance.now(),
+				panRequested,
+				panApplied: false
 			});
 		}, Math.max(50, startWatchdogMs));
 	});
@@ -230,7 +267,9 @@ async function speak(text, options = {}) {
 							timedOut: true,
 							startedAtMs,
 							onstartAtMs: didStart ? onstartAtMs : 0,
-							endedAtMs: performance.now()
+							endedAtMs: performance.now(),
+							panRequested,
+							panApplied: false
 						});
 					}
 				}, timeoutMs);
