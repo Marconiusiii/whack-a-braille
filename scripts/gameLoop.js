@@ -25,6 +25,7 @@ let hitStreak = 0;
 let hitsThisRound = 0;
 let missesThisRound = 0;
 let escapesThisRound = 0;
+let streakBonusCount = 0;
 
 let roundTimer = null;
 let moleTimer = null;
@@ -52,6 +53,7 @@ function startRound(modeId, durationSeconds, inputMode) {
 	hitsThisRound = 0;
 	missesThisRound = 0;
 	escapesThisRound = 0;
+	streakBonusCount = 0;
 
 	currentModeId = modeId;
 	currentDurationSeconds = durationSeconds;
@@ -102,6 +104,15 @@ function requestRoundEnd() {
 	}, graceMs);
 }
 
+function scoreToTickets(scoreValue) {
+	if (scoreValue >= 200) return 20;
+	if (scoreValue >= 150) return 15;
+	if (scoreValue >= 100) return 10;
+	if (scoreValue >= 50) return 5;
+	return 0;
+}
+
+
 function endRoundNow(canceled) {
 	if (!isRunning) return;
 
@@ -123,6 +134,10 @@ function endRoundNow(canceled) {
 
 	if (canceled) cancelSpeech();
 
+	const baseTickets = scoreToTickets(score);
+	const streakBonusTickets = streakBonusCount;
+	const speedBonusTickets = 0;
+
 	document.dispatchEvent(new CustomEvent("wabRoundEnded", {
 		detail: {
 			modeId: currentModeId,
@@ -132,7 +147,14 @@ function endRoundNow(canceled) {
 			hits: hitsThisRound,
 			misses: missesThisRound,
 			escapes: escapesThisRound,
-			canceled: !!canceled
+			streakBonusCount,
+			canceled: !!canceled,
+			tickets: {
+				base: baseTickets,
+				streakBonus: streakBonusTickets,
+				speedBonus: speedBonusTickets,
+				total: baseTickets + streakBonusTickets + speedBonusTickets
+			}
 		}
 	}));
 }
@@ -311,6 +333,7 @@ function handleHit() {
 
 	if (hitStreak % 5 === 0) {
 		score += 10;
+		streakBonusCount += 1;
 	}
 
 	const mole = moleElements[activeMoleIndex];

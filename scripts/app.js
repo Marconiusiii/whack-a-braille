@@ -34,6 +34,8 @@ const resultsTicketsTotalValue = document.getElementById("resultsTicketsTotalVal
 const resultsHitsValue = document.getElementById("resultsHitsValue");
 const resultsMissesValue = document.getElementById("resultsMissesValue");
 const resultsEscapesValue = document.getElementById("resultsEscapesValue");
+const resultsStreakBonusValue = document.getElementById('resultsStreakBonusValue');
+const resultsSpeedBonusValue = document.getElementById('resultsSpeedBonusValue');
 
 let gameState = "home";
 let totalTickets = 0;
@@ -270,10 +272,25 @@ document.addEventListener("wabRoundEnded", (e) => {
 	const misses = Number.isFinite(detail.misses) ? detail.misses : 0;
 	const escapes = Number.isFinite(detail.escapes) ? detail.escapes : 0;
 
-	const ticketsThisRound = scoreToTickets(score);
+	const ticketBreakdown = detail.tickets || null;
+
+	const ticketsThisRound = ticketBreakdown
+		? (Number(ticketBreakdown.total) || 0)
+		: scoreToTickets(score);
 
 	totalTickets += ticketsThisRound;
 	saveTotalTickets();
+
+	const streakBonusValue = ticketBreakdown ? (Number(ticketBreakdown.streakBonus) || 0) : 0;
+	const speedBonusValue = ticketBreakdown ? (Number(ticketBreakdown.speedBonus) || 0) : 0;
+
+	if (resultsStreakBonusValue) {
+		resultsStreakBonusValue.textContent = String(streakBonusValue);
+	}
+
+	if (resultsSpeedBonusValue) {
+		resultsSpeedBonusValue.textContent = String(speedBonusValue);
+	}
 
 	if (resultsScoreValue) resultsScoreValue.textContent = String(score);
 	if (resultsTicketsRoundValue) resultsTicketsRoundValue.textContent = String(ticketsThisRound);
