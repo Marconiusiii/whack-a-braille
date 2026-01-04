@@ -62,6 +62,10 @@ function setHiddenInert(el, hide) {
 	el.hidden = hide;
 	el.inert = hide;
 }
+function getSelectedAudioMode() {
+	return document.querySelector("input[name='gameAudio']:checked")?.value || "original";
+}
+
 
 function setGameState(state) {
 	gameState = state;
@@ -199,7 +203,13 @@ function startGameFromSettings() {
 	setInputMode(settings.inputMode);
 	setCurrentMoleId(0);
 
+	import { setGameAudioMode } from "./audioEngine.js";
+
+	const audioMode = getSelectedAudioMode();
+	setGameAudioMode(audioMode);
+
 	setGameState("playing");
+
 
 	playStartFlourish();
 	speak("Ready?", {

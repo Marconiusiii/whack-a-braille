@@ -4,6 +4,12 @@ let audioContext = null;
 let isUnlocked = false;
 let hitBuffer = null;
 let hitGainNode = null;
+let gameAudioMode = "original";
+
+function setGameAudioMode(mode) {
+	gameAudioMode = mode === "silly" ? "silly" : "original";
+}
+
 
 async function loadHitSound() {
 	if (hitBuffer) return;
@@ -14,7 +20,7 @@ async function loadHitSound() {
 	hitBuffer = await audioContext.decodeAudioData(arrayBuffer);
 
 	hitGainNode = audioContext.createGain();
-	hitGainNode.gain.value = 0.9;
+	hitGainNode.gain.value = 0.5;
 	hitGainNode.connect(audioContext.destination);
 }
 
@@ -96,13 +102,12 @@ function playHitSound() {
 	source.buffer = hitBuffer;
 
 	// Optional micro-variation so repeated hits don’t sound robotic
-	source.playbackRate.value = 0.96 + Math.random() * 0.08;
+	source.playbackRate.value = 0.96 + Math.random() * 0.13;
 
 	source.connect(hitGainNode);
 	source.start();
 }
 
-/* ---------- MISS SOUND ---------- */
 
 function playMissSound() {
 	if (!isUnlocked) return;
@@ -283,5 +288,6 @@ export {
 	playHitSound,
 	playMissSound,
 	playRetreatSound,
-	playEndBuzzer
+	playEndBuzzer,
+	setGameAudioMode
 };
