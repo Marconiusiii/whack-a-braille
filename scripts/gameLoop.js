@@ -245,6 +245,7 @@ async function showRandomMole() {
 		cancelPrevious: true,
 		dedupe: false
 	});
+	activeMoleUpTimeMs = getCurrentUpTime();
 
 	// HARD CHANGE: do NOT wait for speech to finish
 	setTimeout(() => {
@@ -252,8 +253,8 @@ async function showRandomMole() {
 		if (thisMoleId !== activeMoleId) return;
 
 		activateMoleVisual(activeMoleIndex);
-		playMolePopSound(activeMoleIndex);
 		activeMoleShownAtMs = performance.now();
+		playMolePopSound(activeMoleIndex);
 	}, 80);
 
 	const speechResult = await speechPromise;
@@ -359,7 +360,7 @@ function handleAttempt(attempt) {
 }
 
 function handleHit() {
-		playHitSound(score, activeMoleIndex);
+	playHitSound(score, activeMoleIndex);
 
 	hitsThisRound += 1;
 	hitStreak += 1;
@@ -373,7 +374,7 @@ function handleHit() {
 	const nowMs = performance.now();
 	const reactionMs = nowMs - activeMoleShownAtMs;
 
-	const speedThresholdMs = activeMoleUpTimeMs * 0.4;
+	const speedThresholdMs = activeMoleUpTimeMs * 0.55;
 
 	if (reactionMs <= speedThresholdMs) {
 		speedHitCount += 1;
