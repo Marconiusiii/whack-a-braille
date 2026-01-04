@@ -36,7 +36,7 @@ async function loadSillySounds() {
 	fiftyPointBuffer = await audioContext.decodeAudioData(fiftyData);
 
 	sillyGainNode = audioContext.createGain();
-	sillyGainNode.gain.value = 0.9;
+	sillyGainNode.gain.value = 0.6;
 	sillyGainNode.connect(audioContext.destination);
 }
 
@@ -71,6 +71,8 @@ function unlockAudio() {
 		ctx.resume();
 	}
 	loadHitSound().catch(() => {});
+	loadSillySounds().catch(() => {});
+
 
 	const buffer = ctx.createBuffer(1, 1, 22050);
 	const source = ctx.createBufferSource();
@@ -88,6 +90,37 @@ function ensureRunning(ctx) {
 }
 
 /* ---------- START ROUND FLOURISH ---------- */
+
+function playSillyHitSound() {
+	if (!isUnlocked) return;
+	if (!sillyHitBuffer || !sillyGainNode) return;
+
+	const ctx = getAudioContext();
+	ensureRunning(ctx);
+
+	const src = ctx.createBufferSource();
+	src.buffer = sillyHitBuffer;
+
+	src.playbackRate.value = 0.95 + Math.random() * 0.2;
+
+	src.connect(sillyGainNode);
+	src.start();
+}
+
+function playFiftyPointSound() {
+	if (!isUnlocked) return;
+	if (!fiftyPointBuffer || !sillyGainNode) return;
+
+	const ctx = getAudioContext();
+	ensureRunning(ctx);
+
+	const src = ctx.createBufferSource();
+	src.buffer = fiftyPointBuffer;
+
+	src.connect(sillyGainNode);
+	src.start();
+}
+
 
 function playStartFlourish() {
 	if (!isUnlocked) return;

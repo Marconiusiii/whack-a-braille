@@ -1,7 +1,7 @@
 "use strict";
 
 import { initGameLoop, startRound } from "./gameLoop.js";
-import { unlockAudio, playEndBuzzer, playStartFlourish } from "./audioEngine.js";
+import { unlockAudio, setGameAudioMode, playEndBuzzer, playStartFlourish } from "./audioEngine.js";
 import { unlockSpeech, speak } from "./speechEngine.js";
 import { attachKeyboardListeners, setInputMode, setCurrentMoleId } from "./inputEngine.js";
 import { prizeCatalog } from "./prizeCatalog.js";
@@ -203,7 +203,6 @@ function startGameFromSettings() {
 	setInputMode(settings.inputMode);
 	setCurrentMoleId(0);
 
-	import { setGameAudioMode } from "./audioEngine.js";
 
 	const audioMode = getSelectedAudioMode();
 	setGameAudioMode(audioMode);
