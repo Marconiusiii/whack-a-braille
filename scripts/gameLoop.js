@@ -176,7 +176,18 @@ function pickFiveItems(pool) {
 
 function getProgress() {
 	const elapsed = Date.now() - roundStartTime;
-	return Math.min(elapsed / roundDurationMs, 1);
+	let progress = Math.min(elapsed / roundDurationMs, 1);
+
+	// HARD CHANGE: compress long rounds
+	if (roundDurationMs >= 45000) {
+		if (progress > 0.3 && progress < 0.7) {
+			progress = 0.3 + (progress - 0.3) * 1.6;
+		} else if (progress >= 0.7) {
+			progress = 0.9;
+		}
+	}
+
+	return Math.min(progress, 1);
 }
 
 function lerp(start, end, t) {
@@ -184,8 +195,16 @@ function lerp(start, end, t) {
 }
 
 function getCurrentInterval() {
-	return Math.floor(lerp(startIntervalMs, endIntervalMs, getProgress()));
+	let interval = Math.floor(lerp(startIntervalMs, endIntervalMs, getProgress()));
+
+	// HARD CHANGE: tighten spacing late-round
+	if (getProgress() > 0.7) {
+		interval = Math.floor(interval * 0.45);
+	}
+
+	return Math.max(interval, 180);
 }
+
 
 function getCurrentUpTime() {
 	return Math.floor(lerp(startUpTimeMs, endUpTimeMs, getProgress()));
@@ -218,34 +237,42 @@ async function showRandomMole() {
 	const moleItem = roundItems[activeMoleIndex];
 	const thisMoleId = activeMoleId;
 
-	// Critical: allow whacks during speech.
-	// This makes attempt.moleId line up immediately.
 	setCurrentMoleId(thisMoleId);
 
-	const speechResult = await speak(moleItem.announceText, {
+	const speechPromise = speak(moleItem.announceText, {
 		on: "start",
 		timeoutMs: 400,
 		cancelPrevious: true,
-		dedupe: false,
+		dedupe: false
 	});
+
+	// HARD CHANGE: do NOT wait for speech to finish
+	setTimeout(() => {
+		if (!isRunning || roundEnding) return;
+		if (thisMoleId !== activeMoleId) return;
+
+		activateMoleVisual(activeMoleIndex);
+		playMolePopSound(activeMoleIndex);
+		activeMoleShownAtMs = performance.now();
+	}, 80);
+
+	const speechResult = await speechPromise;
 
 	if (!isRunning || roundEnding) return;
 	if (thisMoleId !== activeMoleId) return;
-
-	activateMoleVisual(activeMoleIndex);
-	playMolePopSound(activeMoleIndex);
-	activeMoleShownAtMs = performance.now();
 
 	const upTime = computeMoleWindowMs({
 		speechResult,
 		baseUpTimeMs: getCurrentUpTime()
 	});
+
 	activeMoleUpTimeMs = upTime;
 
 	clearTimeout(moleUpTimer);
 	moleUpTimer = setTimeout(() => {
 		if (!isRunning || roundEnding) return;
 		if (thisMoleId !== activeMoleId) return;
+
 		escapesThisRound += 1;
 		hitStreak = 0;
 
