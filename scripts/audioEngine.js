@@ -300,27 +300,48 @@ function playMissSound(moleIndex) {
 	ensureRunning(ctx);
 
 	const now = ctx.currentTime;
+	const panValue = molePanMap[moleIndex] ?? 0.0;
+
+	const pan = ctx.createStereoPanner();
+	pan.pan.value = panValue;
+
 	const master = ctx.createGain();
 	master.gain.value = 0.55;
+	pan.connect(master);
 	master.connect(ctx.destination);
 
-	const osc = ctx.createOscillator();
-	osc.type = "sine";
-	osc.frequency.setValueAtTime(260, now);
-	osc.frequency.exponentialRampToValueAtTime(170, now + 0.28);
+	/* ---------------- Heavy air whoosh ---------------- */
+
+	const buffer = ctx.createBuffer(1, ctx.sampleRate * 0.38, ctx.sampleRate);
+	const data = buffer.getChannelData(0);
+	for (let i = 0; i < data.length; i++) {
+		data[i] = Math.random() * 2 - 1;
+	}
+
+	const noise = ctx.createBufferSource();
+	noise.buffer = buffer;
+
+	/* ---------------- Weighty spectral shape ---------------- */
+
+	const filter = ctx.createBiquadFilter();
+	filter.type = "bandpass";
+	filter.frequency.setValueAtTime(900, now);
+	filter.frequency.exponentialRampToValueAtTime(450, now + 0.32);
+	filter.Q.value = 0.6;
+
+	/* ---------------- Slow gather → release envelope ---------------- */
 
 	const gain = ctx.createGain();
 	gain.gain.setValueAtTime(0.0001, now);
-	gain.gain.exponentialRampToValueAtTime(0.7, now + 0.04);
-	gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.45);
+	gain.gain.exponentialRampToValueAtTime(0.75, now + 0.14);
+	gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.38);
 
-	osc.connect(gain);
-	const pan = createMolePanner(ctx, moleIndex);
+	noise.connect(filter);
+	filter.connect(gain);
 	gain.connect(pan);
-	pan.connect(master);
 
-	osc.start(now);
-	osc.stop(now + 0.5);
+	noise.start(now);
+	noise.stop(now + 0.40);
 }
 
 /* ---------- MOLE RETREAT ---------- */
@@ -399,35 +420,58 @@ function playRetreatSound(moleIndex) {
 	ensureRunning(ctx);
 
 	const now = ctx.currentTime;
+	const panValue = molePanMap[moleIndex] ?? 0.0;
+
+	const pan = ctx.createStereoPanner();
+	pan.pan.value = panValue;
+
 	const master = ctx.createGain();
 	master.gain.value = 0.4;
+	pan.connect(master);
 	master.connect(ctx.destination);
 
-	for (let i = 0; i < 6; i++) {
-		const osc = ctx.createOscillator();
-		const gain = ctx.createGain();
-		const filter = ctx.createBiquadFilter();
+	/* ---------------- Downward slide ---------------- */
 
-		osc.type = "triangle";
-		osc.frequency.setValueAtTime(900 - i * 80, now + i * 0.07);
-		osc.frequency.exponentialRampToValueAtTime(700 - i * 80, now + i * 0.07 + 0.06);
+	const osc = ctx.createOscillator();
+	osc.type = "sine";
+	osc.frequency.setValueAtTime(680, now);
+	osc.frequency.exponentialRampToValueAtTime(190, now + 0.14);
 
-		filter.type = "bandpass";
-		filter.frequency.value = 1100;
+	/* ---------------- Escape vibrato ---------------- */
 
-		gain.gain.setValueAtTime(0.0001, now + i * 0.07);
-		gain.gain.exponentialRampToValueAtTime(0.6, now + i * 0.07 + 0.015);
-		gain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.07 + 0.1);
+	const vibrato = ctx.createOscillator();
+	vibrato.type = "sine";
+	vibrato.frequency.value = 16;
 
-		osc.connect(filter);
-		filter.connect(gain);
-		const pan = createMolePanner(ctx, moleIndex);
-		gain.connect(pan);
-		pan.connect(master);
+	const vibratoGain = ctx.createGain();
+	vibratoGain.gain.value = 32;
 
-		osc.start(now + i * 0.07);
-		osc.stop(now + i * 0.14);
-	}
+	vibrato.connect(vibratoGain);
+	vibratoGain.connect(osc.frequency);
+
+	/* ---------------- Envelope ---------------- */
+
+	const gain = ctx.createGain();
+	gain.gain.setValueAtTime(0.0001, now);
+	gain.gain.linearRampToValueAtTime(0.55, now + 0.02);
+	gain.gain.linearRampToValueAtTime(0.0001, now + 0.18);
+
+	/* ---------------- Tone shaping ---------------- */
+
+	const filter = ctx.createBiquadFilter();
+	filter.type = "lowpass";
+	filter.frequency.value = 1600;
+	filter.Q.value = 0.6;
+
+	osc.connect(filter);
+	filter.connect(gain);
+	gain.connect(pan);
+
+	vibrato.start(now);
+	osc.start(now);
+
+	osc.stop(now + 0.2);
+	vibrato.stop(now + 0.2);
 }
 
 /* ---------- END OF ROUND FANFARE (180 BPM, RANDOMIZED, BASS) ---------- */
