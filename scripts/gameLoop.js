@@ -301,7 +301,7 @@ function handleAttempt(attempt) {
 }
 
 function handleHit() {
-		playHitSound();
+		playHitSound(score);
 
 	hitsThisRound += 1;
 	hitStreak += 1;

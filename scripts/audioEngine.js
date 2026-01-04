@@ -5,9 +5,39 @@ let isUnlocked = false;
 let hitBuffer = null;
 let hitGainNode = null;
 let gameAudioMode = "original";
+let sillyHitBuffer = null;
+let fiftyPointBuffer = null;
+let sillyGainNode = null;
+
+function checkFiftyPointSound(score) {
+	if (score >= 50 && lastScoreAnnounced < 50) {
+		playFiftyPointSound();
+	}
+	lastScoreAnnounced = score;
+}
+
+let lastScoreAnnounced = 0;
 
 function setGameAudioMode(mode) {
 	gameAudioMode = mode === "silly" ? "silly" : "original";
+}
+async function loadSillySounds() {
+	if (sillyHitBuffer && fiftyPointBuffer) return;
+
+	const [bonkRes, fiftyRes] = await Promise.all([
+		fetch("files/ChanceyBonk_6.m4a"),
+		fetch("files/50pts_2.m4a")
+	]);
+
+	const bonkData = await bonkRes.arrayBuffer();
+	const fiftyData = await fiftyRes.arrayBuffer();
+
+	sillyHitBuffer = await audioContext.decodeAudioData(bonkData);
+	fiftyPointBuffer = await audioContext.decodeAudioData(fiftyData);
+
+	sillyGainNode = audioContext.createGain();
+	sillyGainNode.gain.value = 0.9;
+	sillyGainNode.connect(audioContext.destination);
 }
 
 
@@ -94,18 +124,68 @@ function playStartFlourish() {
 
 /* ---------- HIT SOUND ---------- */
 
-function playHitSound() {
-	if (!audioContext || audioContext.state !== "running") return;
-	if (!hitBuffer || !hitGainNode) return;
+function playOriginalHitSound() {
+	if (!isUnlocked) return;
 
-	const source = audioContext.createBufferSource();
-	source.buffer = hitBuffer;
+	const ctx = getAudioContext();
+	ensureRunning(ctx);
 
-	// Optional micro-variation so repeated hits don’t sound robotic
-	source.playbackRate.value = 0.96 + Math.random() * 0.13;
+	const now = ctx.currentTime;
+	const master = ctx.createGain();
+	master.gain.value = 0.5;
+	master.connect(ctx.destination);
 
-	source.connect(hitGainNode);
-	source.start();
+	const bodyOsc = ctx.createOscillator();
+	bodyOsc.type = "sine";
+	bodyOsc.frequency.setValueAtTime(140, now);
+	bodyOsc.frequency.exponentialRampToValueAtTime(90, now + 0.08);
+
+	const noiseBuffer = ctx.createBuffer(1, ctx.sampleRate * 0.05, ctx.sampleRate);
+	const noiseData = noiseBuffer.getChannelData(0);
+	for (let i = 0; i < noiseData.length; i++) {
+		noiseData[i] = Math.random() * 2 - 1;
+	}
+
+	const noise = ctx.createBufferSource();
+	noise.buffer = noiseBuffer;
+
+	const noiseFilter = ctx.createBiquadFilter();
+	noiseFilter.type = "lowpass";
+	noiseFilter.frequency.value = 500;
+
+	const springOsc = ctx.createOscillator();
+	springOsc.type = "triangle";
+	springOsc.frequency.setValueAtTime(420, now + 0.05);
+	springOsc.frequency.exponentialRampToValueAtTime(900, now + 0.18);
+
+	const gain = ctx.createGain();
+	gain.gain.setValueAtTime(0.0001, now);
+	gain.gain.exponentialRampToValueAtTime(1.0, now + 0.01);
+	gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.22);
+
+	bodyOsc.connect(gain);
+	noise.connect(noiseFilter);
+	noiseFilter.connect(gain);
+	springOsc.connect(gain);
+	gain.connect(master);
+
+	bodyOsc.start(now);
+	noise.start(now);
+	springOsc.start(now + 0.05);
+
+	bodyOsc.stop(now + 0.18);
+	noise.stop(now + 0.06);
+	springOsc.stop(now + 0.25);
+}
+
+function playHitSound(score) {
+	if (gameAudioMode === "silly") {
+		playSillyHitSound();
+		checkFiftyPointSound(score);
+		return;
+	}
+
+	playOriginalHitSound();
 }
 
 
