@@ -234,7 +234,7 @@ function playOriginalHitSound(moleIndex) {
 
 	const now = ctx.currentTime;
 	const master = ctx.createGain();
-	master.gain.value = 0.5;
+	master.gain.value = 0.7;
 	master.connect(ctx.destination);
 
 	const bodyOsc = ctx.createOscillator();
@@ -301,7 +301,7 @@ function playMissSound(moleIndex) {
 
 	const now = ctx.currentTime;
 	const master = ctx.createGain();
-	master.gain.value = 0.35;
+	master.gain.value = 0.55;
 	master.connect(ctx.destination);
 
 	const osc = ctx.createOscillator();
@@ -400,7 +400,7 @@ function playRetreatSound(moleIndex) {
 
 	const now = ctx.currentTime;
 	const master = ctx.createGain();
-	master.gain.value = 0.22;
+	master.gain.value = 0.4;
 	master.connect(ctx.destination);
 
 	for (let i = 0; i < 6; i++) {
