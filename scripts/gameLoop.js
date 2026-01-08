@@ -35,6 +35,14 @@ let moleTimer = null;
 let moleUpTimer = null;
 let activeMoleUpTimeMs = 0;
 
+const DIFFICULTY_MULTIPLIERS = {
+	beginner: 1.4,
+	normal: 1.0,
+	supreme: 0.7
+};
+let difficultyMultiplier = 1.0;
+
+
 let currentModeId = "";
 let currentInputMode = "qwerty";
 let currentDurationSeconds = 30;
@@ -49,7 +57,8 @@ function initGameLoop(options) {
 	moleElements = options.moleElements || [];
 }
 
-function startRound(modeId, durationSeconds, inputMode) {
+function startRound(modeId, durationSeconds, inputMode, difficulty = "normal") {
+
 	if (isRunning) return;
 
 	score = 0;
@@ -64,6 +73,8 @@ function startRound(modeId, durationSeconds, inputMode) {
 	currentModeId = modeId;
 	currentDurationSeconds = durationSeconds;
 	currentInputMode = inputMode;
+	difficultyMultiplier = DIFFICULTY_MULTIPLIERS[difficulty] ?? 1.0;
+
 
 	roundDurationMs = durationSeconds * 1000;
 	availableItems = getBrailleItemsForMode(modeId);
@@ -202,12 +213,13 @@ function getCurrentInterval() {
 		interval = Math.floor(interval * 0.45);
 	}
 
-	return Math.max(interval, 180);
+	return Math.max(Math.floor(interval * difficultyMultiplier), 180);
 }
 
 
 function getCurrentUpTime() {
-	return Math.floor(lerp(startUpTimeMs, endUpTimeMs, getProgress()));
+	const base = Math.floor(lerp(startUpTimeMs, endUpTimeMs, getProgress()));
+	return Math.floor(base * difficultyMultiplier);
 }
 
 function randomJitter() {
