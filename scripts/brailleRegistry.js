@@ -97,7 +97,7 @@ const grade2Words = [
 	makeItem("go","go",[1,2,4,5],["grade2Words"]),
 	makeItem("have","have",[1,2,5],["grade2Words"]),
 	makeItem("just","just",[2,4,5],["grade2Words"]),
-	makeItem("knowledge","knowledge",[1,3,4,5],["grade2Words"]),
+	makeItem("knowledge","knowledge",[1,3],["grade2Words"]),
 	makeItem("like","like",[1,2,3],["grade2Words"]),
 	makeItem("more","more",[1,3,4],["grade2Words"]),
 	makeItem("not","not",[1,3,4,5],["grade2Words"]),
