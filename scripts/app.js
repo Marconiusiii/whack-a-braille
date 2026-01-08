@@ -68,6 +68,9 @@ function getSelectedAudioMode() {
 	return document.querySelector("input[name='gameAudio']:checked")?.value || "original";
 }
 
+function getSelectedDifficulty() {
+	return document.querySelector("input[name='difficulty']:checked")?.value || "normal";
+}
 
 function setGameState(state) {
 	gameState = state;
@@ -192,7 +195,8 @@ function getSelectedSettings() {
 	return {
 		brailleMode,
 		roundTime: Number.isFinite(roundTime) ? roundTime : 30,
-		inputMode
+		inputMode,
+		difficulty: getSelectedDifficulty()
 	};
 }
 
@@ -218,7 +222,12 @@ function startGameFromSettings() {
 		dedupe: false
 	});
 	setTimeout(() => {
-		startRound(settings.brailleMode, settings.roundTime, settings.inputMode);
+		startRound(
+			settings.brailleMode,
+			settings.roundTime,
+			settings.inputMode,
+			settings.difficulty
+		);
 	}, 650);
 }
 
