@@ -8,6 +8,41 @@ const prizeCatalog = [
 		maxTickets: 9,
 		category: "joke"
 	},
+{
+	id: "tier1_leftSock",
+	label: "One Left Sock (The Right One Is Missing)",
+	minTickets: 0,
+	maxTickets: 9,
+	category: "absurd"
+},
+{
+	id: "tier1_encouragingNod",
+	label: "An Encouraging Nod From the Arcade Manager",
+	minTickets: 0,
+	maxTickets: 9,
+	category: "encouragement"
+},
+{
+	id: "tier1_fingerTrap",
+	label: "A slightly broken Chinese Finger Trap",
+	minTickets: 0,
+	maxTickets: 9,
+	category: "joke"
+},
+{
+	id: "tier1_practiceRound",
+	label: "Permission to Claim That Was a Practice Round",
+	minTickets: 0,
+	maxTickets: 9,
+	category: "meta"
+},
+{
+	id: "tier1_buttonMash",
+	label: "A keyboard key You Definitely Pressed Too Hard",
+	minTickets: 0,
+	maxTickets: 9,
+	category: "absurd"
+},
 	{
 		id: "tier1_nothingCoupon",
 		label: "A Coupon for Absolutely Nothing",
@@ -120,6 +155,41 @@ const prizeCatalog = [
 		maxTickets: 9,
 		category: "encouragement"
 	},
+{
+	id: "tier2_moleRespect",
+	label: "The Mole's Reluctant Respect",
+	minTickets: 10,
+	maxTickets: 24,
+	category: "brag"
+},
+{
+	id: "tier2_secretHandshake",
+	label: "A Secret Handshake You Almost Remember",
+	minTickets: 10,
+	maxTickets: 24,
+	category: "joke"
+},
+{
+	id: "tier2_certPart",
+	label: "A Certificate of Participation",
+	minTickets: 10,
+	maxTickets: 24,
+	category: "meta"
+},
+{
+	id: "tier2_arcadeLore",
+	label: "2 stuffed invisible moles",
+	minTickets: 10,
+	maxTickets: 24,
+	category: "absurd"
+},
+{
+	id: "tier2_confetti",
+	label: "A Modest Amount of Digital Confetti",
+	minTickets: 10,
+	maxTickets: 24,
+	category: "encouragement"
+},
 	{
 		id: "tier2_roundChampion",
 		label: "Official Arcade Champion (Of This Round Only)",
@@ -197,6 +267,41 @@ const prizeCatalog = [
 		maxTickets: 24,
 		category: "encouragement"
 	},
+{
+	id: "tier3_whackDiploma",
+	label: "An Official Diploma in Advanced Whacking",
+	minTickets: 25,
+	maxTickets: 49,
+	category: "title"
+},
+{
+	id: "tier3_moleUnion",
+	label: "Notice That the Moles Are Considering Unionizing",
+	minTickets: 25,
+	maxTickets: 49,
+	category: "joke"
+},
+{
+	id: "tier3_arcadeJacket",
+	label: "A braille-bedazzled Jacket That Definitely Says Arcade Legend",
+	minTickets: 25,
+	maxTickets: 49,
+	category: "brag"
+},
+{
+	id: "tier3_focusAura",
+	label: "A Faint Aura of Intense Typing Focus",
+	minTickets: 25,
+	maxTickets: 49,
+	category: "encouragement"
+},
+{
+	id: "tier3_trophyShelf",
+	label: "A Shelf to Hold All Your Imaginary Trophies",
+	minTickets: 25,
+	maxTickets: 49,
+	category: "absurd"
+},
 	{
 		id: "tier3_whackologist",
 		label: "Certified Braille Whackologist",
@@ -253,6 +358,41 @@ const prizeCatalog = [
 		maxTickets: 49,
 		category: "absurd"
 	},
+{
+	id: "tier4_arcadeMyth",
+	label: "Arcade Myth Status (Stories May Be Exaggerated)",
+	minTickets: 50,
+	maxTickets: 99,
+	category: "legend"
+},
+{
+	id: "tier4_moleStrategy",
+	label: "3 Invisible Stuffed Moles",
+	minTickets: 50,
+	maxTickets: 99,
+	category: "absurd"
+},
+{
+	id: "tier4_applauseTrack",
+	label: "A Looping Applause Track That Follows You",
+	minTickets: 50,
+	maxTickets: 99,
+	category: "brag"
+},
+{
+	id: "tier4_finalBossEnergy",
+	label: "Noticeable Final Boss Energy",
+	minTickets: 50,
+	maxTickets: 99,
+	category: "title"
+},
+{
+	id: "tier4_nfbChcikenEnergy",
+	label: "Delicious NFB Banquet Rubber Chicken",
+	minTickets: 50,
+	maxTickets: 99,
+	category: "title"
+},
 	{
 		id: "tier4_grandMaster",
 		label: "Grand Master of the Whack Arts",
@@ -281,6 +421,34 @@ const prizeCatalog = [
 		maxTickets: 99,
 		category: "absurd"
 	},
+{
+	id: "tier5_arcadeImmortal",
+	label: "Permanent Arcade Immortality (Locally Recognized)",
+	minTickets: 100,
+	maxTickets: null,
+	category: "legend"
+},
+{
+	id: "tier5_molePeaceTreaty",
+	label: "A Historic Peace Treaty With the Moles",
+	minTickets: 100,
+	maxTickets: null,
+	category: "legend"
+},
+{
+	id: "tier5_infiniteTickets",
+	label: "Infinite Tickets That You Are Asked Not to Redeem",
+	minTickets: 100,
+	maxTickets: null,
+	category: "legend"
+},
+{
+	id: "tier5_pileOfMoles",
+	label: "A Considerable Pile of Invisible Stuffed Moles",
+	minTickets: 100,
+	maxTickets: null,
+	category: "legend"
+},
 	{
 		id: "tier5_eternalGlory",
 		label: "Eternal Arcade Glory",
@@ -331,8 +499,8 @@ const prizeCatalog = [
 		category: "legend"
 	},
 	{
-		id: "tier5_A Challenging 3D Wave Puzzle",
-		label: "",
+		id: "tier5_3Dpuzzle",
+		label: "A Challenging 3D Wave Puzzle",
 		minTickets: 100,
 		maxTickets: null,
 		category: "legend"
