@@ -36,9 +36,9 @@ let moleUpTimer = null;
 let activeMoleUpTimeMs = 0;
 
 const DIFFICULTY_MULTIPLIERS = {
-	beginner: 1.4,
+	beginner: 1.5,
 	normal: 1.0,
-	supreme: 0.7
+	supreme: 0.5
 };
 let difficultyMultiplier = 1.0;
 
@@ -215,7 +215,6 @@ function getCurrentInterval() {
 
 	return Math.max(Math.floor(interval * difficultyMultiplier), 180);
 }
-
 
 function getCurrentUpTime() {
 	const base = Math.floor(lerp(startUpTimeMs, endUpTimeMs, getProgress()));
