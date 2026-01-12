@@ -126,6 +126,10 @@ const brailleRegistry = [
 ];
 
 function getBrailleItemsForMode(modeId) {
+	if (modeId === "everything") {
+		return brailleRegistry.slice();
+	}
+
 	return brailleRegistry.filter(item => item.modeTags.includes(modeId));
 }
 

@@ -72,7 +72,7 @@ function startRound(modeId, durationSeconds, inputMode, difficulty = "normal") {
 
 	currentModeId = modeId;
 	currentDurationSeconds = durationSeconds;
-	currentInputMode = inputMode;
+	currentInputMode = modeId === "everything" ? "perkins" : inputMode;
 	difficultyMultiplier = DIFFICULTY_MULTIPLIERS[difficulty] ?? 1.0;
 
 
