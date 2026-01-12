@@ -309,25 +309,41 @@ function playEverythingStinger() {
 	ensureRunning(ctx);
 
 	const now = ctx.currentTime;
+
 	const master = ctx.createGain();
-	master.gain.value = 0.55;
+	master.gain.value = 0.5;
 	master.connect(ctx.destination);
 
-	const beat = 60 / 180;
+	// Same tempo feel as tuned start flourish
+	const beat = 60 / 220;
 
-	// Chord stab: dissonant → triumphant
-	const stabChord = [261.63, 329.63, 392.0, 523.25];
+	// Minor root chord pool near middle C (dark but grounded)
+	const minorChordPool = [
+		[261.63, 311.13, 392.0],	// C minor
+		[293.66, 349.23, 440.0],	// D minor
+		[246.94, 293.66, 369.99]	// B♭ minor flavor
+	];
 
-	stabChord.forEach(freq => {
+	const rootChord =
+		minorChordPool[Math.floor(Math.random() * minorChordPool.length)];
+
+	// Danger interval: minor second above root
+	const trillInterval = rootChord[0] * 1.05946;
+
+	const pitchJitter = () => 1 + (Math.random() - 0.5) * 0.002;
+
+	/* ---------------- Initial warning hit ---------------- */
+
+	rootChord.forEach(freq => {
 		const osc = ctx.createOscillator();
 		const gain = ctx.createGain();
 
 		osc.type = "triangle";
-		osc.frequency.setValueAtTime(freq, now);
+		osc.frequency.setValueAtTime(freq * pitchJitter(), now);
 
 		gain.gain.setValueAtTime(0.0001, now);
-		gain.gain.exponentialRampToValueAtTime(1.0, now + 0.05);
-		gain.gain.exponentialRampToValueAtTime(0.0001, now + beat);
+		gain.gain.exponentialRampToValueAtTime(0.7, now + 0.05);
+		gain.gain.exponentialRampToValueAtTime(0.0001, now + beat * 0.9);
 
 		osc.connect(gain);
 		gain.connect(master);
@@ -336,32 +352,67 @@ function playEverythingStinger() {
 		osc.stop(now + beat);
 	});
 
-	// Massive octave leap sustain with vibrato
+	/* ---------------- Trill (warning / danger) ---------------- */
+
+	const trillStart = now + beat * 0.9;
+	const trillDur = beat * 1.2;
+
 	const osc = ctx.createOscillator();
 	const gain = ctx.createGain();
 
 	osc.type = "triangle";
-	osc.frequency.setValueAtTime(1046.5, now + beat);
 
-	const lfo = ctx.createOscillator();
-	const lfoGain = ctx.createGain();
-	lfo.frequency.value = 4.8;
-	lfoGain.gain.value = 10;
-	lfo.connect(lfoGain);
-	lfoGain.connect(osc.frequency);
+	// Fast alternating trill
+	osc.frequency.setValueAtTime(rootChord[0], trillStart);
+	osc.frequency.setValueAtTime(trillInterval, trillStart + 0.05);
+	osc.frequency.setValueAtTime(rootChord[0], trillStart + 0.1);
+	osc.frequency.setValueAtTime(trillInterval, trillStart + 0.15);
+	osc.frequency.setValueAtTime(rootChord[0], trillStart + 0.2);
+	osc.frequency.setValueAtTime(trillInterval, trillStart + 0.25);
 
-	gain.gain.setValueAtTime(0.0001, now + beat);
-	gain.gain.exponentialRampToValueAtTime(0.9, now + beat + 0.08);
-	gain.gain.exponentialRampToValueAtTime(0.0001, now + beat * 5);
+	gain.gain.setValueAtTime(0.0001, trillStart);
+	gain.gain.exponentialRampToValueAtTime(0.6, trillStart + 0.04);
+	gain.gain.exponentialRampToValueAtTime(0.0001, trillStart + trillDur);
 
 	osc.connect(gain);
 	gain.connect(master);
 
-	lfo.start(now + beat);
-	lfo.stop(now + beat * 5);
+	osc.start(trillStart);
+	osc.stop(trillStart + trillDur);
 
-	osc.start(now + beat);
-	osc.stop(now + beat * 5);
+	/* ---------------- Sustained unstable minor resolve ---------------- */
+
+	const sustainStart = trillStart + trillDur * 0.8;
+	const sustainDur = beat * 4;
+
+	rootChord.forEach(freq => {
+		const osc = ctx.createOscillator();
+		const gain = ctx.createGain();
+
+		osc.type = "triangle";
+		osc.frequency.setValueAtTime(freq * pitchJitter(), sustainStart);
+
+		// Deeper, slower vibrato for unease
+		const lfo = ctx.createOscillator();
+		const lfoGain = ctx.createGain();
+		lfo.frequency.value = 3.2 + Math.random();
+		lfoGain.gain.value = 10 + Math.random() * 4;
+		lfo.connect(lfoGain);
+		lfoGain.connect(osc.frequency);
+
+		gain.gain.setValueAtTime(0.0001, sustainStart);
+		gain.gain.exponentialRampToValueAtTime(0.8, sustainStart + 0.1);
+		gain.gain.exponentialRampToValueAtTime(0.0001, sustainStart + sustainDur);
+
+		osc.connect(gain);
+		gain.connect(master);
+
+		lfo.start(sustainStart);
+		lfo.stop(sustainStart + sustainDur);
+
+		osc.start(sustainStart);
+		osc.stop(sustainStart + sustainDur);
+	});
 }
 
 /* ---------- HIT SOUND ---------- */
