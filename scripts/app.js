@@ -191,6 +191,9 @@ function getSelectedSettings() {
 
 	let inputMode = document.querySelector("input[name='inputMode']:checked")?.value || "qwerty";
 	if (isGrade2Mode(brailleMode)) inputMode = "perkins";
+	if (brailleMode === "everything") {
+	inputMode = "perkins";
+}
 
 	return {
 		brailleMode,
