@@ -198,30 +198,170 @@ function playStartFlourish() {
 	ensureRunning(ctx);
 
 	const now = ctx.currentTime;
+
 	const master = ctx.createGain();
-	master.gain.value = 0.35;
+	master.gain.value = 0.45;
 	master.connect(ctx.destination);
 
-	const notes = [392, 523, 659, 784];
-	const dur = 0.25;
+	// Faster tempo for more playful energy
+	const beat = 60 / 220;
 
-	notes.forEach((freq, i) => {
+	// Tight root chord pool near middle C
+	const rootChordPool = [
+		[261.63, 329.63, 392.0],	// C
+		[277.18, 349.23, 415.3],	// D♭
+		[293.66, 369.99, 440.0],	// D
+		[311.13, 392.0, 466.16],	// E♭
+		[329.63, 415.3, 493.88]	// E
+	];
+
+	const rootChord =
+		rootChordPool[Math.floor(Math.random() * rootChordPool.length)];
+
+	// Always resolve up a perfect fifth
+	const resolveChord = rootChord.map(freq => freq * 1.5);
+
+	// Very subtle pitch variance
+	const pitchJitter = () => 1 + (Math.random() - 0.5) * 0.003;
+
+	/* ---------------- First quarter note ---------------- */
+
+	rootChord.forEach(freq => {
 		const osc = ctx.createOscillator();
 		const gain = ctx.createGain();
 
 		osc.type = "triangle";
-		osc.frequency.setValueAtTime(freq, now + i * dur);
+		osc.frequency.setValueAtTime(freq * pitchJitter(), now);
 
-		gain.gain.setValueAtTime(0.0001, now + i * dur);
-		gain.gain.exponentialRampToValueAtTime(0.8, now + i * dur + 0.05);
-		gain.gain.exponentialRampToValueAtTime(0.0001, now + i * dur + 0.22);
+		gain.gain.setValueAtTime(0.0001, now);
+		gain.gain.exponentialRampToValueAtTime(0.65, now + 0.05);
+		gain.gain.exponentialRampToValueAtTime(0.0001, now + beat * 0.95);
 
 		osc.connect(gain);
 		gain.connect(master);
 
-		osc.start(now + i * dur);
-		osc.stop(now + i * dur + 0.24);
+		osc.start(now);
+		osc.stop(now + beat);
 	});
+
+	/* ---------------- Second quarter note (swung forward) ---------------- */
+
+	// Swung later so it pushes hard into the sustain
+	const secondQuarterStart = now + beat * 1.40;
+
+	rootChord.forEach(freq => {
+		const osc = ctx.createOscillator();
+		const gain = ctx.createGain();
+
+		osc.type = "triangle";
+		osc.frequency.setValueAtTime(freq * pitchJitter(), secondQuarterStart);
+
+		gain.gain.setValueAtTime(0.0001, secondQuarterStart);
+		gain.gain.exponentialRampToValueAtTime(0.6, secondQuarterStart + 0.04);
+		gain.gain.exponentialRampToValueAtTime(0.0001, secondQuarterStart + beat * 0.9);
+
+		osc.connect(gain);
+		gain.connect(master);
+
+		osc.start(secondQuarterStart);
+		osc.stop(secondQuarterStart + beat);
+	});
+
+	/* ---------------- Whole note resolve (perfect fifth) ---------------- */
+
+	const sustainStart = now + beat * 2;
+	const sustainDur = beat * 4;
+
+	resolveChord.forEach(freq => {
+		const osc = ctx.createOscillator();
+		const gain = ctx.createGain();
+
+		osc.type = "triangle";
+		osc.frequency.setValueAtTime(freq * pitchJitter(), sustainStart);
+
+		// Vibrato consistent with ending flourish
+		const lfo = ctx.createOscillator();
+		const lfoGain = ctx.createGain();
+		lfo.frequency.value = 4.5 + Math.random();
+		lfoGain.gain.value = 6 + Math.random() * 2;
+		lfo.connect(lfoGain);
+		lfoGain.connect(osc.frequency);
+
+		gain.gain.setValueAtTime(0.0001, sustainStart);
+		gain.gain.exponentialRampToValueAtTime(0.75, sustainStart + 0.08);
+		gain.gain.exponentialRampToValueAtTime(0.0001, sustainStart + sustainDur);
+
+		osc.connect(gain);
+		gain.connect(master);
+
+		lfo.start(sustainStart);
+		lfo.stop(sustainStart + sustainDur);
+
+		osc.start(sustainStart);
+		osc.stop(sustainStart + sustainDur);
+	});
+}
+
+function playEverythingStinger() {
+	if (!isUnlocked) return;
+
+	const ctx = getAudioContext();
+	ensureRunning(ctx);
+
+	const now = ctx.currentTime;
+	const master = ctx.createGain();
+	master.gain.value = 0.55;
+	master.connect(ctx.destination);
+
+	const beat = 60 / 180;
+
+	// Chord stab: dissonant → triumphant
+	const stabChord = [261.63, 329.63, 392.0, 523.25];
+
+	stabChord.forEach(freq => {
+		const osc = ctx.createOscillator();
+		const gain = ctx.createGain();
+
+		osc.type = "triangle";
+		osc.frequency.setValueAtTime(freq, now);
+
+		gain.gain.setValueAtTime(0.0001, now);
+		gain.gain.exponentialRampToValueAtTime(1.0, now + 0.05);
+		gain.gain.exponentialRampToValueAtTime(0.0001, now + beat);
+
+		osc.connect(gain);
+		gain.connect(master);
+
+		osc.start(now);
+		osc.stop(now + beat);
+	});
+
+	// Massive octave leap sustain with vibrato
+	const osc = ctx.createOscillator();
+	const gain = ctx.createGain();
+
+	osc.type = "triangle";
+	osc.frequency.setValueAtTime(1046.5, now + beat);
+
+	const lfo = ctx.createOscillator();
+	const lfoGain = ctx.createGain();
+	lfo.frequency.value = 4.8;
+	lfoGain.gain.value = 10;
+	lfo.connect(lfoGain);
+	lfoGain.connect(osc.frequency);
+
+	gain.gain.setValueAtTime(0.0001, now + beat);
+	gain.gain.exponentialRampToValueAtTime(0.9, now + beat + 0.08);
+	gain.gain.exponentialRampToValueAtTime(0.0001, now + beat * 5);
+
+	osc.connect(gain);
+	gain.connect(master);
+
+	lfo.start(now + beat);
+	lfo.stop(now + beat * 5);
+
+	osc.start(now + beat);
+	osc.stop(now + beat * 5);
 }
 
 /* ---------- HIT SOUND ---------- */
@@ -585,6 +725,7 @@ function playEndBuzzer() {
 export {
 	unlockAudio,
 	playStartFlourish,
+	playEverythingStinger,
 	playHitSound,
 	playMissSound,
 	playRetreatSound,

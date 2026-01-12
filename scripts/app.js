@@ -1,7 +1,7 @@
 "use strict";
 
 import { initGameLoop, startRound } from "./gameLoop.js";
-import { unlockAudio, setGameAudioMode, playEndBuzzer, playStartFlourish } from "./audioEngine.js";
+import { unlockAudio, setGameAudioMode, playEndBuzzer, playStartFlourish, playEverythingStinger } from "./audioEngine.js";
 import { unlockSpeech, speak } from "./speechEngine.js";
 import { attachKeyboardListeners, setInputMode, setCurrentMoleId } from "./inputEngine.js";
 import { prizeCatalog } from "./prizeCatalog.js";
@@ -218,12 +218,23 @@ function startGameFromSettings() {
 
 	setGameState("playing");
 
+	if (settings.brailleMode === "everything") {
+		playEverythingStinger();
+	} else {
+		playStartFlourish();
+	}
 
-	playStartFlourish();
-	speak("Ready?", {
+
+	const openingAnnouncement =
+		settings.brailleMode === "everything"
+			? "Incoming Mole Invasion!"
+			: "Ready?";
+
+	speak(openingAnnouncement, {
 		cancelPrevious: true,
 		dedupe: false
 	});
+
 	setTimeout(() => {
 		startRound(
 			settings.brailleMode,
