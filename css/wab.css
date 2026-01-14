@@ -314,3 +314,74 @@ body[data-game-state="results"] #resultsArea { display: block; }
 		animation: none;
 	}
 }
+#prizeShelf {
+	margin-top: 1.5rem;
+	padding: 1rem 1.25rem;
+	border-radius: 1rem;
+	background: linear-gradient(135deg, #1a2040, #0b1020);
+	box-shadow:
+		0 0.75rem 1.5rem rgba(0,0,0,0.5),
+		inset 0 0 0 2px rgba(123,223,242,0.15);
+}
+#prizeShelf summary {
+	font-size: 1.1rem;
+	font-weight: 700;
+	letter-spacing: 0.04em;
+	color: #cdb4ff;
+}
+
+#prizeShelf summary::marker {
+	color: #7bdff2;
+}
+#noPrizesMessage {
+	margin: 0.75rem 0 1rem 0;
+	font-style: italic;
+	color: #a0a0a0;
+	opacity: 0.85;
+}
+#prizeList {
+	list-style: none;
+	padding: 0;
+	margin: 0.75rem 0 1rem 0;
+	display: grid;
+	gap: 0.6rem;
+}
+
+#prizeList li {
+	padding: 0.65rem 0.85rem;
+	border-radius: 0.75rem;
+
+	/* Burnished gold look */
+	background:
+		linear-gradient(
+			135deg,
+			#6f4e00,
+			#b8860b 35%,
+			#e0b84a 50%,
+			#b8860b 65%,
+			#6f4e00
+		);
+
+	color: #fff6d5; /* warm ivory, not white */
+	font-weight: 700;
+	letter-spacing: 0.02em;
+
+	/* Engraved plaque feel */
+	box-shadow:
+		inset 0 1px 1px rgba(255,255,255,0.25),
+		inset 0 -2px 4px rgba(0,0,0,0.6),
+		0 0.4rem 0 rgba(0,0,0,0.45);
+}
+#prizeList li::after {
+	content: "";
+}
+#clearPrizeShelf {
+	margin-top: 0.75rem;
+	background: linear-gradient(135deg, #555, #333);
+	color: #f5f7ff;
+	font-size: 0.9rem;
+}
+
+#clearPrizeShelf:hover {
+	background: linear-gradient(135deg, #777, #444);
+}

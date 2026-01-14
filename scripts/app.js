@@ -16,6 +16,7 @@ const cashOutArea = document.getElementById("cashOutArea");
 const cashOutHeading = document.getElementById("cashOutHeading");
 const cashOutPrizeOptions = document.getElementById("cashOutPrizeOptions");
 const cashOutTicketCount = document.getElementById("cashOutTicketCount");
+const PRIZE_SHELF_KEY = "whackABraillePrizeShelf";
 
 const confirmPrizeButton = document.getElementById("confirmPrizeButton");
 const cancelCashOutButton = document.getElementById("cancelCashOutButton");
@@ -54,6 +55,52 @@ function resetTotalTickets() {
 	totalTickets = 0;
 	localStorage.removeItem("wabTotalTickets");
 }
+
+function loadPrizeShelf() {
+	const data = JSON.parse(localStorage.getItem(PRIZE_SHELF_KEY)) || {};
+	renderPrizeShelf(data);
+}
+
+function savePrizeShelf(data) {
+	localStorage.setItem(PRIZE_SHELF_KEY, JSON.stringify(data));
+}
+
+function addPrizeToShelf(prizeLabel) {
+	const data = JSON.parse(localStorage.getItem(PRIZE_SHELF_KEY)) || {};
+
+	data[prizeLabel] = (data[prizeLabel] || 0) + 1;
+
+	savePrizeShelf(data);
+	renderPrizeShelf(data);
+}
+
+function renderPrizeShelf(data) {
+	const list = document.getElementById("prizeList");
+	const emptyMessage = document.getElementById("noPrizesMessage");
+
+	list.innerHTML = "";
+
+	const entries = Object.entries(data);
+
+	if (entries.length === 0) {
+		emptyMessage.hidden = false;
+		return;
+	}
+
+	emptyMessage.hidden = true;
+
+	entries.forEach(([label, count]) => {
+		const li = document.createElement("li");
+
+		li.textContent =
+			count > 1
+				? `${label} x ${count}`
+				: label;
+
+		list.appendChild(li);
+	});
+}
+
 
 function isGrade2Mode(modeId) {
 	return modeId === "grade2Symbols" || modeId === "grade2Words";
@@ -252,6 +299,13 @@ function setupEventListeners() {
 			startGameFromSettings();
 		});
 	}
+const clearPrizeShelfButton = document.getElementById("clearPrizeShelf");
+if (clearPrizeShelfButton) {
+	clearPrizeShelfButton.addEventListener("click", () => {
+		localStorage.removeItem(PRIZE_SHELF_KEY);
+		renderPrizeShelf({});
+	});
+}
 
 	if (playAgainButton) {
 		playAgainButton.addEventListener("click", () => {
@@ -269,6 +323,10 @@ if (confirmPrizeButton) {
 	confirmPrizeButton.addEventListener("click", () => {
 		if (!selectedPrizeId) return;
 
+		const prize = prizeCatalog.find(p => p.id === selectedPrizeId);
+		if (!prize) return;
+
+		addPrizeToShelf(prize.label);
 		resetTotalTickets();
 		setGameState("home");
 	});
@@ -412,6 +470,7 @@ existingRadios.forEach(radio => {
 
 function init() {
 	loadTotalTickets();
+	loadPrizeShelf();
 	setGameState("home");
 	setupEventListeners();
 	setupScoreListener();

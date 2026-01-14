@@ -8,6 +8,22 @@ const prizeCatalog = [
 		maxTickets: 9,
 		category: "joke"
 	},
+	{
+		id: "tier1_pocketSand",
+		label: "Pocket Sand!",
+		minTickets: 0,
+		maxTickets: 9,
+		category: "joke"
+	},
+	{
+		id: "tier1_arcadePizza",
+		label: "Lukewarm Arcade Pizza",
+		minTickets: 0,
+		maxTickets: 9,
+		category: "joke"
+	},
+
+
 {
 	id: "tier1_leftSock",
 	label: "One Left Sock (The Right One Is Missing)",
@@ -170,6 +186,13 @@ const prizeCatalog = [
 	category: "joke"
 },
 {
+	id: "tier2_abacus",
+	label: "A Tactile Abacus that's missing some beads",
+	minTickets: 10,
+	maxTickets: 24,
+	category: "joke"
+},
+{
 	id: "tier2_certPart",
 	label: "A Certificate of Participation",
 	minTickets: 10,
@@ -177,7 +200,7 @@ const prizeCatalog = [
 	category: "meta"
 },
 {
-	id: "tier2_arcadeLore",
+	id: "tier2_2stuffedmoles",
 	label: "2 stuffed invisible moles",
 	minTickets: 10,
 	maxTickets: 24,
@@ -254,8 +277,8 @@ const prizeCatalog = [
 		category: "absurd"
 	},
 	{
-		id: "tier2_hiddenMap",
-		label: "A Map to Where the Mole Hid",
+		id: "tier2_slurpee",
+		label: "A Slightly Melted Arcade Slurpee",
 		minTickets: 10,
 		maxTickets: 24,
 		category: "joke"
@@ -366,7 +389,7 @@ const prizeCatalog = [
 	category: "legend"
 },
 {
-	id: "tier4_moleStrategy",
+	id: "tier4_3stuffedMoles",
 	label: "3 Invisible Stuffed Moles",
 	minTickets: 50,
 	maxTickets: 99,
@@ -479,7 +502,7 @@ const prizeCatalog = [
 	},
 	{
 		id: "tier5_brava",
-		label: "A Shiny Brava Oven filled with Chicken Nuggets",
+		label: "A Shiny Brava Oven filled with Chicken Fingies",
 		minTickets: 100,
 		maxTickets: null,
 		category: "legend"
@@ -504,7 +527,23 @@ const prizeCatalog = [
 		minTickets: 100,
 		maxTickets: null,
 		category: "legend"
+	},
+	{
+		id: "tier5_guideDogSnacks",
+		label: "Premium Guide Dog Snacks",
+		minTickets: 100,
+		maxTickets: null,
+		category: "legend"
+	},
+	{
+		id: "tier5_3Dpuzzle",
+		label: "Thor's Hammer Mjolnir, for the moles",
+		minTickets: 100,
+		maxTickets: null,
+		category: "legend"
 	}
+
+
 ];
 
 export { prizeCatalog };
