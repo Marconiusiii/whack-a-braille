@@ -1,5 +1,10 @@
 "use strict";
 
+function isLetterInRange(letter, endChar) {
+	const code = letter.toUpperCase().charCodeAt(0);
+	return code >= 65 && code <= endChar.charCodeAt(0);
+}
+
 function dotsToMask(dots) {
 	let mask = 0;
 	for (const dot of dots) {
@@ -128,6 +133,19 @@ const brailleRegistry = [
 function getBrailleItemsForMode(modeId) {
 	if (modeId === "everything") {
 		return brailleRegistry.slice();
+	}
+	if (modeId === "letters-aj") {
+		return brailleRegistry.filter(item =>
+			item.modeTags?.includes("letters") &&
+			isLetterInRange(item.id, "J")
+		);
+	}
+
+	if (modeId === "letters-at") {
+		return brailleRegistry.filter(item =>
+			item.modeTags?.includes("letters") &&
+			isLetterInRange(item.id, "T")
+		);
 	}
 
 	return brailleRegistry.filter(item => item.modeTags.includes(modeId));
