@@ -286,7 +286,7 @@ function scheduleNextTrainingMole(extraDelayMs = 0) {
 function dotsToSpeech(dots) {
 	if (!Array.isArray(dots) || !dots.length) return "";
 	if (dots.length === 1) return "Dot " + dots[0];
-	return "Dots " + dots.join(", ");
+	return "Dots " + dots.join(" ");
 }
 
 async function showTrainingMole() {

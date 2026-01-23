@@ -443,9 +443,9 @@ document.addEventListener("wabRoundEnded", (e) => {
 
 	setGameState("results");
 });
+}
 
 function setupScoreListener() {
-	const scoreText = document.getElementById("scoreText");
 	if (!scoreText) return;
 
 	document.addEventListener("wabScoreUpdated", e => {
