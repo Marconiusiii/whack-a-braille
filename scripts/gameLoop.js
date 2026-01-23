@@ -581,9 +581,16 @@ function handleMiss() {
 		}
 	}));
 }
+function getCurrentAnnounceText() {
+	if (activeMoleIndex === null) return null;
+	const item = roundItems[activeMoleIndex];
+	if (!item) return null;
+	return item.announceText;
+}
 
 export {
 	initGameLoop,
 	startRound,
+	getCurrentAnnounceText,
 	stopRound
 };

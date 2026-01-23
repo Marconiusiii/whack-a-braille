@@ -1,6 +1,6 @@
 "use strict";
 
-import { initGameLoop, startRound } from "./gameLoop.js";
+import { initGameLoop, getCurrentAnnounceText, startRound } from "./gameLoop.js";
 import { unlockAudio, setGameAudioMode, playEndBuzzer, playStartFlourish, playEverythingStinger } from "./audioEngine.js";
 import { unlockSpeech, speak } from "./speechEngine.js";
 import { attachKeyboardListeners, setInputMode, setCurrentMoleId } from "./inputEngine.js";
@@ -376,6 +376,24 @@ function setupEventListeners() {
 			startGameFromSettings();
 		});
 	}
+
+	document.addEventListener("keydown", e => {
+	if (e.key !== "`") return;
+
+	// Do not interfere with typing into inputs
+	const target = e.target;
+	if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA")) {
+		return;
+	}
+
+	const text = getCurrentAnnounceText();
+	if (!text) return;
+
+	speak(text, {
+		cancelPrevious: true,
+		dedupe: false
+	});
+});
 
 	document.querySelectorAll(
 		"input[name='difficulty'], input[name='roundTime'], input[name='inputMode'], input[name='brailleMode'], input[name='gameAudio'], #speakBrailleDots"
