@@ -450,6 +450,7 @@ function deactivateMoleVisual(index) {
 
 function handleAttempt(attempt) {
 	if (!isRunning || roundEnding) return;
+	if (attempt?.key === "`") return;
 	if (activeMoleIndex === null) return;
 	if (attempt.moleId !== activeMoleId) return;
 
