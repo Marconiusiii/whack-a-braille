@@ -31,12 +31,14 @@
 <summary>How to Play</summary>
 <h2>How to Play</h2>
 <ol>
-<li>Listen for the braille character and whack it by pressing the matching braille chord or key before the mole disappears. The game defaults to QWERTY input, and you can change input to Perkins Home Row keys in the Game Settings.</li>
+<li>Listen for the letter, number, or braille character and whack it by tapping the matching key or braille chord before the mole disappears. The game defaults to QWERTY input, and you can change input to Perkins Home Row keys in the Game Settings.</li>
+<li>For Perkins input: Dot 1 in F, Dot 2 is D, Dot 3 is S, Dot 4 is J, Dot 5 is K, and Dot 6 is L.</li>
 <li>Each mole always represents exactly one braille cell, and only one chord or key is ever needed.</li>
 <li>For number modes, the number sign is not used during gameplay.</li>
 <li>The moles pop up faster and faster as the round goes on, so stay sharp.</li>
-<li>At the end of the round, cash out your tickets for a prize or drop in another token and keep playing.</li>
+<li>At the end of the round, cash in your tickets for a prize or keep playing to whack more moles.</li>
 <li>You get bonus tickets per round for hitting a streak of 5 moles or more, and Speed bonuses for how fast you hit the moles when they pop up.</li>
+<li>Enjoy your prizes on your Prize Shelf, which will persist every time you come back to the game until you clear the shelf.</li>
 <li>For Jaws and NVDA users on Windows: be sure to enter Forms or Focus mode when the game starts.</li>
 <li>Use a standard keyboard or a Bluetooth keyboard on a mobile device in order to play. Due to HID limitations, external braille displays won't currently work with the game unless they send keyboard-only input.</li>
 </ol>
@@ -72,6 +74,10 @@
 
 <fieldset>
 <legend>Difficulty</legend>
+<div>
+	<input type="radio" id="difficultyTraining" name="difficulty" value="training">
+	<label for="difficultyTraining">Practice</label>
+</div>
 
 <input type="radio" name="difficulty" id="difficultyBeginner" value="beginner">
 <label for="difficultyBeginner">Beginner</label>
@@ -83,7 +89,15 @@
 <label for="difficultySupreme">Supreme Mole Whacker</label>
 </fieldset>
 
-<fieldset>
+<fieldset id="trainingOptionsFieldset" disabled>
+	<legend>Training Options</legend>
+	<div>
+		<input type="checkbox" id="speakBrailleDots" name="speakBrailleDots">
+		<label for="speakBrailleDots">Speak Braille Dots</label>
+	</div>
+</fieldset>
+
+<fieldset id="roundLengthFieldset">
 <legend>Round Length</legend>
 
 <input type="radio" name="roundTime" id="time30" value="30" checked>
@@ -178,8 +192,8 @@
 <p>Hits: <span id="resultsHitsValue">0</span><span>, Misses: </span><span id="resultsMissesValue">0</span><span>, Escapes: </span><span id="resultsEscapesValue">0</span></p></div>
 </div>
 <div id="resultsActions">
-<button id="playAgainButton" type="button">Drop Another Token</button>
-<button id="cashOutButton" type="button">Cash Out and Pick a Prize</button>
+<button id="playAgainButton" type="button">Keep Whacking!</button>
+<button id="cashOutButton" type="button">Cash In Tickets and Pick a Prize</button>
 </div>
 
 </section>
@@ -202,7 +216,7 @@
 
 <div id="cashOutActions">
 <button id="confirmPrizeButton" type="button" disabled>Claim Selected Prize</button>
-<button id="cancelCashOutButton" type="button">Drop Another Token</button>
+<button id="cancelCashOutButton" type="button">Keep Whacking!</button>
 </div>
 
 </section>
@@ -222,7 +236,7 @@
 	</nav>
 
 	<p class="footer-copy small muted">
-		&copy;2026 Marco Salsiccia - v.1.4.0</p>
+		&copy;2026 Marco Salsiccia - v.1.4.1</p>
 </footer>
 
 <script type="module" src="scripts/app.js"></script>
