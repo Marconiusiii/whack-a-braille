@@ -1,82 +1,104 @@
 # Whack A Braille
 
-Whack A Braille is a fast-paced, audio-first reaction game designed for blind and low-vision players.
+Whack A Braille is an audio-first, keyboard-driven braille reaction game designed primarily for blind and low-vision players. The game emphasizes speed, accuracy, and spatial awareness using speech synthesis, spatialized audio cues, and multiple input modes.
 
-Moles pop up, announce themselves, and must be hit quickly using the keyboard. The game emphasizes spatial audio, timing, streaks, and speed, while remaining fully playable with screen readers and without relying on visuals.
-
-This is not a visual game with accessibility added later. The audio and input model are the game.
+The game is fully playable without vision and is built with accessibility and screen reader users as a first-class audience.
 
 ## Core Gameplay
 
-- Moles appear in five positions from left to right
-- Each mole announces itself using speech
-- A spatial audio cue plays when the mole pops up
-- Players react using the keyboard to hit the correct position
-- Faster reactions and streaks earn bonus tickets
-- Misses and escapes have distinct audio feedback
-- Rounds escalate in speed and intensity, especially in longer sessions
+Moles appear one at a time and announce a braille character, number, symbol, or word sign depending on the selected mode. Players must respond quickly using their chosen input method before the mole retreats.
 
-Round lengths include short and extended modes, with longer rounds becoming fast and chaotic near the end while remaining fair and readable.
+Scoring rewards:
+- Accurate hits
+- Streaks of correct responses
+- Fast reaction times
 
-## Audio Design
+Tickets earned during gameplay can be redeemed for prizes at the Prize Counter.
 
-All gameplay feedback is conveyed through sound.
+## Input Modes
 
-- Spatial stereo audio maps directly to mole position
-- Distinct sounds for:
-  - Mole pop (orientation cue)
-  - Hit
-  - Miss
-  - Retreat
+- QWERTY Keyboard
+- Perkins-style braille keyboard input
 
-Speech announcements remain centered. All spatial orientation comes from sound effects.
+Global keyboard shortcuts:
+- Backtick (`) repeats the current target without affecting gameplay
 
+## Braille Modes
 
-## Scoring and Tickets
+- Grade 1 Letters A–J
+- Grade 1 Letters A–T
+- Grade 1 All Letters
+- Grade 1 Numbers
+- Grade 1 Letters and Numbers
+- Grade 2 Symbols
+- Grade 2 Word Signs
+- Everything (advanced mixed mode)
 
-Scoring and rewards are transparent and intentional.
+Everything mode mixes Grade 1 and Grade 2 content and locks input to Perkins mode.
 
-- Base tickets are awarded based on score
-- Streak bonuses reward consistent accuracy
-- Speed bonuses reward fast reactions 
-- Results screens clearly explain where tickets came from
+## Difficulty Modes
 
-Tickets persist between sessions using local storage and can be spent during cash out.
+- Training
+  - Untimed
+  - No scoring or tickets
+  - Optional braille dot speech
+  - Designed as a typing and braille learning tool
+- Beginner
+- Normal
+- Supreme Mole Whacker
 
-## Accessibility and Input
+Difficulty affects timing, speed, and overall intensity.
 
-The game is built around keyboard input and screen reader compatibility.
+## Training Mode
 
-- Fully playable with:
-  - VoiceOver on macOS
-  - VoiceOver on iOS with a Bluetooth keyboard
-  - NVDA and JAWS on Windows with Focus or Forms Mode enabled
-- No reliance on visual timing cues
-- No requirement to see or track animations
+Training mode is designed as a learning environment rather than a game.
 
-Windows screen reader users must enable pass-through input:
-- JAWS users should enter Forms Mode or disable the virtual cursor
-- NVDA users should switch to Focus Mode
+Features:
+- No timer
+- No misses or penalties
+- Configurable mole count
+- Optional spoken braille dot patterns
+- Restart training or return home at completion
 
+Training mode disables round length selection and ticket earning.
 
-## Technical Overview
+## Speech and Audio
 
-- Vanilla JavaScript
-- Web Audio API for all sound effects
-- Speech Synthesis for announcements
-- No frameworks
-- No canvas dependency
-- No role="application"
-- No forced focus traps
+- Uses system speech synthesis
+- Voice selection filtered by system language
+- Adjustable speech rate via percentage-based control
+- Spatialized audio cues indicate mole position
+- Independent audio styles selectable via Game Audio settings
 
-Game timing, difficulty ramping, and audio behavior are tightly controlled and deterministic.
+All speech and audio settings persist across sessions.
 
-## Status
+## Prize System
 
-Active development and tuning.
+- Earn tickets through gameplay
+- Redeem tickets for randomly selected prizes
+- Prize shelf persists across sessions
+- Duplicate prizes increment quantity instead of duplicating entries
 
-The game is playable, fast, chaotic, and fun, with ongoing refinements focused on pacing, sound design, and accessibility polish.
+## Accessibility Notes
 
-## Credits
+- Designed for screen reader users
+- Fully keyboard operable
+- No reliance on visual-only cues
+- Tested with VoiceOver on macOS and iOS
+- Works with external braille displays and keyboards
 
-Created by Marco Salsiccia.
+## Development
+
+This project is written in vanilla JavaScript with no frameworks.
+
+Key files:
+- app.js: UI wiring and state management
+- gameLoop.js: gameplay timing and logic
+- inputEngine.js: keyboard and braille input handling
+- speechEngine.js: speech synthesis management
+- audioEngine.js: non-speech audio and spatialization
+- brailleRegistry.js: braille data definitions
+
+## License
+
+MIT License
