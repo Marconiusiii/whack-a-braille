@@ -581,7 +581,7 @@ function handleMiss() {
 		}
 	}));
 }
-function getCurrentSpokenText() {
+function getCurrentSpeechPayload() {
 	if (activeMoleIndex === null) return null;
 
 	const item = roundItems[activeMoleIndex];
@@ -595,16 +595,18 @@ function getCurrentSpokenText() {
 		if (dots.length === 1) {
 			text += ", Dot " + dots[0];
 		} else if (dots.length > 1) {
-			text += ", Dots " + dots.join(", ");
+			text += ", Dots " + dots.join(" ");
 		}
 	}
 
-	return text;
+	return {
+		text
+	};
 }
 
 export {
 	initGameLoop,
 	startRound,
-	getCurrentSpokenText,
+	getCurrentSpeechPayload,
 	stopRound
 };

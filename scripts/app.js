@@ -1,6 +1,6 @@
 "use strict";
 
-import { initGameLoop, getCurrentSpokenText, startRound } from "./gameLoop.js";
+import { initGameLoop, getCurrentSpeechPayload, startRound } from "./gameLoop.js";
 import { unlockAudio, setGameAudioMode, playEndBuzzer, playStartFlourish, playEverythingStinger } from "./audioEngine.js";
 import {
 	unlockSpeech,
@@ -477,10 +477,11 @@ document.addEventListener("keydown", e => {
 		return;
 	}
 
-	const text = getCurrentSpokenText();
-	if (!text) return;
+	const payload = getCurrentSpeechPayload();
+	if (!payload) return;
 
-	speak(text, {
+	speak(payload.text, {
+		...payload.options,
 		cancelPrevious: true,
 		dedupe: false
 	});
