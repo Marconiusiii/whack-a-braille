@@ -146,30 +146,35 @@ function getSelectedDifficulty() {
 
 function setGameState(state) {
 	gameState = state;
+
 	body.setAttribute("data-game-state", state);
+
+	setHiddenInert(homeContent, true);
+	setHiddenInert(gameArea, true);
+	setHiddenInert(resultsArea, true);
+	setHiddenInert(footer, true);
 	setHiddenInert(cashOutArea, true);
+
 	switch (state) {
-	case "playing":
-		document.title = "Currently Whacking Some Braille";
-		break;
+		case "playing":
+			document.title = "Currently Whacking Some Braille";
+			break;
 
-	case "results":
-		document.title = "Results - Whack a Braille";
-		break;
+		case "results":
+			document.title = "Results - Whack a Braille";
+			break;
 
-	case "cashout":
-		document.title = "Prize Counter - Whack a Braille";
-		break;
+		case "cashout":
+			document.title = "Prize Counter - Whack a Braille";
+			break;
 
-	default:
-		document.title = "Whack a Braille!";
-}
-
+		default:
+			document.title = "Whack a Braille!";
+			break;
+	}
 
 	if (state === "home") {
 		setHiddenInert(homeContent, false);
-		setHiddenInert(gameArea, true);
-		setHiddenInert(resultsArea, true);
 		setHiddenInert(footer, false);
 
 		setCurrentMoleId(0);
@@ -183,60 +188,43 @@ function setGameState(state) {
 	}
 
 	if (state === "playing") {
-		setHiddenInert(homeContent, true);
-		setHiddenInert(resultsArea, true);
-		setHiddenInert(footer, true);
-
-		if (gameArea) {
-			gameArea.hidden = false;
-			gameArea.inert = false;
-		}
+		setHiddenInert(gameArea, false);
 
 		setCurrentMoleId(0);
 		return;
 	}
 
 	if (state === "results") {
-		setHiddenInert(homeContent, true);
-		setHiddenInert(gameArea, true);
-		setHiddenInert(footer, true);
-
-		if (resultsArea) {
-			resultsArea.hidden = false;
-			resultsArea.inert = false;
-		}
+		setHiddenInert(resultsArea, false);
 
 		setCurrentMoleId(0);
 
-		playEndBuzzer();
+		const difficulty = getSelectedDifficulty();
+		if (difficulty !== "training") {
+			playEndBuzzer();
+		}
 
 		if (resultsHeading) {
 			requestAnimationFrame(() => {
-				requestAnimationFrame(() => {
-					resultsHeading.focus({ preventScroll: true });
-				});
+				resultsHeading.setAttribute("tabindex", "-1");
+				resultsHeading.focus({ preventScroll: true });
 			});
 		}
+		return;
 	}
 
-if (state === "cashout") {
-	setHiddenInert(homeContent, true);
-	setHiddenInert(gameArea, true);
-	setHiddenInert(resultsArea, true);
-	setHiddenInert(footer, true);
+	if (state === "cashout") {
+		setHiddenInert(cashOutArea, false);
 
-	setHiddenInert(cashOutArea, false);
-
-	if (cashOutHeading) {
-		requestAnimationFrame(() => {
-			cashOutHeading.focus({ preventScroll: true });
-		});
+		if (cashOutHeading) {
+			requestAnimationFrame(() => {
+				cashOutHeading.setAttribute("tabindex", "-1");
+				cashOutHeading.focus({ preventScroll: true });
+			});
+		}
+		return;
 	}
 }
-
-
-}
-
 
 function primeSpeech() {
 	const utterance = new SpeechSynthesisUtterance(" ");

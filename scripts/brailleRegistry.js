@@ -134,16 +134,17 @@ function getBrailleItemsForMode(modeId) {
 	if (modeId === "everything") {
 		return brailleRegistry.slice();
 	}
+
 	if (modeId === "letters-aj") {
 		return brailleRegistry.filter(item =>
-			item.modeTags?.includes("letters") &&
+			item.modeTags?.includes("grade1Letters") &&
 			isLetterInRange(item.id, "J")
 		);
 	}
 
 	if (modeId === "letters-at") {
 		return brailleRegistry.filter(item =>
-			item.modeTags?.includes("letters") &&
+			item.modeTags?.includes("grade1Letters") &&
 			isLetterInRange(item.id, "T")
 		);
 	}

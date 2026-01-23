@@ -206,12 +206,17 @@ function endRoundNow(canceled) {
 }
 
 function pickFiveItems(pool) {
+	if (!Array.isArray(pool) || pool.length === 0) {
+		return [];
+	}
+
 	const copy = [...pool];
 	for (let i = copy.length - 1; i > 0; i--) {
 		const j = Math.floor(Math.random() * (i + 1));
 		[copy[i], copy[j]] = [copy[j], copy[i]];
 	}
-	return copy.slice(0, 5);
+
+	return copy.slice(0, Math.min(5, copy.length));
 }
 
 function getProgress() {
@@ -295,6 +300,13 @@ async function showTrainingMole() {
 
 	activeMoleIndex = pickNextMoleIndex();
 	const moleItem = roundItems[activeMoleIndex];
+	if (!moleItem) {
+		clearActiveMole();
+		setCurrentMoleId(0);
+		scheduleNextTrainingMole(0);
+		return;
+	}
+
 	const thisMoleId = activeMoleId;
 
 	setCurrentMoleId(thisMoleId);
@@ -343,6 +355,13 @@ async function showRandomMole() {
 
 	activeMoleIndex = pickNextMoleIndex();
 	const moleItem = roundItems[activeMoleIndex];
+	if (!moleItem) {
+		clearActiveMole();
+		setCurrentMoleId(0);
+		scheduleNextMole(0);
+		return;
+	}
+
 	const thisMoleId = activeMoleId;
 
 	setCurrentMoleId(thisMoleId);
