@@ -6,9 +6,15 @@ let preferredVoiceName = "";
 let currentUtterance = null;
 let lastSpokenText = "";
 let unlockPerformed = false;
+let currentSpeechRate = 1.0;
 
 function isSpeechSupported() {
 	return typeof window !== "undefined" && "speechSynthesis" in window && "SpeechSynthesisUtterance" in window;
+}
+function setSpeechRate(rate) {
+	if (typeof rate === "number" && rate >= 0.5 && rate <= 2.0) {
+		currentSpeechRate = rate;
+	}
 }
 
 function ensureVoicesReady() {
@@ -106,6 +112,18 @@ function clampNumber(value, min, max, fallback) {
 	if (!Number.isFinite(n)) return fallback;
 	return Math.min(Math.max(n, min), max);
 }
+function getAvailableVoicesForLanguage(lang) {
+	const voices = window.speechSynthesis.getVoices() || [];
+
+	if (!lang) return voices;
+
+	const base = lang.split("-")[0].toLowerCase();
+
+	return voices.filter(v => {
+		if (!v.lang) return false;
+		return v.lang.toLowerCase().startsWith(base);
+	});
+}
 
 async function speak(text, options = {}) {
 	const startedAtMs = performance.now();
@@ -134,7 +152,7 @@ async function speak(text, options = {}) {
 	}
 
 	const {
-		rate = 1,
+		rate = currentSpeechRate,
 		pitch = 1,
 		volume = 1,
 		cancelPrevious = true,
@@ -178,7 +196,7 @@ async function speak(text, options = {}) {
 
 	if (voice) utterance.voice = voice;
 
-	utterance.rate = clampNumber(rate, 0.1, 3, 1);
+	utterance.rate = clampNumber(rate, 0.1, 3, currentSpeechRate);
 	utterance.pitch = clampNumber(pitch, 0, 2, 1);
 	utterance.volume = clampNumber(volume, 0, 1, 1);
 
@@ -287,5 +305,7 @@ export {
 	unlockSpeech,
 	speak,
 	cancelSpeech,
-	setPreferredVoiceName
+	setPreferredVoiceName,
+	setSpeechRate,
+	getAvailableVoicesForLanguage
 };

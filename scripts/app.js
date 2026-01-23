@@ -2,7 +2,13 @@
 
 import { initGameLoop, getCurrentAnnounceText, startRound } from "./gameLoop.js";
 import { unlockAudio, setGameAudioMode, playEndBuzzer, playStartFlourish, playEverythingStinger } from "./audioEngine.js";
-import { unlockSpeech, speak } from "./speechEngine.js";
+import {
+	unlockSpeech,
+	getAvailableVoicesForLanguage,
+	speak,
+	setPreferredVoiceName,
+	setSpeechRate
+} from "./speechEngine.js";
 import { attachKeyboardListeners, setInputMode, setCurrentMoleId } from "./inputEngine.js";
 import { prizeCatalog } from "./prizeCatalog.js";
 
@@ -21,6 +27,10 @@ const roundLengthFieldset = document.getElementById("roundLengthFieldset");
 const trainingOptionsFieldset = document.getElementById("trainingOptionsFieldset");
 const speakBrailleDots = document.getElementById("speakBrailleDots");
 const scoreText = document.getElementById("scoreText");
+
+const speechRatePercentInput = document.getElementById("speechRatePercent");
+const voiceSelect = document.getElementById("voiceSelect");
+const playVoiceSampleButton = document.getElementById("playVoiceSample");
 
 const SETTINGS_STORAGE_KEY = "wabGameSettings";
 
@@ -48,6 +58,38 @@ const resultsSpeedBonusValue = document.getElementById('resultsSpeedBonusValue')
 
 let gameState = "home";
 let totalTickets = 0;
+function populateVoiceSelect() {
+	if (!voiceSelect) return;
+
+	const lang = navigator.language || "en";
+	const voices = getAvailableVoicesForLanguage(lang);
+
+	voiceSelect.innerHTML = "";
+
+	if (!voices.length) {
+		const opt = document.createElement("option");
+		opt.value = "";
+		opt.textContent = "No voices available";
+		voiceSelect.appendChild(opt);
+		voiceSelect.disabled = true;
+		return;
+	}
+
+	voiceSelect.disabled = false;
+
+	for (const voice of voices) {
+		const option = document.createElement("option");
+		option.value = voice.name;
+		option.textContent = `${voice.name} (${voice.lang})`;
+		voiceSelect.appendChild(option);
+	}
+
+	const saved = loadGameSettings()?.voiceName;
+	if (saved) {
+		voiceSelect.value = saved;
+		setPreferredVoiceName(saved);
+	}
+}
 
 function loadTotalTickets() {
 	const raw = localStorage.getItem("wabTotalTickets");
@@ -74,6 +116,13 @@ function saveTotalTickets() {
 	if (!isTraining && speakBrailleDots) {
 		speakBrailleDots.checked = false;
 	}
+}
+function percentToSpeechRate(percent) {
+	const p = Number(percent);
+	if (!Number.isFinite(p)) return 1.0;
+
+	const clamped = Math.min(Math.max(p, 1), 100);
+	return 0.6 + ((clamped - 1) / 99) * 1.4;
 }
 
 function resetTotalTickets() {
@@ -253,6 +302,19 @@ function applySettingsToUI(settings) {
 		);
 		if (el) el.checked = true;
 	}
+	if (
+		typeof settings.speechRatePercent === "number" &&
+		speechRatePercentInput
+	) {
+		speechRatePercentInput.value = settings.speechRatePercent;
+		const rate = percentToSpeechRate(settings.speechRatePercent);
+		setSpeechRate(rate);
+	}
+
+	if (settings.voiceName && voiceSelect) {
+		voiceSelect.value = settings.voiceName;
+		setPreferredVoiceName(settings.voiceName);
+	}
 
 	if (settings.roundTime) {
 		const el = document.querySelector(
@@ -311,6 +373,8 @@ function getSelectedSettings() {
 		brailleMode,
 		roundTime: Number.isFinite(roundTime) ? roundTime : 30,
 		inputMode,
+	voiceName: voiceSelect?.value || null,
+	speechRatePercent: Number(speechRatePercentInput?.value) || 35,
 		difficulty: getSelectedDifficulty(),
 		speakBrailleDots: !!speakBrailleDots?.checked
 	};
@@ -377,6 +441,34 @@ function setupEventListeners() {
 		});
 	}
 
+	if (voiceSelect) {
+		voiceSelect.addEventListener("change", () => {
+			const name = voiceSelect.value;
+			if (name) {
+				setPreferredVoiceName(name);
+				saveGameSettings(getSelectedSettings());
+			}
+		});
+	}
+
+	if (speechRatePercentInput) {
+		speechRatePercentInput.addEventListener("change", () => {
+			const rate = percentToSpeechRate(speechRatePercentInput.value);
+			setSpeechRate(rate);
+			saveGameSettings(getSelectedSettings());
+		});
+	}
+
+	if (playVoiceSampleButton) {
+		playVoiceSampleButton.addEventListener("click", () => {
+			unlockSpeech();
+			speak("Welcome to Whack a Braille!", {
+				cancelPrevious: true,
+				dedupe: false
+			});
+		});
+	}
+
 	document.addEventListener("keydown", e => {
 	if (e.key !== "`") return;
 
@@ -385,7 +477,6 @@ function setupEventListeners() {
 	if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA")) {
 		return;
 	}
-
 	const text = getCurrentAnnounceText();
 	if (!text) return;
 
@@ -625,9 +716,7 @@ function init() {
 	if (savedSettings) {
 		applySettingsToUI(savedSettings);
 	}
-
 	syncTrainingUI();
-
 	setGameState("home");
 	setupEventListeners();
 	setupScoreListener();
@@ -637,6 +726,11 @@ function init() {
 	initGameLoop({
 		moleElements: Array.from(document.querySelectorAll("#gameBoard .mole"))
 	});
+	populateVoiceSelect();
+
+	if (speechSynthesis.onvoiceschanged !== undefined) {
+		speechSynthesis.onvoiceschanged = populateVoiceSelect;
+	}
 
 	attachKeyboardListeners();
 }

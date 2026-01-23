@@ -140,6 +140,32 @@
 
 </fieldset>
 
+<fieldset id="voiceSettingsFieldset">
+	<legend>Voice Settings</legend>
+
+	<div>
+		<label for="voiceSelect">System Voice</label>
+		<select id="voiceSelect"></select>
+	</div>
+
+<div>
+	<label for="speechRatePercent">Speech Rate</label>
+	<input
+		type="number"
+		id="speechRatePercent"
+		min="1"
+		max="100"
+		step="1"
+		value="35">
+</div>
+
+	<div>
+		<button type="button" id="playVoiceSample">
+			Play Voice Sample
+		</button>
+	</div>
+</fieldset>
+
 </form>
 </details>
 
