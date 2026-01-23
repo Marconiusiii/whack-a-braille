@@ -42,7 +42,6 @@ const DIFFICULTY_MULTIPLIERS = {
 };
 let difficultyMultiplier = 1.0;
 
-
 let currentModeId = "";
 let currentInputMode = "qwerty";
 let currentDurationSeconds = 30;
@@ -53,12 +52,18 @@ const endIntervalMs = 300;
 const startUpTimeMs = 650;
 const endUpTimeMs = 250;
 
+const TRAINING_MOLE_CAP = 15;
+
+let isTrainingMode = false;
+let trainingMolesCompleted = 0;
+let speakBrailleDotsEnabled = false;
+let lastTrainingMissAtMs = 0;
+
 function initGameLoop(options) {
 	moleElements = options.moleElements || [];
 }
 
-function startRound(modeId, durationSeconds, inputMode, difficulty = "normal") {
-
+function startRound(modeId, durationSeconds, inputMode, difficulty = "normal", options = {}) {
 	if (isRunning) return;
 
 	score = 0;
@@ -73,8 +78,13 @@ function startRound(modeId, durationSeconds, inputMode, difficulty = "normal") {
 	currentModeId = modeId;
 	currentDurationSeconds = durationSeconds;
 	currentInputMode = modeId === "everything" ? "perkins" : inputMode;
-	difficultyMultiplier = DIFFICULTY_MULTIPLIERS[difficulty] ?? 1.0;
 
+	isTrainingMode = difficulty === "training";
+	speakBrailleDotsEnabled = !!options.speakBrailleDots && isTrainingMode;
+	trainingMolesCompleted = 0;
+	lastTrainingMissAtMs = 0;
+
+	difficultyMultiplier = DIFFICULTY_MULTIPLIERS[difficulty] ?? 1.0;
 
 	roundDurationMs = durationSeconds * 1000;
 	availableItems = getBrailleItemsForMode(modeId);
@@ -93,8 +103,19 @@ function startRound(modeId, durationSeconds, inputMode, difficulty = "normal") {
 	setAttemptCallback(handleAttempt);
 
 	clearTimeout(roundTimer);
-	roundTimer = setTimeout(requestRoundEnd, roundDurationMs);
+	clearTimeout(moleTimer);
+	clearTimeout(moleUpTimer);
 
+	roundTimer = null;
+	moleTimer = null;
+	moleUpTimer = null;
+
+	if (isTrainingMode) {
+		scheduleNextTrainingMole(0);
+		return;
+	}
+
+	roundTimer = setTimeout(requestRoundEnd, roundDurationMs);
 	scheduleNextMole(0);
 }
 
@@ -129,7 +150,6 @@ function scoreToTickets(scoreValue) {
 	return 0;
 }
 
-
 function endRoundNow(canceled) {
 	if (!isRunning) return;
 
@@ -151,15 +171,24 @@ function endRoundNow(canceled) {
 
 	if (canceled) cancelSpeech();
 
-	const baseTickets = scoreToTickets(score);
-	const streakBonusTickets = streakBonusCount;
-	const speedTickets = speedBonusTickets;
+	let baseTickets = scoreToTickets(score);
+	let streakBonusTickets = streakBonusCount;
+	let speedTickets = speedBonusTickets;
+
+	if (isTrainingMode) {
+		baseTickets = 0;
+		streakBonusTickets = 0;
+		speedTickets = 0;
+	}
 
 	document.dispatchEvent(new CustomEvent("wabRoundEnded", {
 		detail: {
 			modeId: currentModeId,
 			inputMode: currentInputMode,
 			durationSeconds: currentDurationSeconds,
+			isTraining: isTrainingMode,
+			trainingMoleCap: TRAINING_MOLE_CAP,
+			trainingMolesCompleted,
 			score,
 			hits: hitsThisRound,
 			misses: missesThisRound,
@@ -170,7 +199,7 @@ function endRoundNow(canceled) {
 				base: baseTickets,
 				streakBonus: streakBonusTickets,
 				speedBonus: speedTickets,
-				total: baseTickets + streakBonusTickets + speedBonusTickets
+				total: baseTickets + streakBonusTickets + speedTickets
 			}
 		}
 	}));
@@ -189,7 +218,6 @@ function getProgress() {
 	const elapsed = Date.now() - roundStartTime;
 	let progress = Math.min(elapsed / roundDurationMs, 1);
 
-	// HARD CHANGE: compress long rounds
 	if (roundDurationMs >= 45000) {
 		if (progress > 0.3 && progress < 0.7) {
 			progress = 0.3 + (progress - 0.3) * 1.6;
@@ -208,7 +236,6 @@ function lerp(start, end, t) {
 function getCurrentInterval() {
 	let interval = Math.floor(lerp(startIntervalMs, endIntervalMs, getProgress()));
 
-	// HARD CHANGE: tighten spacing late-round
 	if (getProgress() > 0.7) {
 		interval = Math.floor(interval * 0.45);
 	}
@@ -236,6 +263,80 @@ function scheduleNextMole(extraDelayMs = 0) {
 	}, delay);
 }
 
+function scheduleNextTrainingMole(extraDelayMs = 0) {
+	if (!isRunning || roundEnding) return;
+
+	if (trainingMolesCompleted >= TRAINING_MOLE_CAP) {
+		void speak("Training complete. Nice work!", {
+			cancelPrevious: false,
+			dedupe: false
+		});
+		endRoundNow(false);
+		return;
+	}
+
+	const delay = Math.max(0, extraDelayMs);
+
+	clearTimeout(moleTimer);
+	moleTimer = setTimeout(() => {
+		void showTrainingMole();
+	}, delay);
+}
+
+function dotsToSpeech(dots) {
+	if (!Array.isArray(dots) || !dots.length) return "";
+	if (dots.length === 1) return "Dot " + dots[0];
+	return "Dots " + dots.join(", ");
+}
+
+async function showTrainingMole() {
+	if (!isRunning || roundEnding) return;
+
+	clearActiveMole();
+
+	activeMoleId++;
+	missRegisteredForMole = false;
+
+	activeMoleIndex = pickNextMoleIndex();
+	const moleItem = roundItems[activeMoleIndex];
+	const thisMoleId = activeMoleId;
+
+	setCurrentMoleId(thisMoleId);
+
+	let announceText = moleItem.announceText;
+
+	if (speakBrailleDotsEnabled) {
+		const dotText = dotsToSpeech(moleItem.dots);
+		if (dotText) announceText = announceText + ". " + dotText;
+	}
+
+	const speechPromise = speak(announceText, {
+		on: "start",
+		timeoutMs: 400,
+		cancelPrevious: true,
+		dedupe: false
+	});
+
+	activeMoleUpTimeMs = 0;
+
+	setTimeout(() => {
+		if (!isRunning || roundEnding) return;
+		if (thisMoleId !== activeMoleId) return;
+
+		activateMoleVisual(activeMoleIndex);
+		activeMoleShownAtMs = performance.now();
+		playMolePopSound(activeMoleIndex);
+	}, 80);
+
+	await speechPromise;
+
+	if (!isRunning || roundEnding) return;
+	if (thisMoleId !== activeMoleId) return;
+
+	clearTimeout(moleUpTimer);
+	moleUpTimer = null;
+}
+
 async function showRandomMole() {
 	if (!isRunning || roundEnding) return;
 
@@ -258,7 +359,6 @@ async function showRandomMole() {
 	});
 	activeMoleUpTimeMs = getCurrentUpTime();
 
-	// HARD CHANGE: do NOT wait for speech to finish
 	setTimeout(() => {
 		if (!isRunning || roundEnding) return;
 		if (thisMoleId !== activeMoleId) return;
@@ -338,7 +438,6 @@ function handleAttempt(attempt) {
 	if (activeMoleIndex === null) return;
 	if (attempt.moleId !== activeMoleId) return;
 
-	// If perkins mode is active, ignore standard keyboard attempts.
 	if (currentInputMode === "perkins" && attempt.type === "standard") return;
 
 	const currentItem = roundItems[activeMoleIndex];
@@ -365,12 +464,40 @@ function handleAttempt(attempt) {
 		return;
 	}
 
+	if (isTrainingMode) {
+		handleTrainingMiss();
+		return;
+	}
+
 	if (missRegisteredForMole) return;
 	missRegisteredForMole = true;
 	handleMiss();
 }
 
 function handleHit() {
+	if (isTrainingMode) {
+		playHitSound(0, activeMoleIndex);
+
+		hitsThisRound += 1;
+		trainingMolesCompleted += 1;
+
+		const mole = moleElements[activeMoleIndex];
+		if (mole) {
+			mole.classList.add("isHit");
+		}
+
+		clearTimeout(moleUpTimer);
+		moleUpTimer = null;
+
+		missRegisteredForMole = true;
+
+		clearActiveMole();
+		setCurrentMoleId(0);
+
+		scheduleNextTrainingMole(180);
+		return;
+	}
+
 	playHitSound(score, activeMoleIndex);
 
 	hitsThisRound += 1;
@@ -400,12 +527,10 @@ function handleHit() {
 		mole.classList.add("isHit");
 	}
 
-
 	clearTimeout(moleUpTimer);
 	moleUpTimer = null;
 
 	missRegisteredForMole = true;
-
 
 	clearActiveMole();
 	setCurrentMoleId(0);
@@ -417,6 +542,14 @@ function handleHit() {
 			hitStreak
 		}
 	}));
+}
+
+function handleTrainingMiss() {
+	const now = performance.now();
+	if (now - lastTrainingMissAtMs < 200) return;
+	lastTrainingMissAtMs = now;
+
+	playMissSound(activeMoleIndex);
 }
 
 function handleMiss() {
