@@ -22,9 +22,12 @@ const trainingOptionsFieldset = document.getElementById("trainingOptionsFieldset
 const speakBrailleDots = document.getElementById("speakBrailleDots");
 const scoreText = document.getElementById("scoreText");
 
+const SETTINGS_STORAGE_KEY = "wabGameSettings";
+
 
 const confirmPrizeButton = document.getElementById("confirmPrizeButton");
 const cancelCashOutButton = document.getElementById("cancelCashOutButton");
+const trainingHomeButton = document.getElementById("trainingHomeButton");
 
 const startButton = document.getElementById("startGameButton");
 const playAgainButton = document.getElementById("playAgainButton");
@@ -54,6 +57,23 @@ function loadTotalTickets() {
 
 function saveTotalTickets() {
 	localStorage.setItem("wabTotalTickets", String(totalTickets));
+}
+
+	function syncTrainingUI() {
+	const difficulty = getSelectedDifficulty();
+	const isTraining = difficulty === "training";
+
+	if (roundLengthFieldset) {
+		roundLengthFieldset.disabled = isTraining;
+	}
+
+	if (trainingOptionsFieldset) {
+		trainingOptionsFieldset.disabled = !isTraining;
+	}
+
+	if (!isTraining && speakBrailleDots) {
+		speakBrailleDots.checked = false;
+	}
 }
 
 function resetTotalTickets() {
@@ -224,22 +244,6 @@ function primeSpeech() {
 	window.speechSynthesis.speak(utterance);
 }
 
-function syncTrainingUI() {
-	const difficulty = getSelectedDifficulty();
-	const isTraining = difficulty === "training";
-
-	if (roundLengthFieldset) {
-		roundLengthFieldset.disabled = isTraining;
-	}
-
-	if (trainingOptionsFieldset) {
-		trainingOptionsFieldset.disabled = !isTraining;
-	}
-
-	if (!isTraining && speakBrailleDots) {
-		speakBrailleDots.checked = false;
-	}
-}
 
 function syncInputModeUI() {
 	const selectedMode = document.querySelector("input[name='brailleMode']:checked")?.value;
@@ -250,6 +254,57 @@ function syncInputModeUI() {
 		if (inputModePerkins) inputModePerkins.checked = true;
 	} else {
 		grade1InputModeFieldset.disabled = false;
+	}
+}
+function applySettingsToUI(settings) {
+	if (!settings) return;
+
+	if (settings.difficulty) {
+		const el = document.querySelector(
+			`input[name='difficulty'][value='${settings.difficulty}']`
+		);
+		if (el) el.checked = true;
+	}
+
+	if (settings.roundTime) {
+		const el = document.querySelector(
+			`input[name='roundTime'][value='${settings.roundTime}']`
+		);
+		if (el) el.checked = true;
+	}
+
+	if (settings.inputMode) {
+		const el = document.querySelector(
+			`input[name='inputMode'][value='${settings.inputMode}']`
+		);
+		if (el) el.checked = true;
+	}
+
+	if (settings.brailleMode) {
+		const el = document.querySelector(
+			`input[name='brailleMode'][value='${settings.brailleMode}']`
+		);
+		if (el) el.checked = true;
+	}
+
+	if (typeof settings.speakBrailleDots === "boolean" && speakBrailleDots) {
+		speakBrailleDots.checked = settings.speakBrailleDots;
+	}
+}
+
+function saveGameSettings(settings) {
+	try {
+		localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings));
+	} catch {}
+}
+
+function loadGameSettings() {
+	try {
+		const raw = localStorage.getItem(SETTINGS_STORAGE_KEY);
+		if (!raw) return null;
+		return JSON.parse(raw);
+	} catch {
+		return null;
 	}
 }
 
@@ -333,6 +388,15 @@ function setupEventListeners() {
 			startGameFromSettings();
 		});
 	}
+
+	document.querySelectorAll(
+		"input[name='difficulty'], input[name='roundTime'], input[name='inputMode'], input[name='brailleMode'], input[name='gameAudio'], #speakBrailleDots"
+).forEach(el => {
+		el.addEventListener("change", () => {
+			saveGameSettings(getSelectedSettings());
+		});
+	});
+
 const clearPrizeShelfButton = document.getElementById("clearPrizeShelf");
 if (clearPrizeShelfButton) {
 	clearPrizeShelfButton.addEventListener("click", () => {
@@ -353,6 +417,13 @@ if (clearPrizeShelfButton) {
 			setGameState("cashout");
 		});
 	}
+
+	if (trainingHomeButton) {
+		trainingHomeButton.addEventListener("click", () => {
+			setGameState("home");
+		});
+	}
+
 if (confirmPrizeButton) {
 	confirmPrizeButton.addEventListener("click", () => {
 		if (!selectedPrizeId) return;
@@ -418,11 +489,15 @@ document.addEventListener("wabRoundEnded", (e) => {
 	if (resultsEscapesValue) resultsEscapesValue.textContent = String(escapes);
 
 	if (playAgainButton) {
-		playAgainButton.textContent = isTraining ? "Keep Training!" : "Play Again";
+		playAgainButton.textContent = isTraining ? "Keep Training!" : "Keep Whacking!";
 	}
 
 	if (cashOutButton) {
 		cashOutButton.hidden = isTraining;
+	}
+
+	if (trainingHomeButton) {
+		trainingHomeButton.hidden = !isTraining;
 	}
 
 	function setLineHidden(valueEl, hidden) {
@@ -436,12 +511,22 @@ document.addEventListener("wabRoundEnded", (e) => {
 	setLineHidden(resultsTicketsTotalValue, isTraining);
 	setLineHidden(resultsStreakBonusValue, isTraining);
 	setLineHidden(resultsSpeedBonusValue, isTraining);
+	setLineHidden(resultsHitsValue, isTraining);
+	setLineHidden(resultsMissesValue, isTraining);
+	setLineHidden(resultsEscapesValue, isTraining);
 
 	if (resultsHeading) {
 		resultsHeading.textContent = isTraining ? "Training Complete! Great Work!" : "Results";
 	}
 
 	setGameState("results");
+	requestAnimationFrame(() => {
+		if (resultsHeading) {
+			resultsHeading.setAttribute("tabindex", "-1");
+			resultsHeading.focus();
+		}
+	});
+
 });
 }
 
@@ -530,6 +615,13 @@ existingRadios.forEach(radio => {
 function init() {
 	loadTotalTickets();
 	loadPrizeShelf();
+	const savedSettings = loadGameSettings();
+	if (savedSettings) {
+		applySettingsToUI(savedSettings);
+	}
+
+	syncTrainingUI();
+
 	setGameState("home");
 	setupEventListeners();
 	setupScoreListener();

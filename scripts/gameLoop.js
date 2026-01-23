@@ -267,10 +267,6 @@ function scheduleNextTrainingMole(extraDelayMs = 0) {
 	if (!isRunning || roundEnding) return;
 
 	if (trainingMolesCompleted >= TRAINING_MOLE_CAP) {
-		void speak("Training complete. Nice work!", {
-			cancelPrevious: false,
-			dedupe: false
-		});
 		endRoundNow(false);
 		return;
 	}
