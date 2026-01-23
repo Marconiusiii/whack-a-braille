@@ -17,6 +17,11 @@ const cashOutHeading = document.getElementById("cashOutHeading");
 const cashOutPrizeOptions = document.getElementById("cashOutPrizeOptions");
 const cashOutTicketCount = document.getElementById("cashOutTicketCount");
 const PRIZE_SHELF_KEY = "whackABraillePrizeShelf";
+const roundLengthFieldset = document.getElementById("roundLengthFieldset");
+const trainingOptionsFieldset = document.getElementById("trainingOptionsFieldset");
+const speakBrailleDots = document.getElementById("speakBrailleDots");
+const scoreText = document.getElementById("scoreText");
+
 
 const confirmPrizeButton = document.getElementById("confirmPrizeButton");
 const cancelCashOutButton = document.getElementById("cancelCashOutButton");
@@ -219,6 +224,23 @@ function primeSpeech() {
 	window.speechSynthesis.speak(utterance);
 }
 
+function syncTrainingUI() {
+	const difficulty = getSelectedDifficulty();
+	const isTraining = difficulty === "training";
+
+	if (roundLengthFieldset) {
+		roundLengthFieldset.disabled = isTraining;
+	}
+
+	if (trainingOptionsFieldset) {
+		trainingOptionsFieldset.disabled = !isTraining;
+	}
+
+	if (!isTraining && speakBrailleDots) {
+		speakBrailleDots.checked = false;
+	}
+}
+
 function syncInputModeUI() {
 	const selectedMode = document.querySelector("input[name='brailleMode']:checked")?.value;
 	if (!selectedMode || !grade1InputModeFieldset) return;
@@ -246,7 +268,8 @@ function getSelectedSettings() {
 		brailleMode,
 		roundTime: Number.isFinite(roundTime) ? roundTime : 30,
 		inputMode,
-		difficulty: getSelectedDifficulty()
+		difficulty: getSelectedDifficulty(),
+		speakBrailleDots: !!speakBrailleDots?.checked
 	};
 }
 
@@ -255,6 +278,14 @@ function startGameFromSettings() {
 	unlockSpeech();
 
 	const settings = getSelectedSettings();
+
+	const isTraining = settings.difficulty === "training";
+	if (scoreText) {
+		scoreText.hidden = isTraining;
+		if (!isTraining) {
+			scoreText.textContent = "Score: 0";
+		}
+	}
 
 	setInputMode(settings.inputMode);
 	setCurrentMoleId(0);
@@ -283,12 +314,15 @@ function startGameFromSettings() {
 	});
 
 	setTimeout(() => {
-		startRound(
-			settings.brailleMode,
-			settings.roundTime,
-			settings.inputMode,
-			settings.difficulty
-		);
+	startRound(
+		settings.brailleMode,
+		settings.roundTime,
+		settings.inputMode,
+		settings.difficulty,
+		{
+			speakBrailleDots: settings.speakBrailleDots
+		}
+	);
 	}, 650);
 }
 
@@ -338,6 +372,10 @@ if (cancelCashOutButton) {
 	});
 }
 
+	document.querySelectorAll("input[name='difficulty']").forEach(radio => {
+		radio.addEventListener("change", syncTrainingUI);
+	});
+
 
 	document.querySelectorAll("input[name='brailleMode']").forEach(radio => {
 		radio.addEventListener("change", syncInputModeUI);
@@ -347,6 +385,7 @@ document.addEventListener("wabRoundEnded", (e) => {
 	if (gameState !== "playing") return;
 
 	const detail = e.detail || {};
+	const isTraining = !!detail.isTraining;
 
 	const score = Number.isFinite(detail.score) ? detail.score : 0;
 	const hits = Number.isFinite(detail.hits) ? detail.hits : 0;
@@ -359,19 +398,16 @@ document.addEventListener("wabRoundEnded", (e) => {
 		? (Number(ticketBreakdown.total) || 0)
 		: scoreToTickets(score);
 
-	totalTickets += ticketsThisRound;
-	saveTotalTickets();
+	if (!isTraining) {
+		totalTickets += ticketsThisRound;
+		saveTotalTickets();
+	}
 
 	const streakBonusValue = ticketBreakdown ? (Number(ticketBreakdown.streakBonus) || 0) : 0;
 	const speedBonusValue = ticketBreakdown ? (Number(ticketBreakdown.speedBonus) || 0) : 0;
 
-	if (resultsStreakBonusValue) {
-		resultsStreakBonusValue.textContent = String(streakBonusValue);
-	}
-
-	if (resultsSpeedBonusValue) {
-		resultsSpeedBonusValue.textContent = String(speedBonusValue);
-	}
+	if (resultsStreakBonusValue) resultsStreakBonusValue.textContent = String(streakBonusValue);
+	if (resultsSpeedBonusValue) resultsSpeedBonusValue.textContent = String(speedBonusValue);
 
 	if (resultsScoreValue) resultsScoreValue.textContent = String(score);
 	if (resultsTicketsRoundValue) resultsTicketsRoundValue.textContent = String(ticketsThisRound);
@@ -381,9 +417,32 @@ document.addEventListener("wabRoundEnded", (e) => {
 	if (resultsMissesValue) resultsMissesValue.textContent = String(misses);
 	if (resultsEscapesValue) resultsEscapesValue.textContent = String(escapes);
 
+	if (playAgainButton) {
+		playAgainButton.textContent = isTraining ? "Keep Training!" : "Play Again";
+	}
+
+	if (cashOutButton) {
+		cashOutButton.hidden = isTraining;
+	}
+
+	function setLineHidden(valueEl, hidden) {
+		if (!valueEl) return;
+		const line = valueEl.closest("div");
+		if (line) line.hidden = hidden;
+	}
+
+	setLineHidden(resultsScoreValue, isTraining);
+	setLineHidden(resultsTicketsRoundValue, isTraining);
+	setLineHidden(resultsTicketsTotalValue, isTraining);
+	setLineHidden(resultsStreakBonusValue, isTraining);
+	setLineHidden(resultsSpeedBonusValue, isTraining);
+
+	if (resultsHeading) {
+		resultsHeading.textContent = isTraining ? "Training Complete! Great Work!" : "Results";
+	}
+
 	setGameState("results");
 });
-}
 
 function setupScoreListener() {
 	const scoreText = document.getElementById("scoreText");
@@ -475,6 +534,7 @@ function init() {
 	setupEventListeners();
 	setupScoreListener();
 	syncInputModeUI();
+	syncTrainingUI();
 
 	initGameLoop({
 		moleElements: Array.from(document.querySelectorAll("#gameBoard .mole"))

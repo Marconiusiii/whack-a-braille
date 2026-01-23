@@ -307,7 +307,7 @@ async function showTrainingMole() {
 
 	if (speakBrailleDotsEnabled) {
 		const dotText = dotsToSpeech(moleItem.dots);
-		if (dotText) announceText = announceText + ". " + dotText;
+		if (dotText) announceText = announceText + ", " + dotText;
 	}
 
 	const speechPromise = speak(announceText, {
