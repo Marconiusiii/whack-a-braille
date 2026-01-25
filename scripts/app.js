@@ -470,23 +470,33 @@ function setupEventListeners() {
 	}
 
 document.addEventListener("keydown", e => {
-	if (e.key !== "`") return;
+	const key = e.key;
 
 	const target = e.target;
 	if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA")) {
 		return;
 	}
 
-	const payload = getCurrentSpeechPayload();
-	if (!payload) return;
+	// Backtick: repeat current target
+	if (key === "`") {
+		const payload = getCurrentSpeechPayload();
+		if (!payload) return;
 
-	speak(payload.text, {
-		...payload.options,
-		cancelPrevious: true,
-		dedupe: false
-	});
+		speak(payload.text, {
+			cancelPrevious: true,
+			dedupe: false
+		});
+		return;
+	}
+
+	// Backslash: exit Training mode early
+	if (key === "\\") {
+		if (getSelectedDifficulty() === "training") {
+			endRoundNow(false);
+		}
+		return;
+	}
 });
-
 
 	document.querySelectorAll(
 		"input[name='difficulty'], input[name='roundTime'], input[name='inputMode'], input[name='brailleMode'], input[name='gameAudio'], #speakBrailleDots"
