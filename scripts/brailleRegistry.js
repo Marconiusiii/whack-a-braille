@@ -18,7 +18,7 @@ function dotsToPerkinsKeys(dots) {
 	return dots.map(dot => map[dot]);
 }
 
-function makeItem(id, announceText, dots, modes, standardKey = null) {
+function makeItem(id, announceText, dots, modes, standardKey = null, options = {}) {
 	return {
 		id,
 		modeTags: modes,
@@ -27,37 +27,37 @@ function makeItem(id, announceText, dots, modes, standardKey = null) {
 		dots,
 		dotMask: dotsToMask(dots),
 		perkinsKeys: dotsToPerkinsKeys(dots),
-		standardKey
+		standardKey,
+		...options
 	};
 }
-
 const grade1Letters = [
-	makeItem("a","a",[1],["grade1Letters","grade1LettersNumbers"],"a"),
-	makeItem("b","b",[1,2],["grade1Letters","grade1LettersNumbers"],"b"),
-	makeItem("c","c",[1,4],["grade1Letters","grade1LettersNumbers"],"c"),
-	makeItem("d","d",[1,4,5],["grade1Letters","grade1LettersNumbers"],"d"),
-	makeItem("e","e",[1,5],["grade1Letters","grade1LettersNumbers"],"e"),
-	makeItem("f","f",[1,2,4],["grade1Letters","grade1LettersNumbers"],"f"),
-	makeItem("g","g",[1,2,4,5],["grade1Letters","grade1LettersNumbers"],"g"),
-	makeItem("h","h",[1,2,5],["grade1Letters","grade1LettersNumbers"],"h"),
-	makeItem("i","i",[2,4],["grade1Letters","grade1LettersNumbers"],"i"),
-	makeItem("j","j",[2,4,5],["grade1Letters","grade1LettersNumbers"],"j"),
-	makeItem("k","k",[1,3],["grade1Letters","grade1LettersNumbers"],"k"),
-	makeItem("l","l",[1,2,3],["grade1Letters","grade1LettersNumbers"],"l"),
-	makeItem("m","m",[1,3,4],["grade1Letters","grade1LettersNumbers"],"m"),
-	makeItem("n","n",[1,3,4,5],["grade1Letters","grade1LettersNumbers"],"n"),
-	makeItem("o","o",[1,3,5],["grade1Letters","grade1LettersNumbers"],"o"),
-	makeItem("p","p",[1,2,3,4],["grade1Letters","grade1LettersNumbers"],"p"),
-	makeItem("q","q",[1,2,3,4,5],["grade1Letters","grade1LettersNumbers"],"q"),
-	makeItem("r","r",[1,2,3,5],["grade1Letters","grade1LettersNumbers"],"r"),
-	makeItem("s","s",[2,3,4],["grade1Letters","grade1LettersNumbers"],"s"),
-	makeItem("t","t",[2,3,4,5],["grade1Letters","grade1LettersNumbers"],"t"),
-	makeItem("u","u",[1,3,6],["grade1Letters","grade1LettersNumbers"],"u"),
-	makeItem("v","v",[1,2,3,6],["grade1Letters","grade1LettersNumbers"],"v"),
-	makeItem("w","w",[2,4,5,6],["grade1Letters","grade1LettersNumbers"],"w"),
-	makeItem("x","x",[1,3,4,6],["grade1Letters","grade1LettersNumbers"],"x"),
-	makeItem("y","y",[1,3,4,5,6],["grade1Letters","grade1LettersNumbers"],"y"),
-	makeItem("z","z",[1,3,5,6],["grade1Letters","grade1LettersNumbers"],"z")
+	makeItem("a","a",[1],["grade1Letters","grade1LettersNumbers"],"a",{ nato: "Alpha" }),
+	makeItem("b","b",[1,2],["grade1Letters","grade1LettersNumbers"],"b",{ nato: "Bravo" }),
+	makeItem("c","c",[1,4],["grade1Letters","grade1LettersNumbers"],"c",{ nato: "Charlie" }),
+	makeItem("d","d",[1,4,5],["grade1Letters","grade1LettersNumbers"],"d",{ nato: "Delta" }),
+	makeItem("e","e",[1,5],["grade1Letters","grade1LettersNumbers"],"e",{ nato: "Echo" }),
+	makeItem("f","f",[1,2,4],["grade1Letters","grade1LettersNumbers"],"f",{ nato: "Foxtrot" }),
+	makeItem("g","g",[1,2,4,5],["grade1Letters","grade1LettersNumbers"],"g",{ nato: "Golf" }),
+	makeItem("h","h",[1,2,5],["grade1Letters","grade1LettersNumbers"],"h",{ nato: "Hotel" }),
+	makeItem("i","i",[2,4],["grade1Letters","grade1LettersNumbers"],"i",{ nato: "India" }),
+	makeItem("j","j",[2,4,5],["grade1Letters","grade1LettersNumbers"],"j",{ nato: "Juliet" }),
+	makeItem("k","k",[1,3],["grade1Letters","grade1LettersNumbers"],"k",{ nato: "Kilo" }),
+	makeItem("l","l",[1,2,3],["grade1Letters","grade1LettersNumbers"],"l",{ nato: "Lima" }),
+	makeItem("m","m",[1,3,4],["grade1Letters","grade1LettersNumbers"],"m",{ nato: "Mike" }),
+	makeItem("n","n",[1,3,4,5],["grade1Letters","grade1LettersNumbers"],"n",{ nato: "November" }),
+	makeItem("o","o",[1,3,5],["grade1Letters","grade1LettersNumbers"],"o",{ nato: "Oscar" }),
+	makeItem("p","p",[1,2,3,4],["grade1Letters","grade1LettersNumbers"],"p",{ nato: "Papa" }),
+	makeItem("q","q",[1,2,3,4,5],["grade1Letters","grade1LettersNumbers"],"q",{ nato: "Quebec" }),
+	makeItem("r","r",[1,2,3,5],["grade1Letters","grade1LettersNumbers"],"r",{ nato: "Romeo" }),
+	makeItem("s","s",[2,3,4],["grade1Letters","grade1LettersNumbers"],"s",{ nato: "Sierra" }),
+	makeItem("t","t",[2,3,4,5],["grade1Letters","grade1LettersNumbers"],"t",{ nato: "Tango" }),
+	makeItem("u","u",[1,3,6],["grade1Letters","grade1LettersNumbers"],"u",{ nato: "Uniform" }),
+	makeItem("v","v",[1,2,3,6],["grade1Letters","grade1LettersNumbers"],"v",{ nato: "Victor" }),
+	makeItem("w","w",[2,4,5,6],["grade1Letters","grade1LettersNumbers"],"w",{ nato: "Whiskey" }),
+	makeItem("x","x",[1,3,4,6],["grade1Letters","grade1LettersNumbers"],"x",{ nato: "X-ray" }),
+	makeItem("y","y",[1,3,4,5,6],["grade1Letters","grade1LettersNumbers"],"y",{ nato: "Yankee" }),
+	makeItem("z","z",[1,3,5,6],["grade1Letters","grade1LettersNumbers"],"z",{ nato: "Zulu" })
 ];
 
 const grade1Numbers = [

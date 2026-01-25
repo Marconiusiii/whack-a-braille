@@ -1,6 +1,6 @@
 "use strict";
 
-import { initGameLoop, getCurrentSpeechPayload, startRound } from "./gameLoop.js";
+import { initGameLoop, getCurrentSpeechPayload, startRound, stopRound } from "./gameLoop.js";
 import { unlockAudio, setGameAudioMode, playEndBuzzer, playStartFlourish, playEverythingStinger } from "./audioEngine.js";
 import {
 	unlockSpeech,
@@ -27,6 +27,7 @@ const roundLengthFieldset = document.getElementById("roundLengthFieldset");
 const trainingOptionsFieldset = document.getElementById("trainingOptionsFieldset");
 const speakBrailleDots = document.getElementById("speakBrailleDots");
 const scoreText = document.getElementById("scoreText");
+const characterEchoCheckbox = document.getElementById("characterEcho");
 
 const speechRatePercentInput = document.getElementById("speechRatePercent");
 const voiceSelect = document.getElementById("voiceSelect");
@@ -311,6 +312,10 @@ function applySettingsToUI(settings) {
 		setSpeechRate(rate);
 	}
 
+	if (typeof settings.characterEcho === "boolean" && characterEchoCheckbox) {
+		characterEchoCheckbox.checked = settings.characterEcho;
+	}
+
 	if (settings.voiceName && voiceSelect) {
 		voiceSelect.value = settings.voiceName;
 		setPreferredVoiceName(settings.voiceName);
@@ -364,19 +369,24 @@ function getSelectedSettings() {
 	const roundTime = parseInt(roundTimeValue, 10);
 
 	let inputMode = document.querySelector("input[name='inputMode']:checked")?.value || "qwerty";
-	if (isGrade2Mode(brailleMode)) inputMode = "perkins";
+
+	if (isGrade2Mode(brailleMode)) {
+		inputMode = "perkins";
+	}
+
 	if (brailleMode === "everything") {
-	inputMode = "perkins";
-}
+		inputMode = "perkins";
+	}
 
 	return {
 		brailleMode,
 		roundTime: Number.isFinite(roundTime) ? roundTime : 30,
 		inputMode,
-	voiceName: voiceSelect?.value || null,
-	speechRatePercent: Number(speechRatePercentInput?.value) || 35,
+		voiceName: voiceSelect?.value || null,
+		speechRatePercent: Number(speechRatePercentInput?.value) || 35,
 		difficulty: getSelectedDifficulty(),
-		speakBrailleDots: !!speakBrailleDots?.checked
+		speakBrailleDots: !!speakBrailleDots?.checked,
+		characterEcho: !!characterEchoCheckbox?.checked
 	};
 }
 
@@ -427,7 +437,8 @@ function startGameFromSettings() {
 		settings.inputMode,
 		settings.difficulty,
 		{
-			speakBrailleDots: settings.speakBrailleDots
+			speakBrailleDots: settings.speakBrailleDots,
+			characterEcho: settings.characterEcho
 		}
 	);
 	}, 650);
@@ -448,6 +459,12 @@ function setupEventListeners() {
 				setPreferredVoiceName(name);
 				saveGameSettings(getSelectedSettings());
 			}
+		});
+	}
+
+	if (characterEchoCheckbox) {
+		characterEchoCheckbox.addEventListener("change", () => {
+			saveGameSettings(getSelectedSettings());
 		});
 	}
 
@@ -489,14 +506,13 @@ document.addEventListener("keydown", e => {
 		return;
 	}
 
-	// Backslash: exit Training mode early
 	if (key === "\\") {
 		if (getSelectedDifficulty() === "training") {
-			endRoundNow(false);
+			stopRound();
 		}
 		return;
 	}
-});
+	});
 
 	document.querySelectorAll(
 		"input[name='difficulty'], input[name='roundTime'], input[name='inputMode'], input[name='brailleMode'], input[name='gameAudio'], #speakBrailleDots"

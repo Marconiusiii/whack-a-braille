@@ -7,6 +7,7 @@ import { speak, cancelSpeech } from "./speechEngine.js";
 import { computeMoleWindowMs, computeRoundEndGraceMs } from "./speechTuning.js";
 
 let moleElements = [];
+let characterEchoEnabled = false;
 
 let availableItems = [];
 let roundItems = [];
@@ -65,6 +66,8 @@ function initGameLoop(options) {
 
 function startRound(modeId, durationSeconds, inputMode, difficulty = "normal", options = {}) {
 	if (isRunning) return;
+
+	characterEchoEnabled = !!options.characterEcho;
 
 	score = 0;
 	hitStreak = 0;
@@ -290,6 +293,32 @@ function dotsToSpeech(dots) {
 	return "Dots " + dots.join(" ");
 }
 
+function buildAnnounceText(item) {
+	if (!item) return "";
+
+	let text = item.announceText;
+
+	const isGrade1 =
+		item.modeTags &&
+		item.modeTags.includes("grade1Letters");
+
+	if (isGrade1 && characterEchoEnabled && item.nato) {
+		text += ", " + item.nato;
+	}
+
+	if (isTrainingMode && speakBrailleDotsEnabled) {
+		const dots = Array.isArray(item.dots) ? item.dots : [];
+
+		if (dots.length === 1) {
+			text += ", Dot " + dots[0];
+		} else if (dots.length > 1) {
+			text += ", Dots " + dots.join(" ");
+		}
+	}
+
+	return text;
+}
+
 async function showTrainingMole() {
 	if (!isRunning || roundEnding) return;
 
@@ -311,12 +340,7 @@ async function showTrainingMole() {
 
 	setCurrentMoleId(thisMoleId);
 
-	let announceText = moleItem.announceText;
-
-	if (speakBrailleDotsEnabled) {
-		const dotText = dotsToSpeech(moleItem.dots);
-		if (dotText) announceText = announceText + ", " + dotText;
-	}
+	const announceText = buildAnnounceText(moleItem);
 
 	const speechPromise = speak(announceText, {
 		on: "start",
@@ -366,12 +390,15 @@ async function showRandomMole() {
 
 	setCurrentMoleId(thisMoleId);
 
-	const speechPromise = speak(moleItem.announceText, {
+	const announceText = buildAnnounceText(moleItem);
+
+	const speechPromise = speak(announceText, {
 		on: "start",
 		timeoutMs: 400,
 		cancelPrevious: true,
 		dedupe: false
 	});
+
 	activeMoleUpTimeMs = getCurrentUpTime();
 
 	setTimeout(() => {
@@ -590,6 +617,14 @@ function getCurrentSpeechPayload() {
 
 	let text = item.announceText;
 
+	const isGrade1 =
+		item.modeTags &&
+		item.modeTags.includes("grade1Letters");
+
+	if (isGrade1 && characterEchoEnabled && item.nato) {
+		text += ", " + item.nato;
+	}
+
 	if (isTrainingMode && speakBrailleDotsEnabled) {
 		const dots = Array.isArray(item.dots) ? item.dots : [];
 
@@ -600,9 +635,7 @@ function getCurrentSpeechPayload() {
 		}
 	}
 
-	return {
-		text
-	};
+	return { text };
 }
 
 export {
