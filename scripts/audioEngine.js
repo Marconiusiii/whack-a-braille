@@ -8,6 +8,7 @@ let gameAudioMode = "original";
 let sillyHitBuffer = null;
 let fiftyPointBuffer = null;
 let sillyGainNode = null;
+let beatTimeout = null;
 
 const molePanMap = [
 	-1.0,	// Mole 1: far left
@@ -903,6 +904,67 @@ function playEndBuzzer() {
 	});
 }
 
+function startRoundBeat(getProgressFn) {
+	if (!isUnlocked) return;
+	stopRoundBeat();
+
+	const ctx = getAudioContext();
+	ensureRunning(ctx);
+
+	function scheduleNextBeat() {
+		if (!isUnlocked) return;
+
+		const progress = Math.max(0, Math.min(1, getProgressFn()));
+
+		const minIntervalMs = 220;
+		const maxIntervalMs = 720;
+
+		const intervalMs =
+			maxIntervalMs - (maxIntervalMs - minIntervalMs) * progress;
+
+		playBeatPulse(progress);
+
+		beatTimeout = setTimeout(scheduleNextBeat, intervalMs);
+	}
+
+	scheduleNextBeat();
+}
+
+function stopRoundBeat() {
+	if (beatTimeout) {
+		clearTimeout(beatTimeout);
+		beatTimeout = null;
+	}
+}
+
+function playBeatPulse(progress) {
+	const ctx = getAudioContext();
+	const now = ctx.currentTime;
+
+	const master = ctx.createGain();
+	master.gain.value = 0.35 + progress * 0.25;
+	master.connect(ctx.destination);
+
+	const osc = ctx.createOscillator();
+	const gain = ctx.createGain();
+
+	const baseFreq = 58;
+	const freqLift = progress * 14;
+
+	osc.type = "sine";
+	osc.frequency.setValueAtTime(baseFreq + freqLift, now);
+
+	gain.gain.setValueAtTime(0.0001, now);
+	gain.gain.exponentialRampToValueAtTime(0.55, now + 0.03);
+	gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
+
+	osc.connect(gain);
+	gain.connect(master);
+
+	osc.start(now);
+	osc.stop(now + 0.2);
+}
+
 export {
 	unlockAudio,
 	playStartFlourish,
@@ -912,5 +974,7 @@ export {
 	playRetreatSound,
 	playMolePopSound,
 	playEndBuzzer,
-	setGameAudioMode
+	setGameAudioMode,
+	startRoundBeat,
+	stopRoundBeat
 };

@@ -2,7 +2,14 @@
 
 import { getBrailleItemsForMode } from "./brailleRegistry.js";
 import { setAttemptCallback, setCurrentMoleId } from "./inputEngine.js";
-import { playHitSound, playMissSound, playMolePopSound, playRetreatSound } from "./audioEngine.js";
+import {
+	playHitSound,
+	playMissSound,
+	playMolePopSound,
+	playRetreatSound,
+	startRoundBeat,
+	stopRoundBeat
+} from "./audioEngine.js";
 import { speak, cancelSpeech } from "./speechEngine.js";
 import { computeMoleWindowMs, computeRoundEndGraceMs } from "./speechTuning.js";
 
@@ -96,6 +103,10 @@ function startRound(modeId, durationSeconds, inputMode, difficulty = "normal", o
 	isRunning = true;
 	roundEnding = false;
 
+	if (!isTrainingMode) {
+		startRoundBeat(() => getProgress());
+	}
+
 	roundStartTime = Date.now();
 
 	activeMoleIndex = null;
@@ -183,6 +194,8 @@ function endRoundNow(canceled) {
 		streakBonusTickets = 0;
 		speedTickets = 0;
 	}
+
+	stopRoundBeat();
 
 	document.dispatchEvent(new CustomEvent("wabRoundEnded", {
 		detail: {
