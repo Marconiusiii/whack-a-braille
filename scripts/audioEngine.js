@@ -442,7 +442,7 @@ function playOriginalHitSound(moleIndex) {
 	subOsc.frequency.exponentialRampToValueAtTime(45, now + 0.09);
 
 	subGain.gain.setValueAtTime(0.0001, now);
-	subGain.gain.exponentialRampToValueAtTime(0.9, now + 0.015);
+	subGain.gain.exponentialRampToValueAtTime(1.15, now + 0.015);
 	subGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.14);
 
 	subOsc.connect(subGain);
@@ -451,6 +451,25 @@ function playOriginalHitSound(moleIndex) {
 	subOsc.start(now);
 	subOsc.stop(now + 0.15);
 
+	/* ---------------- Sub harmonic reinforcement ---------------- */
+
+	const subHarm = ctx.createOscillator();
+	const subHarmGain = ctx.createGain();
+
+	subHarm.type = "triangle";
+	subHarm.frequency.setValueAtTime(110, now);
+	subHarm.frequency.exponentialRampToValueAtTime(80, now + 0.1);
+
+	subHarmGain.gain.setValueAtTime(0.0001, now);
+	subHarmGain.gain.exponentialRampToValueAtTime(0.28, now + 0.02);
+	subHarmGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.16);
+
+	subHarm.connect(subHarmGain);
+	subHarmGain.connect(pan);
+
+	subHarm.start(now);
+	subHarm.stop(now + 0.18);
+
 	/* ---------------- Body thud ---------------- */
 
 	const bodyOsc = ctx.createOscillator();
@@ -458,8 +477,8 @@ function playOriginalHitSound(moleIndex) {
 
 	bodyOsc.type = "triangle";
 
-	const bodyStart = 150 + Math.random() * 20;
-	const bodyEnd = 95 + Math.random() * 15;
+	const bodyStart = 140 + Math.random() * 15;
+	const bodyEnd = 95 + Math.random() * 10;
 
 	bodyOsc.frequency.setValueAtTime(bodyStart, now);
 	bodyOsc.frequency.exponentialRampToValueAtTime(bodyEnd, now + 0.1);
@@ -487,8 +506,8 @@ function playOriginalHitSound(moleIndex) {
 
 	const noiseFilter = ctx.createBiquadFilter();
 	noiseFilter.type = "bandpass";
-	noiseFilter.frequency.value = 650 + Math.random() * 200;
-	noiseFilter.Q.value = 0.8;
+	noiseFilter.frequency.value = 520 + Math.random() * 140;
+	noiseFilter.Q.value = 0.9;
 
 	const noiseGain = ctx.createGain();
 	noiseGain.gain.setValueAtTime(0.0001, now);
@@ -502,40 +521,46 @@ function playOriginalHitSound(moleIndex) {
 	noise.start(now);
 	noise.stop(now + 0.09);
 
-	/* ---------------- Spring / boing layer ---------------- */
+	/* ---------------- Mechanical spring release ---------------- */
 
 	const springOsc = ctx.createOscillator();
 	const springGain = ctx.createGain();
 
 	springOsc.type = "triangle";
 
-	const springStart = 380 + Math.random() * 60;
-	const springEnd = 900 + Math.random() * 140;
+	const springBase = 240 + Math.random() * 40;
 
-	springOsc.frequency.setValueAtTime(springStart, now + 0.04);
-	springOsc.frequency.exponentialRampToValueAtTime(springEnd, now + 0.18);
+	springOsc.frequency.setValueAtTime(springBase * 0.82, now + 0.035);
+	springOsc.frequency.exponentialRampToValueAtTime(springBase * 1.15, now + 0.14);
+	springOsc.frequency.exponentialRampToValueAtTime(springBase, now + 0.42);
 
 	const springWobble = ctx.createOscillator();
 	const springWobbleGain = ctx.createGain();
-	springWobble.frequency.value = 6 + Math.random() * 3;
-	springWobbleGain.gain.value = 22 + Math.random() * 8;
+
+	springWobble.type = "sine";
+	springWobble.frequency.value = 3.8 + Math.random() * 0.8;
+
+	springWobbleGain.gain.setValueAtTime(18, now + 0.035);
+	springWobbleGain.gain.exponentialRampToValueAtTime(2.5, now + 0.5);
 
 	springWobble.connect(springWobbleGain);
 	springWobbleGain.connect(springOsc.frequency);
 
-	springGain.gain.setValueAtTime(0.0001, now + 0.04);
-	springGain.gain.exponentialRampToValueAtTime(0.5, now + 0.06);
-	springGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.28);
+	springGain.gain.setValueAtTime(0.0001, now + 0.035);
+	springGain.gain.exponentialRampToValueAtTime(0.38, now + 0.07);
+	springGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.55);
 
 	springOsc.connect(springGain);
 	springGain.connect(pan);
 
-	springWobble.start(now + 0.04);
-	springOsc.start(now + 0.04);
+	springWobble.start(now + 0.035);
+	springOsc.start(now + 0.035);
 
-	springOsc.stop(now + 0.3);
-	springWobble.stop(now + 0.3);
+	springOsc.stop(now + 0.6);
+	springWobble.stop(now + 0.6);
 }
+
+
 
 function playHitSound(score, moleIndex) {
 	if (gameAudioMode === "silly") {
