@@ -424,7 +424,6 @@ function playOriginalHitSound(moleIndex) {
 	ensureRunning(ctx);
 
 	const now = ctx.currentTime;
-
 	const pan = createMolePanner(ctx, moleIndex);
 
 	const master = ctx.createGain();
@@ -432,7 +431,22 @@ function playOriginalHitSound(moleIndex) {
 	pan.connect(master);
 	master.connect(ctx.destination);
 
-	/* ---------------- Sub thud (felt weight) ---------------- */
+	// spring tuning parameters
+
+	const springBaseHz = 195;
+	const springVarianceHz = 45;
+	const springDuration = 0.85;
+
+	const springDipRatio = 0.78;
+	const springPeakRatio = 1.25;
+
+	const springWobbleHz = 3.0;
+	const springWobbleStartDepth = 15;
+	const springWobbleEndDepth = 2.5;
+
+	const springPeakGain = 0.4;
+
+	// sub thud
 
 	const subOsc = ctx.createOscillator();
 	const subGain = ctx.createGain();
@@ -451,7 +465,7 @@ function playOriginalHitSound(moleIndex) {
 	subOsc.start(now);
 	subOsc.stop(now + 0.15);
 
-	/* ---------------- Sub harmonic reinforcement ---------------- */
+	// sub harmonic reinforcement
 
 	const subHarm = ctx.createOscillator();
 	const subHarmGain = ctx.createGain();
@@ -470,30 +484,30 @@ function playOriginalHitSound(moleIndex) {
 	subHarm.start(now);
 	subHarm.stop(now + 0.18);
 
-	/* ---------------- Body thud ---------------- */
+	// body thud
 
 	const bodyOsc = ctx.createOscillator();
 	const bodyGain = ctx.createGain();
 
 	bodyOsc.type = "triangle";
 
-	const bodyStart = 140 + Math.random() * 15;
-	const bodyEnd = 95 + Math.random() * 10;
+	const bodyStart = 135 + Math.random() * 15;
+	const bodyEnd = 90 + Math.random() * 10;
 
 	bodyOsc.frequency.setValueAtTime(bodyStart, now);
-	bodyOsc.frequency.exponentialRampToValueAtTime(bodyEnd, now + 0.1);
+	bodyOsc.frequency.exponentialRampToValueAtTime(bodyEnd, now + 0.11);
 
 	bodyGain.gain.setValueAtTime(0.0001, now);
 	bodyGain.gain.exponentialRampToValueAtTime(0.7, now + 0.02);
-	bodyGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
+	bodyGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.19);
 
 	bodyOsc.connect(bodyGain);
 	bodyGain.connect(pan);
 
 	bodyOsc.start(now);
-	bodyOsc.stop(now + 0.2);
+	bodyOsc.stop(now + 0.22);
 
-	/* ---------------- Impact noise ---------------- */
+	// impact noise
 
 	const noiseBuffer = ctx.createBuffer(1, ctx.sampleRate * 0.07, ctx.sampleRate);
 	const noiseData = noiseBuffer.getChannelData(0);
@@ -506,7 +520,7 @@ function playOriginalHitSound(moleIndex) {
 
 	const noiseFilter = ctx.createBiquadFilter();
 	noiseFilter.type = "bandpass";
-	noiseFilter.frequency.value = 520 + Math.random() * 140;
+	noiseFilter.frequency.value = 500 + Math.random() * 120;
 	noiseFilter.Q.value = 0.9;
 
 	const noiseGain = ctx.createGain();
@@ -521,43 +535,70 @@ function playOriginalHitSound(moleIndex) {
 	noise.start(now);
 	noise.stop(now + 0.09);
 
-	/* ---------------- Mechanical spring release ---------------- */
+	// mechanical spring release
 
 	const springOsc = ctx.createOscillator();
 	const springGain = ctx.createGain();
 
 	springOsc.type = "triangle";
 
-	const springBase = 240 + Math.random() * 40;
+	const springBase =
+		springBaseHz + (Math.random() - 0.5) * springVarianceHz;
 
-	springOsc.frequency.setValueAtTime(springBase * 0.82, now + 0.035);
-	springOsc.frequency.exponentialRampToValueAtTime(springBase * 1.15, now + 0.14);
-	springOsc.frequency.exponentialRampToValueAtTime(springBase, now + 0.42);
+	springOsc.frequency.setValueAtTime(springBase * springDipRatio, now + 0.04);
+	springOsc.frequency.exponentialRampToValueAtTime(
+		springBase * springPeakRatio,
+		now + 0.18
+	);
+	springOsc.frequency.exponentialRampToValueAtTime(
+		springBase * springDipRatio,
+		now + 0.36
+	);
+	springOsc.frequency.exponentialRampToValueAtTime(
+		springBase * 1.08,
+		now + 0.55
+	);
+	springOsc.frequency.exponentialRampToValueAtTime(
+		springBase,
+		now + springDuration
+	);
 
 	const springWobble = ctx.createOscillator();
 	const springWobbleGain = ctx.createGain();
 
 	springWobble.type = "sine";
-	springWobble.frequency.value = 3.8 + Math.random() * 0.8;
+	springWobble.frequency.value = springWobbleHz;
 
-	springWobbleGain.gain.setValueAtTime(18, now + 0.035);
-	springWobbleGain.gain.exponentialRampToValueAtTime(2.5, now + 0.5);
+	springWobbleGain.gain.setValueAtTime(
+		springWobbleStartDepth,
+		now + 0.04
+	);
+	springWobbleGain.gain.exponentialRampToValueAtTime(
+		springWobbleEndDepth,
+		now + springDuration
+	);
 
 	springWobble.connect(springWobbleGain);
 	springWobbleGain.connect(springOsc.frequency);
 
-	springGain.gain.setValueAtTime(0.0001, now + 0.035);
-	springGain.gain.exponentialRampToValueAtTime(0.38, now + 0.07);
-	springGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.55);
+	springGain.gain.setValueAtTime(0.0001, now + 0.04);
+	springGain.gain.exponentialRampToValueAtTime(
+		springPeakGain,
+		now + 0.08
+	);
+	springGain.gain.exponentialRampToValueAtTime(
+		0.0001,
+		now + springDuration
+	);
 
 	springOsc.connect(springGain);
 	springGain.connect(pan);
 
-	springWobble.start(now + 0.035);
-	springOsc.start(now + 0.035);
+	springWobble.start(now + 0.04);
+	springOsc.start(now + 0.04);
 
-	springOsc.stop(now + 0.6);
-	springWobble.stop(now + 0.6);
+	springOsc.stop(now + springDuration + 0.05);
+	springWobble.stop(now + springDuration + 0.05);
 }
 
 
