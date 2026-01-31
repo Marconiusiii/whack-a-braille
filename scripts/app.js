@@ -28,6 +28,7 @@ const trainingOptionsFieldset = document.getElementById("trainingOptionsFieldset
 const speakBrailleDots = document.getElementById("speakBrailleDots");
 const scoreText = document.getElementById("scoreText");
 const characterEchoCheckbox = document.getElementById("characterEcho");
+const timerMusicCheckbox = document.getElementById("timerMusicEnabled");
 
 const speechRatePercentInput = document.getElementById("speechRatePercent");
 const voiceSelect = document.getElementById("voiceSelect");
@@ -345,6 +346,10 @@ function applySettingsToUI(settings) {
 	if (typeof settings.speakBrailleDots === "boolean" && speakBrailleDots) {
 		speakBrailleDots.checked = settings.speakBrailleDots;
 	}
+
+	if (typeof settings.timerMusicEnabled === "boolean" && timerMusicCheckbox) {
+		timerMusicCheckbox.checked = settings.timerMusicEnabled;
+	}
 }
 
 function saveGameSettings(settings) {
@@ -386,6 +391,7 @@ function getSelectedSettings() {
 		speechRatePercent: Number(speechRatePercentInput?.value) || 35,
 		difficulty: getSelectedDifficulty(),
 		speakBrailleDots: !!speakBrailleDots?.checked,
+		timerMusicEnabled: !!timerMusicCheckbox?.checked,
 		characterEcho: !!characterEchoCheckbox?.checked
 	};
 }
@@ -438,7 +444,8 @@ function startGameFromSettings() {
 		settings.difficulty,
 		{
 			speakBrailleDots: settings.speakBrailleDots,
-			characterEcho: settings.characterEcho
+			characterEcho: settings.characterEcho,
+			timerMusicEnabled: settings.timerMusicEnabled
 		}
 	);
 	}, 650);
@@ -515,7 +522,7 @@ document.addEventListener("keydown", e => {
 	});
 
 	document.querySelectorAll(
-		"input[name='difficulty'], input[name='roundTime'], input[name='inputMode'], input[name='brailleMode'], input[name='gameAudio'], #speakBrailleDots"
+		"input[name='difficulty'], input[name='roundTime'], input[name='inputMode'], input[name='brailleMode'], input[name='gameAudio'], #speakBrailleDots, #timerMusicEnabled"
 ).forEach(el => {
 		el.addEventListener("change", () => {
 			saveGameSettings(getSelectedSettings());

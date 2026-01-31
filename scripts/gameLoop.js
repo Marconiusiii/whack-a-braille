@@ -103,7 +103,9 @@ function startRound(modeId, durationSeconds, inputMode, difficulty = "normal", o
 	isRunning = true;
 	roundEnding = false;
 
-	if (!isTrainingMode) {
+	const timerMusicEnabled = options.timerMusicEnabled !== false;
+
+	if (!isTrainingMode && timerMusicEnabled) {
 		startRoundBeat(() => getProgress());
 	}
 
