@@ -11,7 +11,9 @@ let sillyGainNode = null;
 let beatTimeout = null;
 let beatStepIndex = 0;
 let beatRepeatCount = 0;
-let beatRootMidi = 48;
+const beatStartRootMidi = 55;
+
+let beatRootMidi = beatStartRootMidi;
 
 const molePanMap = [
 	-1.0,	// Mole 1: far left
@@ -941,7 +943,7 @@ function stopRoundBeat() {
 
 	beatStepIndex = 0;
 	beatRepeatCount = 0;
-	beatRootMidi = 60;
+	beatRootMidi = beatStartRootMidi;
 }
 
 function playBeatPulse(progress) {
@@ -952,21 +954,13 @@ function playBeatPulse(progress) {
 	master.gain.value = 0.25 + progress * 0.2;
 	master.connect(ctx.destination);
 
-	// musical tuning values
+	const noteGain = 0.42;
+	const noteDuration = 0.26;
+	const attackTime = 0.04;
 
-	const mainNoteGain = 0.42;
-	const pickupNoteGain = 0.36;
+	// scale pattern 1 3 5 2
 
-	const mainNoteDuration = 0.28;
-	const pickupNoteDuration = 0.11;
-
-	const pickupLeadTime = 0.07;
-	const pickupAttackTime = 0.02;
-	const mainAttackTime = 0.04;
-
-	// scale pattern 1 3 5 3
-
-	const pattern = [0, 4, 7, 4];
+	const pattern = [0, 4, 7, 2];
 	const step = pattern[beatStepIndex % pattern.length];
 
 	const rootMidi = beatRootMidi;
@@ -974,69 +968,27 @@ function playBeatPulse(progress) {
 	const targetFreq =
 		440 * Math.pow(2, (targetMidi - 69) / 12);
 
-	// pickup note before the fifth
-
-	if (step === 7) {
-		const pickupMidi = targetMidi - 1;
-		const pickupFreq =
-			440 * Math.pow(2, (pickupMidi - 69) / 12);
-
-		const pickupStart = now;
-		const pickupEnd = pickupStart + pickupNoteDuration;
-
-		const pickupOsc = ctx.createOscillator();
-		const pickupGain = ctx.createGain();
-
-		pickupOsc.type = "triangle";
-		pickupOsc.frequency.setValueAtTime(pickupFreq, pickupStart);
-
-		pickupGain.gain.setValueAtTime(0.0001, pickupStart);
-		pickupGain.gain.exponentialRampToValueAtTime(
-			pickupNoteGain,
-			pickupStart + pickupAttackTime
-		);
-		pickupGain.gain.exponentialRampToValueAtTime(
-			0.0001,
-			pickupEnd
-		);
-
-		pickupOsc.connect(pickupGain);
-		pickupGain.connect(master);
-
-		pickupOsc.start(pickupStart);
-		pickupOsc.stop(pickupEnd);
-	}
-
-	// main beat note
-
-	const mainStart =
-		step === 7 ? now + pickupLeadTime : now;
-
-	const mainEnd = mainStart + mainNoteDuration;
-
 	const osc = ctx.createOscillator();
 	const gain = ctx.createGain();
 
 	osc.type = "triangle";
-	osc.frequency.setValueAtTime(targetFreq, mainStart);
+	osc.frequency.setValueAtTime(targetFreq, now);
 
-	gain.gain.setValueAtTime(0.0001, mainStart);
+	gain.gain.setValueAtTime(0.0001, now);
 	gain.gain.exponentialRampToValueAtTime(
-		mainNoteGain,
-		mainStart + mainAttackTime
+		noteGain,
+		now + attackTime
 	);
 	gain.gain.exponentialRampToValueAtTime(
 		0.0001,
-		mainEnd
+		now + noteDuration
 	);
 
 	osc.connect(gain);
 	gain.connect(master);
 
-	osc.start(mainStart);
-	osc.stop(mainEnd);
-
-	// progression state update
+	osc.start(now);
+	osc.stop(now + noteDuration + 0.02);
 
 	beatStepIndex += 1;
 
@@ -1045,7 +997,7 @@ function playBeatPulse(progress) {
 
 		if (beatRepeatCount >= 2) {
 			beatRepeatCount = 0;
-			beatRootMidi += 2;
+			beatRootMidi += 1;
 		}
 	}
 }
