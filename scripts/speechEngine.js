@@ -213,8 +213,10 @@ async function speak(text, options = {}) {
 				spoken: true,
 				finished: true,
 				startedAtMs,
+				startedAt: onstartAtMs || startedAtMs,
 				onstartAtMs,
 				endedAtMs: onendAtMs,
+				endedAt: onendAtMs,
 				panRequested,
 				panApplied: false
 			});
@@ -227,8 +229,10 @@ async function speak(text, options = {}) {
 				spoken: false,
 				error: true,
 				startedAtMs,
+				startedAt: didStart ? onstartAtMs : startedAtMs,
 				onstartAtMs: didStart ? onstartAtMs : 0,
 				endedAtMs: onendAtMs,
+				endedAt: onendAtMs,
 				panRequested,
 				panApplied: false
 			});
@@ -262,34 +266,40 @@ async function speak(text, options = {}) {
 				return;
 			}
 
-			resolve({
-				spoken: false,
-				reason: "no-start",
-				startedAtMs,
-				endedAtMs: performance.now(),
-				panRequested,
-				panApplied: false
-			});
-		}, Math.max(50, startWatchdogMs));
-	});
+				const endedAtNow = performance.now();
+				resolve({
+					spoken: false,
+					reason: "no-start",
+					startedAtMs,
+					startedAt: startedAtMs,
+					endedAtMs: endedAtNow,
+					endedAt: endedAtNow,
+					panRequested,
+					panApplied: false
+				});
+			}, Math.max(50, startWatchdogMs));
+		});
 
 	if (timeoutMs > 0) {
 		return Promise.race([
 			resultPromise,
 			watchdogPromise.then(r => r || resultPromise),
 			new Promise(resolve => {
-				setTimeout(() => {
-					if (!didEnd && !didError) {
-						resolve({
-							spoken: true,
-							timedOut: true,
-							startedAtMs,
-							onstartAtMs: didStart ? onstartAtMs : 0,
-							endedAtMs: performance.now(),
-							panRequested,
-							panApplied: false
-						});
-					}
+					setTimeout(() => {
+						if (!didEnd && !didError) {
+							const endedAtNow = performance.now();
+							resolve({
+								spoken: true,
+								timedOut: true,
+								startedAtMs,
+								startedAt: didStart ? onstartAtMs : startedAtMs,
+								onstartAtMs: didStart ? onstartAtMs : 0,
+								endedAtMs: endedAtNow,
+								endedAt: endedAtNow,
+								panRequested,
+								panApplied: false
+							});
+						}
 				}, timeoutMs);
 			})
 		]);

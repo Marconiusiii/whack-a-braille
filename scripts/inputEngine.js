@@ -36,7 +36,8 @@ function setCurrentMoleId(id) {
 
 function emitAttempt(attempt) {
 	if (!attemptCallback) return;
-	attempt.moleId = currentMoleId;
+	const explicitMoleId = Number(attempt?.moleId);
+	attempt.moleId = Number.isFinite(explicitMoleId) ? explicitMoleId : currentMoleId;
 	attemptCallback(attempt);
 }
 
@@ -81,12 +82,14 @@ function onKeyUp(event) {
 
 		if (chordDown.size === 0 && chordUsed.size > 0) {
 			const mask = dotMaskFromKeys(chordUsed);
+			const attemptMoleId = chordMoleId;
 			chordUsed.clear();
 			chordMoleId = 0;
 
 			emitAttempt({
 				type: "perkins",
-				dotMask: mask
+				dotMask: mask,
+				moleId: attemptMoleId
 			});
 		}
 		return;

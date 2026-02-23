@@ -571,7 +571,7 @@ if (confirmPrizeButton) {
 
 if (cancelCashOutButton) {
 	cancelCashOutButton.addEventListener("click", () => {
-		setGameState("playing");
+		setGameState("results");
 	});
 }
 

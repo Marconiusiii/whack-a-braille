@@ -15,10 +15,14 @@ function computeMoleWindowMs({
 } = {}) {
 	let speechDuration = 0;
 
-	if (speechResult && speechResult.started && speechResult.ended) {
-		const startedAt = speechResult.startedAt ?? 0;
-		const endedAt = speechResult.endedAt ?? 0;
-		if (endedAt > startedAt) {
+	if (speechResult) {
+		const startedAt = Number(
+			speechResult.onstartAtMs ?? speechResult.startedAtMs ?? speechResult.startedAt
+		);
+		const endedAt = Number(
+			speechResult.endedAtMs ?? speechResult.endedAt
+		);
+		if (Number.isFinite(startedAt) && Number.isFinite(endedAt) && endedAt > startedAt) {
 			speechDuration = endedAt - startedAt;
 		}
 	}
