@@ -39,7 +39,12 @@ function ensureVoicesReady() {
 			resolve();
 		};
 
-		const voices = window.speechSynthesis.getVoices();
+		let voices = [];
+		try {
+			voices = window.speechSynthesis.getVoices();
+		} catch {
+			voices = [];
+		}
 		if (voices.length) {
 			cachedVoices = voices;
 			voicesReady = true;
@@ -48,7 +53,11 @@ function ensureVoicesReady() {
 		}
 
 		handler = () => {
-			cachedVoices = window.speechSynthesis.getVoices();
+			try {
+				cachedVoices = window.speechSynthesis.getVoices();
+			} catch {
+				cachedVoices = [];
+			}
 			voicesReady = true;
 			finish();
 		};
@@ -56,7 +65,11 @@ function ensureVoicesReady() {
 		window.speechSynthesis.addEventListener("voiceschanged", handler);
 
 		timeoutId = setTimeout(() => {
-			cachedVoices = window.speechSynthesis.getVoices();
+			try {
+				cachedVoices = window.speechSynthesis.getVoices();
+			} catch {
+				cachedVoices = [];
+			}
 			voicesReady = true;
 			finish();
 		}, 1200);
