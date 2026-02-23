@@ -18,7 +18,7 @@ Tickets earned during gameplay can be redeemed for prizes at the Prize Counter.
 ## Input Modes
 
 - QWERTY Keyboard
-- Perkins-style braille keyboard input
+- Perkins-style braille keyboard input (F D S J K L chord entry)
 
 Global keyboard shortcuts:
 - Backtick (`) repeats the current target without affecting gameplay
@@ -40,8 +40,9 @@ Everything mode mixes Grade 1 and Grade 2 content and locks input to Perkins mod
 
 - Training
   - Untimed
-  - No scoring or tickets
+  - No scoring, tickets, or penalties
   - Optional braille dot speech
+  - 15-mole practice sequence
   - Designed as a typing and braille learning tool
 - Beginner
 - Normal
@@ -56,19 +57,24 @@ Training mode is designed as a learning environment rather than a game.
 Features:
 - No timer
 - No misses or penalties
-- Configurable mole count
+- Fixed 15-mole sequence
 - Optional spoken braille dot patterns
 - Restart training or return home at completion
+- Keyboard shortcut `\` ends training early
 
 Training mode disables round length selection and ticket earning.
 
 ## Speech and Audio
 
 - Uses system speech synthesis
-- Voice selection filtered by system language
+- Voice selector includes a System default option
+- Voice loading is resilient to delayed browser voice availability
+- Language-filtered voice list with fallback to all available voices
 - Adjustable speech rate via percentage-based control
+- Optional Character Echo for Grade 1 letters
 - Spatialized audio cues indicate mole position
 - Independent audio styles selectable via Game Audio settings
+- Optional timer music that accelerates as rounds progress
 
 All speech and audio settings persist across sessions.
 
@@ -78,6 +84,8 @@ All speech and audio settings persist across sessions.
 - Redeem tickets for randomly selected prizes
 - Prize shelf persists across sessions
 - Duplicate prizes increment quantity instead of duplicating entries
+- Clearing the Prize Shelf announces "Prize Shelf Cleared" to screen readers
+- Prize catalog includes expanded multi-tier joke, brag, title, and legend rewards
 
 ## Accessibility Notes
 
@@ -85,7 +93,8 @@ All speech and audio settings persist across sessions.
 - Fully keyboard operable
 - No reliance on visual-only cues
 - Tested with VoiceOver on macOS and iOS
-- Works with external braille displays and keyboards
+- Works with external braille displays and keyboards that emit keyboard-style input
+- State transitions actively manage focus for Home, Results, and Prize Counter headings
 
 ## Development
 
@@ -98,6 +107,8 @@ Key files:
 - speechEngine.js: speech synthesis management
 - audioEngine.js: non-speech audio and spatialization
 - brailleRegistry.js: braille data definitions
+- ticketRules.js: shared ticket conversion thresholds
+- prizeCatalog.js: prize tier definitions and reward content
 
 ## License
 
