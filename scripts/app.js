@@ -63,12 +63,18 @@ const srLiveRegion = document.getElementById("srLiveRegion");
 
 let gameState = "home";
 let totalTickets = 0;
+let srAnnounceTimer = null;
 
 function announceToSr(message) {
 	if (!srLiveRegion) return;
+	if (srAnnounceTimer) {
+		clearTimeout(srAnnounceTimer);
+		srAnnounceTimer = null;
+	}
 	srLiveRegion.textContent = "";
-	setTimeout(() => {
+	srAnnounceTimer = setTimeout(() => {
 		srLiveRegion.textContent = String(message || "");
+		srAnnounceTimer = null;
 	}, 10);
 }
 
@@ -88,6 +94,8 @@ function loadStorageObject(key, fallback = {}) {
 
 async function populateVoiceSelect() {
 	if (!voiceSelect) return;
+	const wasFocused = document.activeElement === voiceSelect;
+	const focusedValue = wasFocused ? voiceSelect.value : "";
 
 	await ensureVoicesReady();
 
@@ -123,6 +131,15 @@ async function populateVoiceSelect() {
 		option.value = voice.name;
 		option.textContent = `${voice.name} (${voice.lang})`;
 		voiceSelect.appendChild(option);
+	}
+
+	if (wasFocused) {
+		const hasFocusedValue = focusedValue === "" || voices.some(v => v.name === focusedValue);
+		if (hasFocusedValue) {
+			voiceSelect.value = focusedValue;
+			setPreferredVoiceName(focusedValue);
+			return;
+		}
 	}
 
 	const saved = loadGameSettings()?.voiceName;
@@ -235,6 +252,16 @@ function setHiddenInert(el, hide) {
 	el.hidden = hide;
 	el.inert = hide;
 }
+
+function safeFocus(el) {
+	if (!el) return;
+	try {
+		el.focus({ preventScroll: true });
+	} catch {
+		el.focus();
+	}
+}
+
 function getSelectedAudioMode() {
 	return document.querySelector("input[name='gameAudio']:checked")?.value || "original";
 }
@@ -280,7 +307,7 @@ function setGameState(state) {
 
 		if (startButton) {
 			requestAnimationFrame(() => {
-				startButton.focus({ preventScroll: true });
+				safeFocus(startButton);
 			});
 		}
 		return;
@@ -306,7 +333,7 @@ function setGameState(state) {
 		if (resultsHeading) {
 			requestAnimationFrame(() => {
 				resultsHeading.setAttribute("tabindex", "-1");
-				resultsHeading.focus({ preventScroll: true });
+				safeFocus(resultsHeading);
 			});
 		}
 		return;
@@ -318,7 +345,10 @@ function setGameState(state) {
 		if (cashOutHeading) {
 			requestAnimationFrame(() => {
 				cashOutHeading.setAttribute("tabindex", "-1");
-				cashOutHeading.focus({ preventScroll: true });
+				safeFocus(cashOutHeading);
+				setTimeout(() => {
+					safeFocus(cashOutHeading);
+				}, 40);
 			});
 		}
 		return;
