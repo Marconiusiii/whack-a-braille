@@ -8,9 +8,51 @@ const prizeCatalog = [
 		maxTickets: 9,
 		category: "joke"
 	},
+{
+	id: "tier1_missedOpportunity",
+	label: "A Missed Opportunity You Will Think About Later",
+	minTickets: 0,
+	maxTickets: 9,
+	category: "joke"
+},
+{
+	id: "tier1_extraKey",
+	label: "A Key That Does Not Belong to Anything",
+	minTickets: 0,
+	maxTickets: 9,
+	category: "absurd"
+},
+{
+	id: "tier1_loadingBar",
+	label: "A Loading Bar That Never Quite Finishes",
+	minTickets: 0,
+	maxTickets: 9,
+	category: "meta"
+},
+{
+	id: "tier1_unlabeledButton",
+	label: "An Unlabeled Button",
+	minTickets: 0,
+	maxTickets: 9,
+	category: "meta"
+},
 	{
 		id: "tier1_pocketSand",
 		label: "Pocket Sand!",
+		minTickets: 0,
+		maxTickets: 9,
+		category: "joke"
+	},
+	{
+		id: "tier1_sandwich",
+		label: "A Ham Sandwich (partially eaten)",
+		minTickets: 0,
+		maxTickets: 9,
+		category: "joke"
+	},
+	{
+		id: "tier1_slap",
+		label: "A Slap Bracelet that Slaps Back",
 		minTickets: 0,
 		maxTickets: 9,
 		category: "joke"
@@ -22,8 +64,6 @@ const prizeCatalog = [
 		maxTickets: 9,
 		category: "joke"
 	},
-
-
 {
 	id: "tier1_leftSock",
 	label: "One Left Sock (The Right One Is Missing)",
@@ -151,8 +191,8 @@ const prizeCatalog = [
 		category: "absurd"
 	},
 	{
-		id: "tier1_receiptShrug",
-		label: "A Receipt That Says ¯\\_(ツ)_/¯",
+		id: "tier1_gumball",
+		label: "A Gumball that is actually a Jawbreaker",
 		minTickets: 0,
 		maxTickets: 9,
 		category: "joke"
@@ -171,6 +211,27 @@ const prizeCatalog = [
 		maxTickets: 9,
 		category: "encouragement"
 	},
+{
+	id: "tier2_nearWin",
+	label: "Official Recognition of Being Very Close",
+	minTickets: 10,
+	maxTickets: 24,
+	category: "encouragement"
+},
+{
+	id: "tier2_arcadeMap",
+	label: "A Tactile Map of the Arcade (Not to Scale)",
+	minTickets: 10,
+	maxTickets: 24,
+	category: "absurd"
+},
+{
+	id: "tier2_spokenLegend",
+	label: "A Rumor That You Are Pretty Good at This",
+	minTickets: 10,
+	maxTickets: 24,
+	category: "brag"
+},
 {
 	id: "tier2_moleRespect",
 	label: "The Mole's Reluctant Respect",
@@ -213,6 +274,13 @@ const prizeCatalog = [
 	maxTickets: 24,
 	category: "encouragement"
 },
+	{
+		id: "tier2_slinky",
+		label: "A Slightly Tangled Slinky",
+		minTickets: 10,
+		maxTickets: 24,
+		category: "meta"
+	},
 	{
 		id: "tier2_roundChampion",
 		label: "Official Arcade Champion (Of This Round Only)",
@@ -290,6 +358,69 @@ const prizeCatalog = [
 		maxTickets: 24,
 		category: "encouragement"
 	},
+	{
+		id: "tier2_moodRing",
+		label: "A Groovy Mood Ring",
+		minTickets: 10,
+		maxTickets: 24,
+		category: "meta"
+	},
+	{
+		id: "tier2_8ball",
+		label: "An Empty Magic 8-Ball",
+		minTickets: 10,
+		maxTickets: 24,
+		category: "meta"
+	},
+	{
+		id: "tier2_wafers",
+		label: "Slightly Smooshed Necco Wafers",
+		minTickets: 10,
+		maxTickets: 24,
+		category: "meta"
+	},
+	{
+		id: "tier2_guideDogParking",
+		label: "Validated Guide Dog Parking",
+		minTickets: 10,
+		maxTickets: 24,
+		category: "meta"
+	},
+	{
+		id: "tier2_foamPlane",
+		label: "A Fragile Foam Model Plane",
+		minTickets: 10,
+		maxTickets: 24,
+		category: "meta"
+	},
+{
+	id: "tier3_moleHistorian",
+	label: "Official Mole Historian Certification",
+	minTickets: 25,
+	maxTickets: 49,
+	category: "title"
+},
+{
+	id: "tier3_arcadeCape",
+	label: "A Flowing Arcade Champion Cape",
+	minTickets: 25,
+	maxTickets: 49,
+	category: "brag"
+},
+{
+	id: "tier3_focusBadge",
+	label: "A Badge That Radiates Focus",
+	minTickets: 25,
+	maxTickets: 49,
+	category: "encouragement"
+},
+{
+	id: "tier3_couponPile",
+	label: "A Whole Pile of Food Court Coupons",
+	minTickets: 25,
+	maxTickets: 49,
+	category: "encouragement"
+},
 {
 	id: "tier3_whackDiploma",
 	label: "An Official Diploma in Advanced Whacking",
@@ -326,6 +457,41 @@ const prizeCatalog = [
 	category: "absurd"
 },
 	{
+		id: "tier3_goldSlinky",
+		label: "A Golden Slinky",
+		minTickets: 25,
+		maxTickets: 49,
+		category: "title"
+	},
+	{
+		id: "tier3_dinos",
+		label: "A Set of Non-Biting Toy Dinosaurs",
+		minTickets: 25,
+		maxTickets: 49,
+		category: "title"
+	},
+	{
+		id: "tier3_petRock",
+		label: "A Pet Rock (batteries not included)",
+		minTickets: 25,
+		maxTickets: 49,
+		category: "title"
+	},
+	{
+		id: "tier3_jellyHat",
+		label: "A Jellyfish that's a Hat",
+		minTickets: 25,
+		maxTickets: 49,
+		category: "title"
+	},
+	{
+		id: "tier3_hatJelly",
+		label: "A Hat that's a Jellyfish",
+		minTickets: 25,
+		maxTickets: 49,
+		category: "title"
+	},
+	{
 		id: "tier3_whackologist",
 		label: "Certified Braille Whackologist",
 		minTickets: 25,
@@ -334,7 +500,7 @@ const prizeCatalog = [
 	},
 	{
 		id: "tier3_warpedCane",
-		label: "A SLightly Warped White Cane",
+		label: "A Slightly Warped White Cane",
 		minTickets: 25,
 		maxTickets: 49,
 		category: "absurd"
@@ -382,6 +548,20 @@ const prizeCatalog = [
 		category: "absurd"
 	},
 {
+	id: "tier4_arcadeOracle",
+	label: "Arcade Oracle Status (Predictions Unreliable)",
+	minTickets: 50,
+	maxTickets: 99,
+	category: "legend"
+},
+{
+	id: "tier4_echoingName",
+	label: "Your Name Echoed Dramatically Across the Arcade",
+	minTickets: 50,
+	maxTickets: 99,
+	category: "absurd"
+},
+{
 	id: "tier4_arcadeMyth",
 	label: "Arcade Myth Status (Stories May Be Exaggerated)",
 	minTickets: 50,
@@ -410,7 +590,7 @@ const prizeCatalog = [
 	category: "title"
 },
 {
-	id: "tier4_nfbChcikenEnergy",
+	id: "tier4_nfbChicken",
 	label: "Delicious NFB Banquet Rubber Chicken",
 	minTickets: 50,
 	maxTickets: 99,
@@ -444,6 +624,41 @@ const prizeCatalog = [
 		maxTickets: 99,
 		category: "absurd"
 	},
+	{
+		id: "tier4_vendingMachine",
+		label: "4 Free Vending Machine Items (may get stuck)",
+		minTickets: 50,
+		maxTickets: 99,
+		category: "absurd"
+	},
+	{
+		id: "tier4_magicCane",
+		label: "A Magical White Cane that Parts Crowds",
+		minTickets: 50,
+		maxTickets: 99,
+		category: "absurd"
+	},
+	{
+		id: "tier4_hoot",
+		label: "A Pin that says You're a Hoot!",
+		minTickets: 50,
+		maxTickets: 99,
+		category: "absurd"
+	},
+{
+	id: "tier5_moleTruceDay",
+	label: "An Annual Day of Truce Between You and the Moles",
+	minTickets: 100,
+	maxTickets: null,
+	category: "legend"
+},
+{
+	id: "tier5_arcadeConstellation",
+	label: "A Constellation Named After Your Whacking Technique",
+	minTickets: 100,
+	maxTickets: null,
+	category: "legend"
+},
 {
 	id: "tier5_arcadeImmortal",
 	label: "Permanent Arcade Immortality (Locally Recognized)",
@@ -536,7 +751,7 @@ const prizeCatalog = [
 		category: "legend"
 	},
 	{
-		id: "tier5_3Dpuzzle",
+		id: "tier5_thor",
 		label: "Thor's Hammer Mjolnir, for the moles",
 		minTickets: 100,
 		maxTickets: null,
