@@ -329,7 +329,7 @@ body[data-game-state="results"] #resultsArea { display: block; }
 	opacity: 0.85;
 }
 #prizeList {
-	list-style: none;
+	list-style: '';
 	padding: 0;
 	margin: 0.75rem 0 1rem 0;
 	display: grid;

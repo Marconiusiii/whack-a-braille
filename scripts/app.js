@@ -324,9 +324,20 @@ function setGameState(state) {
 }
 
 function primeSpeech() {
+	if (
+		typeof window === "undefined" ||
+		!("speechSynthesis" in window) ||
+		!("SpeechSynthesisUtterance" in window)
+	) {
+		return;
+	}
+
 	const utterance = new SpeechSynthesisUtterance(" ");
 	utterance.volume = 0;
-	window.speechSynthesis.speak(utterance);
+	try {
+		window.speechSynthesis.speak(utterance);
+	} catch {
+	}
 }
 
 
