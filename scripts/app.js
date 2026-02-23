@@ -206,10 +206,12 @@ function renderPrizeShelf(data) {
 
 	if (entries.length === 0) {
 		emptyMessage.hidden = false;
+		list.hidden = true;
 		return;
 	}
 
 	emptyMessage.hidden = true;
+	list.hidden = false;
 
 	entries.forEach(([label, count]) => {
 		const li = document.createElement("li");
