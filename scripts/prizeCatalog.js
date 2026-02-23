@@ -212,6 +212,62 @@ const prizeCatalog = [
 		category: "encouragement"
 	},
 {
+	id: "tier1_interimDeputy",
+	label: "A Paper Crown That Declares You Interim Mole Deputy",
+	minTickets: 0,
+	maxTickets: 9,
+	category: "joke"
+},
+{
+	id: "tier1_complimentaryOops",
+	label: "One Complimentary Oops",
+	minTickets: 0,
+	maxTickets: 9,
+	category: "meta"
+},
+{
+	id: "tier1_participationTrophy",
+	label: "A Tiny Trophy Made Entirely of Participation",
+	minTickets: 0,
+	maxTickets: 9,
+	category: "encouragement"
+},
+{
+	id: "tier1_baggedAir",
+	label: "Arcade Air (Freshly Bagged)",
+	minTickets: 0,
+	maxTickets: 9,
+	category: "absurd"
+},
+{
+	id: "tier1_bentStraw",
+	label: "A Slightly Bent Victory Straw",
+	minTickets: 0,
+	maxTickets: 9,
+	category: "joke"
+},
+{
+	id: "tier1_niceEffortReceipt",
+	label: "A Receipt That Just Says Nice Effort",
+	minTickets: 0,
+	maxTickets: 9,
+	category: "encouragement"
+},
+{
+	id: "tier1_borrowedLuck",
+	label: "One Borrowed Luck (Return by Midnight)",
+	minTickets: 0,
+	maxTickets: 9,
+	category: "joke"
+},
+{
+	id: "tier1_lastFry",
+	label: "The Last French Fry in the Building",
+	minTickets: 0,
+	maxTickets: 9,
+	category: "absurd"
+},
+{
 	id: "tier2_nearWin",
 	label: "Official Recognition of Being Very Close",
 	minTickets: 10,
@@ -394,6 +450,62 @@ const prizeCatalog = [
 		category: "meta"
 	},
 {
+	id: "tier2_wristband",
+	label: "Limited-Edition Almost-Champion Wristband",
+	minTickets: 10,
+	maxTickets: 24,
+	category: "brag"
+},
+{
+	id: "tier2_dotCoin",
+	label: "A Commemorative Dot Pattern Coin (Value: Emotional)",
+	minTickets: 10,
+	maxTickets: 24,
+	category: "absurd"
+},
+{
+	id: "tier2_nda",
+	label: "Mole-Signed Non-Disclosure Agreement",
+	minTickets: 10,
+	maxTickets: 24,
+	category: "meta"
+},
+{
+	id: "tier2_vipPass",
+	label: "Arcade VIP Line Pass (Line Not Currently Available)",
+	minTickets: 10,
+	maxTickets: 24,
+	category: "meta"
+},
+{
+	id: "tier2_snackBreak",
+	label: "A Tactical Snack Break Token",
+	minTickets: 10,
+	maxTickets: 24,
+	category: "joke"
+},
+{
+	id: "tier2_bragPlus",
+	label: "Bronze-Level Bragging Rights Plus",
+	minTickets: 10,
+	maxTickets: 24,
+	category: "brag"
+},
+{
+	id: "tier2_replayExcuse",
+	label: "One Deluxe Replay Excuse",
+	minTickets: 10,
+	maxTickets: 24,
+	category: "joke"
+},
+{
+	id: "tier2_legendStarter",
+	label: "A Pocket-Sized Legend Starter Kit",
+	minTickets: 10,
+	maxTickets: 24,
+	category: "encouragement"
+},
+{
 	id: "tier3_moleHistorian",
 	label: "Official Mole Historian Certification",
 	minTickets: 25,
@@ -548,6 +660,62 @@ const prizeCatalog = [
 		category: "absurd"
 	},
 {
+	id: "tier3_whackLicense",
+	label: "Department of Whacking Professional License",
+	minTickets: 25,
+	maxTickets: 49,
+	category: "title"
+},
+{
+	id: "tier3_patch",
+	label: "Embroidered Jacket Patch: Dot Strike Specialist",
+	minTickets: 25,
+	maxTickets: 49,
+	category: "title"
+},
+{
+	id: "tier3_nervousMoleCert",
+	label: "Official Trainer of Nervous Moles Certificate",
+	minTickets: 25,
+	maxTickets: 49,
+	category: "title"
+},
+{
+	id: "tier3_focusGoggles",
+	label: "Premium Focus Goggles (Vision Optional)",
+	minTickets: 25,
+	maxTickets: 49,
+	category: "encouragement"
+},
+{
+	id: "tier3_goldPracticePass",
+	label: "A Gold-Plated Practice Round Pass",
+	minTickets: 25,
+	maxTickets: 49,
+	category: "meta"
+},
+{
+	id: "tier3_commandWhistle",
+	label: "Command Whistle of Tactical Bonking",
+	minTickets: 25,
+	maxTickets: 49,
+	category: "brag"
+},
+{
+	id: "tier3_egoParking",
+	label: "One Reserved Parking Space for Your Ego",
+	minTickets: 25,
+	maxTickets: 49,
+	category: "absurd"
+},
+{
+	id: "tier3_threatBanner",
+	label: "Hallway Banner: Local Arcade Threat",
+	minTickets: 25,
+	maxTickets: 49,
+	category: "brag"
+},
+{
 	id: "tier4_arcadeOracle",
 	label: "Arcade Oracle Status (Predictions Unreliable)",
 	minTickets: 50,
@@ -646,6 +814,27 @@ const prizeCatalog = [
 		category: "absurd"
 	},
 {
+	id: "tier4_pinballWizard",
+	label: "Pinball Wizard Badge",
+	minTickets: 50,
+	maxTickets: 99,
+	category: "title"
+},
+{
+	id: "tier4_continueToken",
+	label: "Unlimited Continue Token",
+	minTickets: 50,
+	maxTickets: 99,
+	category: "legend"
+},
+{
+	id: "tier4_tokenWallet",
+	label: "Golden Token Wallet",
+	minTickets: 50,
+	maxTickets: 99,
+	category: "brag"
+},
+{
 	id: "tier5_moleTruceDay",
 	label: "An Annual Day of Truce Between You and the Moles",
 	minTickets: 100,
@@ -683,6 +872,62 @@ const prizeCatalog = [
 {
 	id: "tier5_pileOfMoles",
 	label: "A Considerable Pile of Invisible Stuffed Moles",
+	minTickets: 100,
+	maxTickets: null,
+	category: "legend"
+},
+{
+	id: "tier5_tokenBrick",
+	label: "Platinum Token Brick",
+	minTickets: 100,
+	maxTickets: null,
+	category: "legend"
+},
+{
+	id: "tier5_hallJoystick",
+	label: "Hall of Fame Joystick",
+	minTickets: 100,
+	maxTickets: null,
+	category: "legend"
+},
+{
+	id: "tier5_stylusSet",
+	label: "Collector Edition Louis Braille Stylus Set",
+	minTickets: 100,
+	maxTickets: null,
+	category: "legend"
+},
+{
+	id: "tier5_platinumGlide",
+	label: "A Platinum Glide",
+	minTickets: 100,
+	maxTickets: null,
+	category: "legend"
+},
+{
+	id: "tier5_guideDogSnacks2",
+	label: "Premium Guide Dog Snacks",
+	minTickets: 100,
+	maxTickets: null,
+	category: "legend"
+},
+{
+	id: "tier5_glideTips",
+	label: "Lifetime Supply of Metal Glide Tips",
+	minTickets: 100,
+	maxTickets: null,
+	category: "legend"
+},
+{
+	id: "tier5_moleskinNotebook",
+	label: "Moleskin Tactile Notebook",
+	minTickets: 100,
+	maxTickets: null,
+	category: "legend"
+},
+{
+	id: "tier5_platinumNLS",
+	label: "A Platinum NLS e-Reader",
 	minTickets: 100,
 	maxTickets: null,
 	category: "legend"

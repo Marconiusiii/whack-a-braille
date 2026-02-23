@@ -349,9 +349,11 @@ function setGameState(state) {
 				cashOutHeading.setAttribute("tabindex", "-1");
 				safeFocus(cashOutHeading);
 				setTimeout(() => {
+					if (gameState !== "cashout") return;
 					safeFocus(cashOutHeading);
 				}, 40);
 				setTimeout(() => {
+					if (gameState !== "cashout") return;
 					safeFocus(cashOutHeading);
 				}, 120);
 			});
