@@ -250,7 +250,9 @@ function isGrade2Mode(modeId) {
 function setHiddenInert(el, hide) {
 	if (!el) return;
 	el.hidden = hide;
-	el.inert = hide;
+	if ("inert" in el) {
+		el.inert = hide;
+	}
 }
 
 function safeFocus(el) {
