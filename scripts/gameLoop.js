@@ -302,12 +302,6 @@ function scheduleNextTrainingMole(extraDelayMs = 0) {
 	}, delay);
 }
 
-function dotsToSpeech(dots) {
-	if (!Array.isArray(dots) || !dots.length) return "";
-	if (dots.length === 1) return "Dot " + dots[0];
-	return "Dots " + dots.join(" ");
-}
-
 function buildAnnounceText(item) {
 	if (!item) return "";
 
@@ -358,7 +352,6 @@ async function showTrainingMole() {
 	const announceText = buildAnnounceText(moleItem);
 
 	const speechPromise = speak(announceText, {
-		on: "start",
 		timeoutMs: 400,
 		cancelPrevious: true,
 		dedupe: false
@@ -408,7 +401,6 @@ async function showRandomMole() {
 	const announceText = buildAnnounceText(moleItem);
 
 	const speechPromise = speak(announceText, {
-		on: "start",
 		timeoutMs: 400,
 		cancelPrevious: true,
 		dedupe: false
@@ -511,10 +503,6 @@ function handleAttempt(attempt) {
 			const b = String(currentItem.standardKey || "").toLowerCase();
 			isHit = a === b;
 		}
-	}
-
-	if (attempt.type === "brailleText") {
-		isHit = String(attempt.char || "").toLowerCase() === String(currentItem.id || "").toLowerCase();
 	}
 
 	if (isHit) {

@@ -2,8 +2,6 @@
 
 let audioContext = null;
 let isUnlocked = false;
-let hitBuffer = null;
-let hitGainNode = null;
 let gameAudioMode = "original";
 let sillyHitBuffer = null;
 let fiftyPointBuffer = null;
@@ -67,20 +65,6 @@ async function loadSillySounds() {
 }
 
 
-async function loadHitSound() {
-	if (hitBuffer) return;
-
-	const response = await fetch("files/ChanceyBonk_6.m4a");
-	const arrayBuffer = await response.arrayBuffer();
-
-	hitBuffer = await audioContext.decodeAudioData(arrayBuffer);
-
-	hitGainNode = audioContext.createGain();
-	hitGainNode.gain.value = 0.5;
-	hitGainNode.connect(audioContext.destination);
-}
-
-
 function getAudioContext() {
 	if (!audioContext) {
 		audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -97,7 +81,6 @@ function unlockAudio() {
 	if (ctx.state === "suspended") {
 		ctx.resume();
 	}
-	loadHitSound().catch(() => {});
 	loadSillySounds().catch(() => {});
 
 

@@ -58,9 +58,18 @@ const resultsMissesValue = document.getElementById("resultsMissesValue");
 const resultsEscapesValue = document.getElementById("resultsEscapesValue");
 const resultsStreakBonusValue = document.getElementById('resultsStreakBonusValue');
 const resultsSpeedBonusValue = document.getElementById('resultsSpeedBonusValue');
+const srLiveRegion = document.getElementById("srLiveRegion");
 
 let gameState = "home";
 let totalTickets = 0;
+
+function announceToSr(message) {
+	if (!srLiveRegion) return;
+	srLiveRegion.textContent = "";
+	setTimeout(() => {
+		srLiveRegion.textContent = String(message || "");
+	}, 10);
+}
 
 function loadStorageObject(key, fallback = {}) {
 	try {
@@ -563,6 +572,7 @@ if (clearPrizeShelfButton) {
 	clearPrizeShelfButton.addEventListener("click", () => {
 		localStorage.removeItem(PRIZE_SHELF_KEY);
 		renderPrizeShelf({});
+		announceToSr("Prize Shelf Cleared");
 	});
 }
 
