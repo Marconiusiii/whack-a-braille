@@ -547,6 +547,9 @@ document.addEventListener("keydown", e => {
 	const key = e.key;
 
 	const target = e.target;
+	if (!target || typeof target.tagName !== "string") {
+		return;
+	}
 	if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA")) {
 		return;
 	}
@@ -703,12 +706,6 @@ document.addEventListener("wabRoundEnded", (e) => {
 	}
 
 	setGameState("results");
-	requestAnimationFrame(() => {
-		if (resultsHeading) {
-			resultsHeading.setAttribute("tabindex", "-1");
-			resultsHeading.focus();
-		}
-	});
 
 });
 }
