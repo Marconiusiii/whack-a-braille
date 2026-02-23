@@ -12,6 +12,7 @@ import {
 } from "./speechEngine.js";
 import { attachKeyboardListeners, setInputMode, setCurrentMoleId } from "./inputEngine.js";
 import { prizeCatalog } from "./prizeCatalog.js";
+import { scoreToTickets } from "./ticketRules.js";
 
 const body = document.body;
 
@@ -711,14 +712,6 @@ function setupScoreListener() {
 	});
 }
 
-function scoreToTickets(score) {
-	if (score >= 200) return 20;
-	if (score >= 150) return 15;
-	if (score >= 100) return 10;
-	if (score >= 50) return 5;
-	return 0;
-}
-
 function getEligiblePrizes(ticketCount) {
 	return prizeCatalog.filter(prize => {
 		if (ticketCount < prize.minTickets) return false;
@@ -728,8 +721,12 @@ function getEligiblePrizes(ticketCount) {
 }
 
 function pickRandomPrizes(prizes, count = 3) {
-	const shuffled = prizes.slice().sort(() => Math.random() - 0.5);
-	return shuffled.slice(0, count);
+	const shuffled = prizes.slice();
+	for (let i = shuffled.length - 1; i > 0; i--) {
+		const j = Math.floor(Math.random() * (i + 1));
+		[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+	}
+	return shuffled.slice(0, Math.max(0, count));
 }
 
 let selectedPrizeId = null;
