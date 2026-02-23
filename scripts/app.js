@@ -351,6 +351,9 @@ function setGameState(state) {
 				setTimeout(() => {
 					safeFocus(cashOutHeading);
 				}, 40);
+				setTimeout(() => {
+					safeFocus(cashOutHeading);
+				}, 120);
 			});
 		}
 		return;
