@@ -5,6 +5,7 @@ import { unlockAudio, setGameAudioMode, playEndBuzzer, playStartFlourish, playEv
 import {
 	unlockSpeech,
 	getAvailableVoicesForLanguage,
+	ensureVoicesReady,
 	speak,
 	setPreferredVoiceName,
 	setSpeechRate
@@ -60,20 +61,33 @@ const resultsSpeedBonusValue = document.getElementById('resultsSpeedBonusValue')
 
 let gameState = "home";
 let totalTickets = 0;
-function populateVoiceSelect() {
+async function populateVoiceSelect() {
 	if (!voiceSelect) return;
 
+	await ensureVoicesReady();
+
 	const lang = navigator.language || "en";
-	const voices = getAvailableVoicesForLanguage(lang);
+	const filteredVoices = getAvailableVoicesForLanguage(lang);
+	const allVoices = (window.speechSynthesis && typeof window.speechSynthesis.getVoices === "function")
+		? (window.speechSynthesis.getVoices() || [])
+		: [];
+	const voices = filteredVoices.length ? filteredVoices : allVoices;
 
 	voiceSelect.innerHTML = "";
+
+	const defaultOption = document.createElement("option");
+	defaultOption.value = "";
+	defaultOption.textContent = "System default";
+	voiceSelect.appendChild(defaultOption);
 
 	if (!voices.length) {
 		const opt = document.createElement("option");
 		opt.value = "";
 		opt.textContent = "No voices available";
 		voiceSelect.appendChild(opt);
-		voiceSelect.disabled = true;
+		voiceSelect.value = "";
+		voiceSelect.disabled = false;
+		setPreferredVoiceName("");
 		return;
 	}
 
@@ -88,9 +102,16 @@ function populateVoiceSelect() {
 
 	const saved = loadGameSettings()?.voiceName;
 	if (saved) {
-		voiceSelect.value = saved;
-		setPreferredVoiceName(saved);
+		const hasSaved = voices.some(v => v.name === saved);
+		if (hasSaved) {
+			voiceSelect.value = saved;
+			setPreferredVoiceName(saved);
+			return;
+		}
 	}
+
+	voiceSelect.value = "";
+	setPreferredVoiceName("");
 }
 
 function loadTotalTickets() {
@@ -461,11 +482,9 @@ function setupEventListeners() {
 
 	if (voiceSelect) {
 		voiceSelect.addEventListener("change", () => {
-			const name = voiceSelect.value;
-			if (name) {
-				setPreferredVoiceName(name);
-				saveGameSettings(getSelectedSettings());
-			}
+			const name = voiceSelect.value || "";
+			setPreferredVoiceName(name);
+			saveGameSettings(getSelectedSettings());
 		});
 	}
 
@@ -761,10 +780,12 @@ function init() {
 	initGameLoop({
 		moleElements: Array.from(document.querySelectorAll("#gameBoard .mole"))
 	});
-	populateVoiceSelect();
+	void populateVoiceSelect();
 
-	if (speechSynthesis.onvoiceschanged !== undefined) {
-		speechSynthesis.onvoiceschanged = populateVoiceSelect;
+	if (typeof speechSynthesis !== "undefined" && typeof speechSynthesis.addEventListener === "function") {
+		speechSynthesis.addEventListener("voiceschanged", () => {
+			void populateVoiceSelect();
+		});
 	}
 
 	attachKeyboardListeners();

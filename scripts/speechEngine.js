@@ -25,22 +25,41 @@ function ensureVoicesReady() {
 	}
 
 	return new Promise(resolve => {
+		let settled = false;
+		let timeoutId = null;
+		let handler = null;
+
+		const finish = () => {
+			if (settled) return;
+			settled = true;
+			if (handler) {
+				window.speechSynthesis.removeEventListener("voiceschanged", handler);
+			}
+			if (timeoutId) clearTimeout(timeoutId);
+			resolve();
+		};
+
 		const voices = window.speechSynthesis.getVoices();
 		if (voices.length) {
 			cachedVoices = voices;
 			voicesReady = true;
-			resolve();
+			finish();
 			return;
 		}
 
-		const handler = () => {
+		handler = () => {
 			cachedVoices = window.speechSynthesis.getVoices();
 			voicesReady = true;
-			window.speechSynthesis.removeEventListener("voiceschanged", handler);
-			resolve();
+			finish();
 		};
 
 		window.speechSynthesis.addEventListener("voiceschanged", handler);
+
+		timeoutId = setTimeout(() => {
+			cachedVoices = window.speechSynthesis.getVoices();
+			voicesReady = true;
+			finish();
+		}, 1200);
 	});
 }
 
@@ -113,6 +132,8 @@ function clampNumber(value, min, max, fallback) {
 	return Math.min(Math.max(n, min), max);
 }
 function getAvailableVoicesForLanguage(lang) {
+	if (!isSpeechSupported()) return [];
+
 	const voices = window.speechSynthesis.getVoices() || [];
 
 	if (!lang) return voices;
@@ -317,5 +338,6 @@ export {
 	cancelSpeech,
 	setPreferredVoiceName,
 	setSpeechRate,
-	getAvailableVoicesForLanguage
+	getAvailableVoicesForLanguage,
+	ensureVoicesReady
 };
