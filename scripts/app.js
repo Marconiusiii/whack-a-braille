@@ -61,6 +61,21 @@ const resultsSpeedBonusValue = document.getElementById('resultsSpeedBonusValue')
 
 let gameState = "home";
 let totalTickets = 0;
+
+function loadStorageObject(key, fallback = {}) {
+	try {
+		const raw = localStorage.getItem(key);
+		if (!raw) return fallback;
+		const parsed = JSON.parse(raw);
+		if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+			return fallback;
+		}
+		return parsed;
+	} catch {
+		return fallback;
+	}
+}
+
 async function populateVoiceSelect() {
 	if (!voiceSelect) return;
 
@@ -154,7 +169,7 @@ function resetTotalTickets() {
 }
 
 function loadPrizeShelf() {
-	const data = JSON.parse(localStorage.getItem(PRIZE_SHELF_KEY)) || {};
+	const data = loadStorageObject(PRIZE_SHELF_KEY, {});
 	renderPrizeShelf(data);
 }
 
@@ -163,7 +178,7 @@ function savePrizeShelf(data) {
 }
 
 function addPrizeToShelf(prizeLabel) {
-	const data = JSON.parse(localStorage.getItem(PRIZE_SHELF_KEY)) || {};
+	const data = loadStorageObject(PRIZE_SHELF_KEY, {});
 
 	data[prizeLabel] = (data[prizeLabel] || 0) + 1;
 
@@ -380,13 +395,8 @@ function saveGameSettings(settings) {
 }
 
 function loadGameSettings() {
-	try {
-		const raw = localStorage.getItem(SETTINGS_STORAGE_KEY);
-		if (!raw) return null;
-		return JSON.parse(raw);
-	} catch {
-		return null;
-	}
+	const settings = loadStorageObject(SETTINGS_STORAGE_KEY, {});
+	return Object.keys(settings).length ? settings : null;
 }
 
 function getSelectedSettings() {
