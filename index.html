@@ -18,10 +18,11 @@
 <p>By Marco Salsiccia</p>
 
 <details>
-<summary>Feb 23, 2026 Update Log</summary>
+<summary>Mar 2, 2026 Update Log</summary>
 <ul>
-<li>New fancy prizes!</li>
-<li>Making lots of under-the-hood performance and gameplay improvements.</li>
+<li>Built in better mobile web support for Braille Screen Input users in iOS and Braille Keyboard users on Android.</li>
+<li>Added mobile-only instructions in the How to Play section that will appear on phones.</li>
+<li>Game can now be played using external braille displays!</li>
 </ul>
 </details>
 
@@ -30,8 +31,11 @@
 <h2>How to Play</h2>
 <ol>
 <li>Listen for the letter, number, or braille character and whack it by tapping the matching key or braille chord before the mole disappears. The game defaults to QWERTY input, and you can change input to Perkins Home Row keys in the Game Settings.</li>
-<li>For Perkins input: Dot 1 in F, Dot 2 is D, Dot 3 is S, Dot 4 is J, Dot 5 is K, and Dot 6 is L.</li>
-<li class="mobileBsiOnly">For iPhone and Android screen reader braille input: in the game area, focus the Braille Entry field, type your letter or contraction, and if your device does not send it right away, press Return to submit it.</li>
+<li>For Perkins input: Dot 1 in F, Dot 2 is D, Dot 3 is S, Dot 4 is J, Dot 5 is K, and Dot 6 is L.
+<ul class="mobileBsiOnly"><li>For iPhone and Android screen reader braille input: in the game area, focus the Braille Entry field, type your letter or contraction, and if your device does not send it right away, press Return to submit it.</li>
+<li>For external braille displays, type the right chord and press dot 8 or space bar to whack the current mole.</li>
+<li>Make sure to change your braille entry mode to Uncontracted if playing in the Grade 1 modes, and contracted for the Grade 2 or Invasion modes. In Invasion mode, you will have to type the letter sign before a grade 1 letter so it interprets correctly.</li>
+</ul></li>
 <li>Each mole always represents exactly one braille cell, and only one chord or key is ever needed.</li>
 <li>For number modes, the number sign is not used during gameplay.</li>
 <li>The moles pop up faster and faster as the round goes on, so stay sharp.</li>
@@ -40,7 +44,7 @@
 <li>Enjoy your prizes on your Prize Shelf, which will persist every time you come back to the game until you clear the shelf.</li>
 <li>Training Mode Difficulty: practice your typing or braille entry by whacking 15 moles without a timer. You don't get a score nor any tickets, but it's a great way to work on your skills before going into the main game. Training mode also has a Speak Braille Dots toggle in Game Settings, further helping you learn along the way. Training mode works with any Braille and Typing mode.</li>
 <li>For Jaws and NVDA users on Windows: be sure to enter Forms or Focus mode when the game starts.</li>
-<li>Use a standard keyboard or a Bluetooth keyboard on a mobile device in order to play. Due to HID limitations, external braille displays won't currently work with the game unless they send keyboard-only input.</li>
+<li>This game can be played with any standard or Bluetooth keyboard for both desktop and mobile.  External braille displays will require you to hit dot 8 or the space bar to whack the current mole after entering the chord.</li>
 <li>Choose your preferred voice and speech rate based on your system language in Game Settings.</li>
 </ol>
 </details>
@@ -290,7 +294,7 @@
 	</nav>
 
 	<p class="footer-copy small muted">
-		&copy;2026 Marco Salsiccia - v.1.6.0</p>
+		&copy;2026 Marco Salsiccia - v.1.6.1</p>
 </footer>
 
 <script type="module" src="scripts/app.js"></script>
