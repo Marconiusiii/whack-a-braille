@@ -19,6 +19,8 @@ Tickets earned during gameplay can be redeemed for prizes at the Prize Counter.
 
 - QWERTY Keyboard
 - Perkins-style braille keyboard input (F D S J K L chord entry)
+- External braille display support for Desktop, just requires dot 8 or Space Bar to submit the chord
+- Mobile Braille Entry field for screen reader braille input on phones/tablets
 
 Global keyboard shortcuts:
 - Backtick (`) repeats the current target without affecting gameplay
@@ -64,6 +66,19 @@ Features:
 
 Training mode disables round length selection and ticket earning.
 
+## Mobile Braille Input
+
+Whack A Braille includes a mobile-only Braille Entry field in the game area for:
+- iOS VoiceOver Braille Screen Input users
+- Android TalkBack Braille Keyboard users
+
+How it works:
+- Type your letter/number/contraction in Braille Entry while the round is active
+- Some devices commit input immediately
+- If input is buffered, press Return to submit
+
+Desktop behavior is unchanged: hardware keyboard input still uses QWERTY and Perkins key events.
+
 ## Speech and Audio
 
 - Uses system speech synthesis
@@ -94,6 +109,7 @@ All speech and audio settings persist across sessions.
 - No reliance on visual-only cues
 - Tested with VoiceOver on macOS and iOS
 - Works with external braille displays and keyboards that emit keyboard-style input
+- Includes mobile screen reader braille text-entry support through the Braille Entry field
 - State transitions actively manage focus for Home, Results, and Prize Counter headings
 
 ## Development
@@ -103,7 +119,7 @@ This project is written in vanilla JavaScript with no frameworks.
 Key files:
 - app.js: UI wiring and state management
 - gameLoop.js: gameplay timing and logic
-- inputEngine.js: keyboard and braille input handling
+- inputEngine.js: keyboard event input and text-attempt emission
 - speechEngine.js: speech synthesis management
 - audioEngine.js: non-speech audio and spatialization
 - brailleRegistry.js: braille data definitions
