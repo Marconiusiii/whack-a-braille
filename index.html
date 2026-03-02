@@ -31,6 +31,7 @@
 <ol>
 <li>Listen for the letter, number, or braille character and whack it by tapping the matching key or braille chord before the mole disappears. The game defaults to QWERTY input, and you can change input to Perkins Home Row keys in the Game Settings.</li>
 <li>For Perkins input: Dot 1 in F, Dot 2 is D, Dot 3 is S, Dot 4 is J, Dot 5 is K, and Dot 6 is L.</li>
+<li class="mobileBsiOnly">For iPhone and Android screen reader braille input: in the game area, focus the Braille Entry field, type your letter or contraction, and if your device does not send it right away, press Return to submit it.</li>
 <li>Each mole always represents exactly one braille cell, and only one chord or key is ever needed.</li>
 <li>For number modes, the number sign is not used during gameplay.</li>
 <li>The moles pop up faster and faster as the round goes on, so stay sharp.</li>
@@ -212,6 +213,11 @@
 <div class="mole" data-hole="3"></div>
 <div class="mole" data-hole="4"></div>
 <div class="mole" data-hole="5"></div>
+</div>
+
+<div id="mobileBsiEntry" class="mobileBsiOnly">
+<label for="mobileBsiInput">Braille Entry</label>
+<input id="mobileBsiInput" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done">
 </div>
 
 </section>

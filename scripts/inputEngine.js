@@ -41,6 +41,16 @@ function emitAttempt(attempt) {
 	attemptCallback(attempt);
 }
 
+function emitTextAttempt(text) {
+	const normalized = String(text || "").trim().toLowerCase();
+	if (!normalized) return;
+
+	emitAttempt({
+		type: "brailleText",
+		char: normalized
+	});
+}
+
 function normalizeKey(event) {
 	const key = (event.key || "").toLowerCase();
 	return key;
@@ -113,5 +123,6 @@ export {
 	attachKeyboardListeners,
 	setAttemptCallback,
 	setInputMode,
-	setCurrentMoleId
+	setCurrentMoleId,
+	emitTextAttempt
 };

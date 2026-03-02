@@ -79,6 +79,16 @@ footer {
 	color: #a0a0a0;
 }
 
+.mobileBsiOnly {
+	display: none;
+}
+
+@media (hover: none), (pointer: coarse) {
+	.mobileBsiOnly {
+		display: block;
+	}
+}
+
 
 /* Screen reader live region */
 
@@ -116,6 +126,36 @@ body[data-game-state="results"] #resultsArea { display: block; }
 	font-weight: 700;
 	color: #0b1020;
 	letter-spacing: 0.05em;
+}
+
+#mobileBsiEntry {
+	margin-top: 1rem;
+	text-align: left;
+	max-width: 24rem;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+#mobileBsiEntry label {
+	display: block;
+	margin-bottom: 0.4rem;
+	font-weight: 700;
+	color: #f5f7ff;
+}
+
+#mobileBsiInput {
+	width: 100%;
+	font-size: 1.05rem;
+	padding: 0.55rem 0.65rem;
+	border-radius: 0.5rem;
+	border: 2px solid #7bdff2;
+	background: #0f1730;
+	color: #f5f7ff;
+}
+
+#mobileBsiInput:focus {
+	outline: 3px solid #ffbe0b;
+	outline-offset: 2px;
 }
 
 

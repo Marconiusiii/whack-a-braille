@@ -498,6 +498,10 @@ function handleAttempt(attempt) {
 		}
 	}
 
+	if (attempt.type === "brailleText") {
+		isHit = String(attempt.char || "").toLowerCase() === String(currentItem.id || "").toLowerCase();
+	}
+
 	if (isHit) {
 		handleHit();
 		return;

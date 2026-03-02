@@ -10,7 +10,7 @@ import {
 	setPreferredVoiceName,
 	setSpeechRate
 } from "./speechEngine.js";
-import { attachKeyboardListeners, setInputMode, setCurrentMoleId } from "./inputEngine.js";
+import { attachKeyboardListeners, setInputMode, setCurrentMoleId, emitTextAttempt } from "./inputEngine.js";
 import { prizeCatalog } from "./prizeCatalog.js";
 import { scoreToTickets } from "./ticketRules.js";
 
@@ -31,6 +31,8 @@ const speakBrailleDots = document.getElementById("speakBrailleDots");
 const scoreText = document.getElementById("scoreText");
 const characterEchoCheckbox = document.getElementById("characterEcho");
 const timerMusicCheckbox = document.getElementById("timerMusicEnabled");
+const mobileBsiEntry = document.getElementById("mobileBsiEntry");
+const mobileBsiInput = document.getElementById("mobileBsiInput");
 
 const speechRatePercentInput = document.getElementById("speechRatePercent");
 const voiceSelect = document.getElementById("voiceSelect");
@@ -64,6 +66,7 @@ const srLiveRegion = document.getElementById("srLiveRegion");
 let gameState = "home";
 let totalTickets = 0;
 let srAnnounceTimer = null;
+let mobileBsiEnabled = false;
 
 function announceToSr(message) {
 	if (!srLiveRegion) return;
@@ -255,6 +258,20 @@ function setHiddenInert(el, hide) {
 	}
 }
 
+function isMobileBsiRuntime() {
+	if (typeof window === "undefined" || typeof navigator === "undefined") return false;
+	const ua = navigator.userAgent || "";
+	const hasMobileUa = /Android|iPhone|iPad|iPod/i.test(ua);
+	const hasTouch = (navigator.maxTouchPoints || 0) > 0;
+	return hasMobileUa && hasTouch;
+}
+
+function armMobileBsiInput() {
+	if (!mobileBsiEnabled || !mobileBsiInput) return;
+	if (gameState !== "playing") return;
+	safeFocus(mobileBsiInput);
+}
+
 function safeFocus(el) {
 	if (!el) return;
 	try {
@@ -319,6 +336,7 @@ function setGameState(state) {
 		setHiddenInert(gameArea, false);
 
 		setCurrentMoleId(0);
+		armMobileBsiInput();
 		return;
 	}
 
@@ -677,7 +695,7 @@ if (cancelCashOutButton) {
 		radio.addEventListener("change", syncInputModeUI);
 	});
 
-document.addEventListener("wabRoundEnded", (e) => {
+	document.addEventListener("wabRoundEnded", (e) => {
 	if (gameState !== "playing") return;
 
 	const detail = e.detail || {};
@@ -747,6 +765,45 @@ document.addEventListener("wabRoundEnded", (e) => {
 	setGameState("results");
 
 });
+}
+
+function setupMobileBsiListeners() {
+	if (!mobileBsiEnabled || !mobileBsiInput) return;
+
+	function flushMobileText() {
+		if (gameState !== "playing") {
+			mobileBsiInput.value = "";
+			return;
+		}
+
+		const text = mobileBsiInput.value;
+		if (!text) return;
+
+		const normalized = text.trim().replace(/\s+/g, " ");
+		if (normalized) {
+			emitTextAttempt(normalized);
+		}
+
+		mobileBsiInput.value = "";
+	}
+
+	mobileBsiInput.addEventListener("input", () => {
+		flushMobileText();
+	});
+
+	mobileBsiInput.addEventListener("keydown", (e) => {
+		if (e.key === "Enter" || e.key === "Return") {
+			e.preventDefault();
+			flushMobileText();
+		}
+	});
+
+	mobileBsiInput.addEventListener("blur", () => {
+		if (gameState !== "playing") return;
+		setTimeout(() => {
+			armMobileBsiInput();
+		}, 40);
+	});
 }
 
 function setupScoreListener() {
@@ -828,6 +885,14 @@ existingRadios.forEach(radio => {
 }
 
 function init() {
+	mobileBsiEnabled = isMobileBsiRuntime() && !!mobileBsiInput && !!mobileBsiEntry;
+	if (mobileBsiEntry) {
+		mobileBsiEntry.hidden = !mobileBsiEnabled;
+	}
+	if (mobileBsiInput) {
+		mobileBsiInput.disabled = !mobileBsiEnabled;
+	}
+
 	loadTotalTickets();
 	loadPrizeShelf();
 	const savedSettings = loadGameSettings();
@@ -853,6 +918,7 @@ function init() {
 	}
 
 	attachKeyboardListeners();
+	setupMobileBsiListeners();
 }
 
 init();
