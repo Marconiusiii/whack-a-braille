@@ -22,11 +22,16 @@ Tickets earned during gameplay can be redeemed for prizes at the Prize Counter.
 - External braille display support for Desktop, just requires dot 8 or Space Bar to submit the chord
 - Mobile Braille Entry field for screen reader braille input on phones/tablets
 
+Typing-focused Mole Chooser modes lock input to QWERTY. Grade 2 and Everything continue to lock input to Perkins.
+
 Global keyboard shortcuts:
 - Backtick (`) repeats the current target without affecting gameplay
 
 ## Braille Modes
 
+- QWERTY Home Row
+- QWERTY Home Row + Top Row
+- QWERTY Home Row + Bottom Row
 - Grade 1 Letters A–J
 - Grade 1 Letters A–T
 - Grade 1 All Letters
@@ -37,6 +42,15 @@ Global keyboard shortcuts:
 - Everything (advanced mixed mode)
 
 Everything mode mixes Grade 1 and Grade 2 content and locks input to Perkins mode.
+
+## Spatial Mole Mapping
+
+Spatial Mole Mapping is available in Game Settings and is enabled by default.
+
+- When enabled, typing and eligible Grade 1 targets appear in stereo lanes that match keyboard neighborhoods.
+- When disabled, lane placement is more random for an extra challenge.
+- Grade 2 modes and Everything mode do not use spatial mapping.
+- Spawn logic also reduces long same-lane streaks so one lane is less likely to repeat too many times in a row.
 
 ## Difficulty Modes
 
@@ -100,7 +114,7 @@ All speech and audio settings persist across sessions.
 - Prize shelf persists across sessions
 - Duplicate prizes increment quantity instead of duplicating entries
 - Clearing the Prize Shelf announces "Prize Shelf Cleared" to screen readers
-- Prize catalog includes expanded multi-tier joke, brag, title, and legend rewards
+- Prize catalog includes expanded multi-tier joke, brag, title, and legend rewards, including new coffee and tea themed prizes
 
 ## Accessibility Notes
 

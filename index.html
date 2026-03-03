@@ -23,6 +23,12 @@
 <li>Built in better mobile web support for Braille Screen Input users in iOS and Braille Keyboard users on Android.</li>
 <li>Added mobile-only instructions in the How to Play section that will appear on phones.</li>
 <li>Game can now be played using external braille displays!</li>
+<li>Added QWERTY Home Row, Home + Top Row, and Home + Bottom row game modes for touch typing learners.</li>
+<li>Braille Mode now renamed to Mole Chooser.</li>
+<li>Added Spatial Mole Mapping control! This ensures that the letters that appear in QWERTY and Grade 1 modes appear in the correct audio location relative to their actual position on the keyboard. Turn this off to bring the original game mapping back where it's more random for more of a challenge.</li>
+<li>Made it so the same mole would stop popping up multiple times in a row.</li>
+<li>More fun prizes!</li>
+<li>More code cleanup behind the scenes.</li>
 </ul>
 </details>
 
@@ -165,9 +171,9 @@
 <fieldset id="spatialMappingFieldset">
 <legend>Spatial Mole Mapping</legend>
 
-<input type="checkbox" id="spatialMoleMappingEnabled" checked>
+<input aria-describedby="spatialHelp" type="checkbox" id="spatialMoleMappingEnabled" checked>
 <label for="spatialMoleMappingEnabled">Enable spatial mole mapping</label>
-<p>Turn this on to keep letters in their keyboard neighborhoods so the audio space matches where keys live under your fingers. Turn it off for extra chaos and a tougher random-position challenge.</p>
+<p id="spatialHelp">Turn this on to keep letters in their keyboard neighborhoods so the audio space matches where keys live under your fingers. Turn it off for extra chaos and a tougher random-position challenge.</p>
 
 </fieldset>
 
@@ -311,7 +317,7 @@
 	</nav>
 
 	<p class="footer-copy small muted">
-		&copy;2026 Marco Salsiccia - v.1.6.1</p>
+		&copy;2026 Marco Salsiccia - v.1.6.2</p>
 </footer>
 
 <script type="module" src="scripts/app.js"></script>
