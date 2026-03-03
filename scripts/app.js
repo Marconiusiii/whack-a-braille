@@ -251,7 +251,7 @@ function isGrade2Mode(modeId) {
 }
 
 function isTypingOnlyMode(modeId) {
-	return modeId === "typingHomeRow" || modeId === "typingHomeTopRow" || modeId === "typingHomeBottomRow";
+	return modeId === "typingSimpleHomeRow" || modeId === "typingHomeRow" || modeId === "typingHomeTopRow" || modeId === "typingHomeBottomRow";
 }
 
 function getForcedInputModeForMode(modeId) {

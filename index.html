@@ -18,12 +18,12 @@
 <p>By Marco Salsiccia</p>
 
 <details>
-<summary>Mar 2, 2026 Update Log</summary>
+<summary>Mar 3, 2026 Update Log</summary>
 <ul>
 <li>Built in better mobile web support for Braille Screen Input users in iOS and Braille Keyboard users on Android.</li>
 <li>Added mobile-only instructions in the How to Play section that will appear on phones.</li>
 <li>Game can now be played using external braille displays!</li>
-<li>Added QWERTY Home Row, Home + Top Row, and Home + Bottom row game modes for touch typing learners.</li>
+<li>Added QWERTY Home Row, Home + Top Row, and Home + Bottom row game modes for touch typing learners. Added Simple Home Row option for beginners just learning ASDFJKL and ";".</li>
 <li>Braille Mode now renamed to Mole Chooser.</li>
 <li>Added Spatial Mole Mapping control! This ensures that the letters that appear in QWERTY and Grade 1 modes appear in the correct audio location relative to their actual position on the keyboard. Turn this off to bring the original game mapping back where it's more random for more of a challenge.</li>
 <li>Made it so the same mole would stop popping up multiple times in a row.</li>
@@ -62,6 +62,9 @@
 
 <fieldset>
 <legend>Mole Chooser</legend>
+
+	<input type="radio" id="modeQwertySimpleHomeRow" name="brailleMode" value="typingSimpleHomeRow">
+	<label for="modeQwertySimpleHomeRow">Simple Home Row</label>
 
 	<input type="radio" id="modeQwertyHomeRow" name="brailleMode" value="typingHomeRow">
 	<label for="modeQwertyHomeRow">QWERTY Home Row</label>
@@ -317,7 +320,7 @@
 	</nav>
 
 	<p class="footer-copy small muted">
-		&copy;2026 Marco Salsiccia - v.1.6.2</p>
+		&copy;2026 Marco Salsiccia - v.1.6.3</p>
 </footer>
 
 <script type="module" src="scripts/app.js"></script>

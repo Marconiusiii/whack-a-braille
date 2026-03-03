@@ -29,6 +29,7 @@ Global keyboard shortcuts:
 
 ## Braille Modes
 
+- Simple Home Row
 - QWERTY Home Row
 - QWERTY Home Row + Top Row
 - QWERTY Home Row + Bottom Row

@@ -136,6 +136,17 @@ const grade2Words = [
 	makeItem("shall","Shall",[1,4,6],["grade2Words"])
 ];
 
+const typingSimpleHomeRowItems = [
+	makeTypingItem("a", "a", ["typingSimpleHomeRow"]),
+	makeTypingItem("s", "s", ["typingSimpleHomeRow"]),
+	makeTypingItem("d", "d", ["typingSimpleHomeRow"]),
+	makeTypingItem("f", "f", ["typingSimpleHomeRow"]),
+	makeTypingItem("j", "j", ["typingSimpleHomeRow"]),
+	makeTypingItem("k", "k", ["typingSimpleHomeRow"]),
+	makeTypingItem("l", "l", ["typingSimpleHomeRow"]),
+	makeTypingItem(";", "semicolon", ["typingSimpleHomeRow"])
+];
+
 const typingHomeRowItems = [
 	makeTypingItem("a", "a", ["typingHomeRow", "typingHomeTopRow", "typingHomeBottomRow"]),
 	makeTypingItem("s", "s", ["typingHomeRow", "typingHomeTopRow", "typingHomeBottomRow"]),
@@ -188,6 +199,7 @@ const brailleOnlyRegistry = [
 
 const brailleRegistry = [
 	...brailleOnlyRegistry,
+	...typingSimpleHomeRowItems,
 	...typingHomeRowItems,
 	...typingTopRowItems,
 	...typingBottomRowItems

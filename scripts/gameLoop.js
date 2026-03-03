@@ -91,7 +91,8 @@ function initGameLoop(options) {
 }
 
 function isSpatialMappingEligibleMode(modeId) {
-	return modeId === "typingHomeRow" ||
+	return modeId === "typingSimpleHomeRow" ||
+		modeId === "typingHomeRow" ||
 		modeId === "typingHomeTopRow" ||
 		modeId === "typingHomeBottomRow" ||
 		modeId === "letters-aj" ||
