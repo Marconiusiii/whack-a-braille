@@ -31,6 +31,7 @@ const speakBrailleDots = document.getElementById("speakBrailleDots");
 const scoreText = document.getElementById("scoreText");
 const characterEchoCheckbox = document.getElementById("characterEcho");
 const timerMusicCheckbox = document.getElementById("timerMusicEnabled");
+const spatialMoleMappingCheckbox = document.getElementById("spatialMoleMappingEnabled");
 const mobileBsiEntry = document.getElementById("mobileBsiEntry");
 const mobileBsiInput = document.getElementById("mobileBsiInput");
 
@@ -481,6 +482,10 @@ function applySettingsToUI(settings) {
 	if (typeof settings.timerMusicEnabled === "boolean" && timerMusicCheckbox) {
 		timerMusicCheckbox.checked = settings.timerMusicEnabled;
 	}
+
+	if (typeof settings.spatialMoleMappingEnabled === "boolean" && spatialMoleMappingCheckbox) {
+		spatialMoleMappingCheckbox.checked = settings.spatialMoleMappingEnabled;
+	}
 }
 
 function saveGameSettings(settings) {
@@ -515,7 +520,8 @@ function getSelectedSettings() {
 		difficulty: getSelectedDifficulty(),
 		speakBrailleDots: !!speakBrailleDots?.checked,
 		timerMusicEnabled: !!timerMusicCheckbox?.checked,
-		characterEcho: !!characterEchoCheckbox?.checked
+		characterEcho: !!characterEchoCheckbox?.checked,
+		spatialMoleMappingEnabled: spatialMoleMappingCheckbox ? !!spatialMoleMappingCheckbox.checked : true
 	};
 }
 
@@ -568,7 +574,8 @@ function startGameFromSettings() {
 		{
 			speakBrailleDots: settings.speakBrailleDots,
 			characterEcho: settings.characterEcho,
-			timerMusicEnabled: settings.timerMusicEnabled
+			timerMusicEnabled: settings.timerMusicEnabled,
+			spatialMoleMappingEnabled: settings.spatialMoleMappingEnabled
 		}
 	);
 	}, 650);
@@ -646,7 +653,7 @@ document.addEventListener("keydown", e => {
 	});
 
 	document.querySelectorAll(
-		"input[name='difficulty'], input[name='roundTime'], input[name='inputMode'], input[name='brailleMode'], input[name='gameAudio'], #speakBrailleDots, #timerMusicEnabled"
+		"input[name='difficulty'], input[name='roundTime'], input[name='inputMode'], input[name='brailleMode'], input[name='gameAudio'], #speakBrailleDots, #timerMusicEnabled, #spatialMoleMappingEnabled"
 ).forEach(el => {
 		el.addEventListener("change", () => {
 			saveGameSettings(getSelectedSettings());

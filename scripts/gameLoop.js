@@ -19,6 +19,7 @@ let characterEchoEnabled = false;
 
 let availableItems = [];
 let roundItems = [];
+let roundLaneItems = [];
 
 let activeMoleIndex = null;
 let activeMoleId = 0;
@@ -67,9 +68,93 @@ let isTrainingMode = false;
 let trainingMolesCompleted = 0;
 let speakBrailleDotsEnabled = false;
 let lastTrainingMissAtMs = 0;
+let spatialMoleMappingEnabled = true;
+let lastLaneIndex = null;
+let sameLaneRunCount = 0;
+const MAX_SAME_LANE_IN_ROW = 2;
+
+const qwertyLaneMap = new Map([
+	["1", 0], ["2", 0],
+	["3", 1], ["4", 1],
+	["5", 2], ["6", 2],
+	["7", 3], ["8", 3],
+	["9", 4], ["0", 4],
+	["q", 0], ["a", 0], ["z", 0], ["w", 0], ["s", 0], ["x", 0],
+	["e", 1], ["d", 1], ["c", 1], ["r", 1], ["f", 1], ["v", 1],
+	["t", 2], ["g", 2], ["b", 2], ["y", 2], ["h", 2], ["n", 2],
+	["u", 3], ["j", 3], ["m", 3], ["i", 3], ["k", 3], [",", 3],
+	["o", 4], ["l", 4], [".", 4], ["p", 4], [";", 4], ["/", 4], ["[", 4], ["]", 4], ["\\", 4], ["'", 4]
+]);
 
 function initGameLoop(options) {
 	moleElements = options.moleElements || [];
+}
+
+function isSpatialMappingEligibleMode(modeId) {
+	return modeId === "typingHomeRow" ||
+		modeId === "typingHomeTopRow" ||
+		modeId === "typingHomeBottomRow" ||
+		modeId === "letters-aj" ||
+		modeId === "letters-at" ||
+		modeId === "grade1Letters" ||
+		modeId === "grade1Numbers" ||
+		modeId === "grade1LettersNumbers";
+}
+
+function laneForItem(item) {
+	const key = String(item?.standardKey || "").toLowerCase();
+	if (!key) return null;
+	const lane = qwertyLaneMap.get(key);
+	return Number.isInteger(lane) ? lane : null;
+}
+
+function buildRoundLaneItems(modeId, items, useSpatialMapping) {
+	const lanes = Array.from({ length: 5 }, () => null);
+
+	if (!useSpatialMapping || !isSpatialMappingEligibleMode(modeId)) {
+		for (let i = 0; i < Math.min(5, items.length); i++) {
+			lanes[i] = items[i];
+		}
+		return lanes;
+	}
+
+	const occupied = new Set();
+
+	for (const item of items) {
+		const lane = laneForItem(item);
+		if (lane === null || occupied.has(lane)) {
+			continue;
+		}
+		lanes[lane] = item;
+		occupied.add(lane);
+	}
+
+	return lanes;
+}
+
+function pickRoundItems(modeId, pool, useSpatialMapping) {
+	if (!useSpatialMapping || !isSpatialMappingEligibleMode(modeId)) {
+		return pickFiveItems(pool);
+	}
+
+	const copy = Array.isArray(pool) ? [...pool] : [];
+	for (let i = copy.length - 1; i > 0; i--) {
+		const j = Math.floor(Math.random() * (i + 1));
+		[copy[i], copy[j]] = [copy[j], copy[i]];
+	}
+
+	const selected = [];
+	const occupied = new Set();
+
+	for (const item of copy) {
+		const lane = laneForItem(item);
+		if (lane === null || occupied.has(lane)) continue;
+		selected.push(item);
+		occupied.add(lane);
+		if (selected.length >= 5) break;
+	}
+
+	return selected.length ? selected : pickFiveItems(pool);
 }
 
 function startRound(modeId, durationSeconds, inputMode, difficulty = "normal", options = {}) {
@@ -92,14 +177,18 @@ function startRound(modeId, durationSeconds, inputMode, difficulty = "normal", o
 
 	isTrainingMode = difficulty === "training";
 	speakBrailleDotsEnabled = !!options.speakBrailleDots && isTrainingMode;
+	spatialMoleMappingEnabled = options.spatialMoleMappingEnabled !== false;
 	trainingMolesCompleted = 0;
 	lastTrainingMissAtMs = 0;
+	lastLaneIndex = null;
+	sameLaneRunCount = 0;
 
 	difficultyMultiplier = DIFFICULTY_MULTIPLIERS[difficulty] ?? 1.0;
 
 	roundDurationMs = durationSeconds * 1000;
 	availableItems = getBrailleItemsForMode(modeId);
-	roundItems = pickFiveItems(availableItems);
+	roundItems = pickRoundItems(modeId, availableItems, spatialMoleMappingEnabled);
+	roundLaneItems = buildRoundLaneItems(modeId, roundItems, spatialMoleMappingEnabled);
 
 	isRunning = true;
 	roundEnding = false;
@@ -330,7 +419,7 @@ async function showTrainingMole() {
 	missRegisteredForMole = false;
 
 	activeMoleIndex = pickNextMoleIndex();
-	const moleItem = roundItems[activeMoleIndex];
+	const moleItem = roundLaneItems[activeMoleIndex];
 	if (!moleItem) {
 		clearActiveMole();
 		setCurrentMoleId(0);
@@ -379,7 +468,7 @@ async function showRandomMole() {
 	missRegisteredForMole = false;
 
 	activeMoleIndex = pickNextMoleIndex();
-	const moleItem = roundItems[activeMoleIndex];
+	const moleItem = roundLaneItems[activeMoleIndex];
 	if (!moleItem) {
 		clearActiveMole();
 		setCurrentMoleId(0);
@@ -444,10 +533,36 @@ async function showRandomMole() {
 }
 
 function pickNextMoleIndex() {
-	let index;
-	do {
-		index = Math.floor(Math.random() * roundItems.length);
-	} while (index === activeMoleIndex);
+	const candidates = [];
+	for (let i = 0; i < roundLaneItems.length; i++) {
+		if (roundLaneItems[i]) candidates.push(i);
+	}
+
+	if (!candidates.length) return 0;
+	if (candidates.length === 1) return candidates[0];
+
+	let filtered = candidates.filter(i => i !== activeMoleIndex);
+
+	if (lastLaneIndex !== null && sameLaneRunCount >= MAX_SAME_LANE_IN_ROW) {
+		const withoutStreak = filtered.filter(i => i !== lastLaneIndex);
+		if (withoutStreak.length) {
+			filtered = withoutStreak;
+		}
+	}
+
+	if (!filtered.length) {
+		filtered = candidates.slice();
+	}
+
+	const index = filtered[Math.floor(Math.random() * filtered.length)];
+
+	if (index === lastLaneIndex) {
+		sameLaneRunCount += 1;
+	} else {
+		lastLaneIndex = index;
+		sameLaneRunCount = 1;
+	}
+
 	return index;
 }
 
@@ -461,7 +576,7 @@ function activateMoleVisual(index) {
 	const mole = moleElements[index];
 	if (!mole) return;
 
-	const item = roundItems[index];
+	const item = roundLaneItems[index];
 
 	mole.dataset.label = item?.id || "";
 	mole.classList.add("isUp");
@@ -483,7 +598,7 @@ function handleAttempt(attempt) {
 
 	if (currentInputMode === "perkins" && attempt.type === "standard") return;
 
-	const currentItem = roundItems[activeMoleIndex];
+	const currentItem = roundLaneItems[activeMoleIndex];
 	let isHit = false;
 
 	if (attempt.type === "perkins") {
@@ -612,7 +727,7 @@ function handleMiss() {
 function getCurrentSpeechPayload() {
 	if (activeMoleIndex === null) return null;
 
-	const item = roundItems[activeMoleIndex];
+	const item = roundLaneItems[activeMoleIndex];
 	if (!item) return null;
 
 	let text = item.announceText;
