@@ -268,6 +268,13 @@ const prizeCatalog = [
 	category: "absurd"
 },
 {
+	id: "tier1_staleGroundCoffee",
+	label: "A half-empty bag of stale ground coffee",
+	minTickets: 0,
+	maxTickets: 9,
+	category: "joke"
+},
+{
 	id: "tier2_nearWin",
 	label: "Official Recognition of Being Very Close",
 	minTickets: 10,
@@ -506,6 +513,20 @@ const prizeCatalog = [
 	category: "encouragement"
 },
 {
+	id: "tier2_burntBeans",
+	label: "A Bag of Slightly Burnt Coffee Beans",
+	minTickets: 10,
+	maxTickets: 24,
+	category: "joke"
+},
+{
+	id: "tier2_gnawedEspressoBeans",
+	label: "Espresso Beans gnawed on by the mole (slightly)",
+	minTickets: 10,
+	maxTickets: 24,
+	category: "joke"
+},
+{
 	id: "tier3_moleHistorian",
 	label: "Official Mole Historian Certification",
 	minTickets: 25,
@@ -716,6 +737,20 @@ const prizeCatalog = [
 	category: "brag"
 },
 {
+	id: "tier3_lukewarmCoffee",
+	label: "A lukewarm cup of coffee",
+	minTickets: 25,
+	maxTickets: 49,
+	category: "joke"
+},
+{
+	id: "tier3_allFoamCappuccino",
+	label: "A Cappuccino that's All Foam",
+	minTickets: 25,
+	maxTickets: 49,
+	category: "joke"
+},
+{
 	id: "tier4_arcadeOracle",
 	label: "Arcade Oracle Status (Predictions Unreliable)",
 	minTickets: 50,
@@ -835,6 +870,34 @@ const prizeCatalog = [
 	category: "brag"
 },
 {
+	id: "tier4_notFoamCappuccino",
+	label: "A Cappuccino that's not mostly Foam",
+	minTickets: 50,
+	maxTickets: 99,
+	category: "absurd"
+},
+{
+	id: "tier4_unlikeTeaDrink",
+	label: "A Drink not quite entirely unlike tea.",
+	minTickets: 50,
+	maxTickets: 99,
+	category: "absurd"
+},
+{
+	id: "tier4_breakfastBlend",
+	label: "The Mole's Breakfast Coffee Blend",
+	minTickets: 50,
+	maxTickets: 99,
+	category: "joke"
+},
+{
+	id: "tier4_sillyMilkDrinks",
+	label: "Silly milk drinks!",
+	minTickets: 50,
+	maxTickets: 99,
+	category: "joke"
+},
+{
 	id: "tier5_moleTruceDay",
 	label: "An Annual Day of Truce Between You and the Moles",
 	minTickets: 100,
@@ -928,6 +991,55 @@ const prizeCatalog = [
 {
 	id: "tier5_platinumNLS",
 	label: "A Platinum NLS e-Reader",
+	minTickets: 100,
+	maxTickets: null,
+	category: "legend"
+},
+{
+	id: "tier5_costaRicanBeans",
+	label: "Premium Costa Rican Coffee Beans",
+	minTickets: 100,
+	maxTickets: null,
+	category: "legend"
+},
+{
+	id: "tier5_perfectCoffeeCup",
+	label: "A Perfect cup of delicious coffee.",
+	minTickets: 100,
+	maxTickets: null,
+	category: "legend"
+},
+{
+	id: "tier5_expressiveLightRoast",
+	label: "The Mole's Expressive Light Roast Coffee Blend",
+	minTickets: 100,
+	maxTickets: null,
+	category: "legend"
+},
+{
+	id: "tier5_cancunBeans",
+	label: "Delicious Coffee Beans from Cancun.",
+	minTickets: 100,
+	maxTickets: null,
+	category: "legend"
+},
+{
+	id: "tier5_goldenPourOver",
+	label: "A Golden Pour-Over Coffee Set.",
+	minTickets: 100,
+	maxTickets: null,
+	category: "legend"
+},
+{
+	id: "tier5_exoticLooseLeafTea",
+	label: "Exotic Loose-leaf Teas (infuser not included)",
+	minTickets: 100,
+	maxTickets: null,
+	category: "legend"
+},
+{
+	id: "tier5_amsterdamSingleOrigin",
+	label: "Exclusive Single-Origin Coffee from Amsterdam",
 	minTickets: 100,
 	maxTickets: null,
 	category: "legend"

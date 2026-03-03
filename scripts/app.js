@@ -50,7 +50,6 @@ const playAgainButton = document.getElementById("playAgainButton");
 const cashOutButton = document.getElementById("cashOutButton");
 
 const grade1InputModeFieldset = document.getElementById("grade1InputModeFieldset");
-const inputModePerkins = document.getElementById("inputModePerkins");
 
 const resultsHeading = document.getElementById("resultsHeading");
 const resultsScoreValue = document.getElementById("resultsScoreValue");
@@ -250,6 +249,20 @@ function isGrade2Mode(modeId) {
 	return modeId === "grade2Symbols" || modeId === "grade2Words";
 }
 
+function isTypingOnlyMode(modeId) {
+	return modeId === "typingHomeRow" || modeId === "typingHomeTopRow" || modeId === "typingHomeBottomRow";
+}
+
+function getForcedInputModeForMode(modeId) {
+	if (isGrade2Mode(modeId) || modeId === "everything") {
+		return "perkins";
+	}
+	if (isTypingOnlyMode(modeId)) {
+		return "qwerty";
+	}
+	return null;
+}
+
 function setHiddenInert(el, hide) {
 	if (!el) return;
 	el.hidden = hide;
@@ -402,9 +415,13 @@ function syncInputModeUI() {
 	const selectedMode = document.querySelector("input[name='brailleMode']:checked")?.value;
 	if (!selectedMode || !grade1InputModeFieldset) return;
 
-	if (isGrade2Mode(selectedMode)) {
+	const forcedInputMode = getForcedInputModeForMode(selectedMode);
+	if (forcedInputMode) {
 		grade1InputModeFieldset.disabled = true;
-		if (inputModePerkins) inputModePerkins.checked = true;
+		const forcedInputRadio = document.querySelector(
+			`input[name='inputMode'][value='${forcedInputMode}']`
+		);
+		if (forcedInputRadio) forcedInputRadio.checked = true;
 	} else {
 		grade1InputModeFieldset.disabled = false;
 	}
@@ -484,12 +501,9 @@ function getSelectedSettings() {
 
 	let inputMode = document.querySelector("input[name='inputMode']:checked")?.value || "qwerty";
 
-	if (isGrade2Mode(brailleMode)) {
-		inputMode = "perkins";
-	}
-
-	if (brailleMode === "everything") {
-		inputMode = "perkins";
+	const forcedInputMode = getForcedInputModeForMode(brailleMode);
+	if (forcedInputMode) {
+		inputMode = forcedInputMode;
 	}
 
 	return {

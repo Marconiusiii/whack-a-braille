@@ -31,6 +31,19 @@ function makeItem(id, announceText, dots, modes, standardKey = null, options = {
 		...options
 	};
 }
+
+function makeTypingItem(key, announceText, modes) {
+	return {
+		id: key,
+		modeTags: modes,
+		displayLabel: key,
+		announceText,
+		dots: [],
+		dotMask: 0,
+		perkinsKeys: [],
+		standardKey: key
+	};
+}
 const grade1Letters = [
 	makeItem("a","a",[1],["grade1Letters","grade1LettersNumbers"],"a",{ nato: "Alpha" }),
 	makeItem("b","b",[1,2],["grade1Letters","grade1LettersNumbers"],"b",{ nato: "Bravo" }),
@@ -123,16 +136,66 @@ const grade2Words = [
 	makeItem("shall","Shall",[1,4,6],["grade2Words"])
 ];
 
-const brailleRegistry = [
+const typingHomeRowItems = [
+	makeTypingItem("a", "a", ["typingHomeRow", "typingHomeTopRow", "typingHomeBottomRow"]),
+	makeTypingItem("s", "s", ["typingHomeRow", "typingHomeTopRow", "typingHomeBottomRow"]),
+	makeTypingItem("d", "d", ["typingHomeRow", "typingHomeTopRow", "typingHomeBottomRow"]),
+	makeTypingItem("f", "f", ["typingHomeRow", "typingHomeTopRow", "typingHomeBottomRow"]),
+	makeTypingItem("g", "g", ["typingHomeRow", "typingHomeTopRow", "typingHomeBottomRow"]),
+	makeTypingItem("h", "h", ["typingHomeRow", "typingHomeTopRow", "typingHomeBottomRow"]),
+	makeTypingItem("j", "j", ["typingHomeRow", "typingHomeTopRow", "typingHomeBottomRow"]),
+	makeTypingItem("k", "k", ["typingHomeRow", "typingHomeTopRow", "typingHomeBottomRow"]),
+	makeTypingItem("l", "l", ["typingHomeRow", "typingHomeTopRow", "typingHomeBottomRow"]),
+	makeTypingItem(";", "semicolon", ["typingHomeRow", "typingHomeTopRow", "typingHomeBottomRow"]),
+	makeTypingItem("'", "apostrophe", ["typingHomeRow", "typingHomeTopRow", "typingHomeBottomRow"])
+];
+
+const typingTopRowItems = [
+	makeTypingItem("q", "q", ["typingHomeTopRow"]),
+	makeTypingItem("w", "w", ["typingHomeTopRow"]),
+	makeTypingItem("e", "e", ["typingHomeTopRow"]),
+	makeTypingItem("r", "r", ["typingHomeTopRow"]),
+	makeTypingItem("t", "t", ["typingHomeTopRow"]),
+	makeTypingItem("y", "y", ["typingHomeTopRow"]),
+	makeTypingItem("u", "u", ["typingHomeTopRow"]),
+	makeTypingItem("i", "i", ["typingHomeTopRow"]),
+	makeTypingItem("o", "o", ["typingHomeTopRow"]),
+	makeTypingItem("p", "p", ["typingHomeTopRow"]),
+	makeTypingItem("[", "left bracket", ["typingHomeTopRow"]),
+	makeTypingItem("]", "right bracket", ["typingHomeTopRow"]),
+	makeTypingItem("\\", "backslash", ["typingHomeTopRow"])
+];
+
+const typingBottomRowItems = [
+	makeTypingItem("z", "z", ["typingHomeBottomRow"]),
+	makeTypingItem("x", "x", ["typingHomeBottomRow"]),
+	makeTypingItem("c", "c", ["typingHomeBottomRow"]),
+	makeTypingItem("v", "v", ["typingHomeBottomRow"]),
+	makeTypingItem("b", "b", ["typingHomeBottomRow"]),
+	makeTypingItem("n", "n", ["typingHomeBottomRow"]),
+	makeTypingItem("m", "m", ["typingHomeBottomRow"]),
+	makeTypingItem(",", "comma", ["typingHomeBottomRow"]),
+	makeTypingItem(".", "period", ["typingHomeBottomRow"]),
+	makeTypingItem("/", "slash", ["typingHomeBottomRow"])
+];
+
+const brailleOnlyRegistry = [
 	...grade1Letters,
 	...grade1Numbers,
 	...grade2Symbols,
 	...grade2Words
 ];
 
+const brailleRegistry = [
+	...brailleOnlyRegistry,
+	...typingHomeRowItems,
+	...typingTopRowItems,
+	...typingBottomRowItems
+];
+
 function getBrailleItemsForMode(modeId) {
 	if (modeId === "everything") {
-		return brailleRegistry.slice();
+		return brailleOnlyRegistry.slice();
 	}
 
 	if (modeId === "letters-aj") {
