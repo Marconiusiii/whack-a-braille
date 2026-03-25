@@ -164,6 +164,16 @@ body[data-game-state="results"] #resultsArea { display: block; }
 	outline-offset: 2px;
 }
 
+#desktopBrailleDisplayReset {
+	position: absolute;
+	left: -9999px;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	padding: 0;
+	border: 0;
+}
+
 #mobileBsiEntry {
 	margin-top: 1rem;
 	text-align: left;

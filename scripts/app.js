@@ -38,6 +38,7 @@ const mobileBsiInput = document.getElementById("mobileBsiInput");
 const moleChooserSelect = document.getElementById("moleChooserSelect");
 const desktopBrailleDisplayEntry = document.getElementById("desktopBrailleDisplayEntry");
 const desktopBrailleDisplayInput = document.getElementById("desktopBrailleDisplayInput");
+const desktopBrailleDisplayReset = document.getElementById("desktopBrailleDisplayReset");
 
 const speechRatePercentInput = document.getElementById("speechRatePercent");
 const voiceSelect = document.getElementById("voiceSelect");
@@ -84,12 +85,12 @@ const moleChooserOptions = [
 	{ value: "typingHomeRow", label: "QWERTY Home Row", group: "typing" },
 	{ value: "typingHomeTopRow", label: "QWERTY Home Row + Top Row", group: "typing" },
 	{ value: "typingHomeBottomRow", label: "QWERTY Home Row + Bottom Row", group: "typing" },
-	{ value: "grade1Invasion", label: "Grade 1 Invasion", group: "grade1" },
 	{ value: "letters-aj", label: "Grade 1 Letters A-J", group: "grade1" },
 	{ value: "letters-at", label: "Grade 1 Letters A-T", group: "grade1" },
 	{ value: "grade1Letters", label: "Letters only (Grade 1)", group: "grade1" },
 	{ value: "grade1Numbers", label: "Numbers only (Grade 1)", group: "grade1" },
 	{ value: "grade1LettersNumbers", label: "Letters and numbers (Grade 1)", group: "grade1" },
+	{ value: "grade1Invasion", label: "Grade 1 Invasion", group: "grade1" },
 	{ value: "grade2Symbols", label: "Grade 2 contractions (symbols)", group: "grade2" },
 	{ value: "grade2Words", label: "Grade 2 whole-word contractions", group: "grade2" },
 	{ value: "grade2Invasion", label: "Grade 2 Invasion", group: "grade2" }
@@ -293,7 +294,7 @@ function getMoleChooserOptionsForInputMode(inputMode) {
 	if (inputMode === "qwerty") {
 		return moleChooserOptions.filter(option => option.group !== "grade2");
 	}
-	if (inputMode === "perkins") {
+	if (inputMode === "perkins" || inputMode === "brailleDisplay") {
 		return moleChooserOptions.filter(option => option.group !== "typing");
 	}
 	return moleChooserOptions.slice();
@@ -339,10 +340,22 @@ function armDesktopBrailleDisplayInput() {
 function resetDesktopBrailleDisplayInput() {
 	if (!desktopBrailleDisplayInput) return;
 	desktopBrailleDisplayInput.value = "";
+	try {
+		desktopBrailleDisplayInput.setSelectionRange(0, 0);
+	} catch {
+	}
 	if (gameState === "playing" && getSelectedInputMode() === "brailleDisplay") {
-		setTimeout(() => {
-			armDesktopBrailleDisplayInput();
-		}, 0);
+		requestAnimationFrame(() => {
+			if (desktopBrailleDisplayReset) {
+				safeFocus(desktopBrailleDisplayReset);
+			}
+			setTimeout(() => {
+				armDesktopBrailleDisplayInput();
+			}, 20);
+			setTimeout(() => {
+				armDesktopBrailleDisplayInput();
+			}, 60);
+		});
 	}
 }
 
@@ -962,6 +975,24 @@ function setupMobileBsiListeners() {
 
 function setupDesktopBrailleDisplayListeners() {
 	if (!desktopBrailleDisplayInput) return;
+	let lastDesktopBrailleValue = "";
+	let lastDesktopBrailleAt = 0;
+
+	function emitDesktopBrailleAttempt(text) {
+		const normalized = String(text || "").trim().toLowerCase();
+		if (!normalized) return;
+
+		const now = performance.now();
+		if (normalized === lastDesktopBrailleValue && now - lastDesktopBrailleAt < 80) {
+			resetDesktopBrailleDisplayInput();
+			return;
+		}
+
+		lastDesktopBrailleValue = normalized;
+		lastDesktopBrailleAt = now;
+		emitTextAttempt(normalized);
+		resetDesktopBrailleDisplayInput();
+	}
 
 	function flushDesktopBrailleDisplayText() {
 		if (gameState !== "playing" || getSelectedInputMode() !== "brailleDisplay") {
@@ -972,12 +1003,7 @@ function setupDesktopBrailleDisplayListeners() {
 		const text = desktopBrailleDisplayInput.value;
 		if (!text) return;
 
-		const normalized = text.trim().toLowerCase();
-		if (normalized) {
-			emitTextAttempt(normalized);
-		}
-
-		resetDesktopBrailleDisplayInput();
+		emitDesktopBrailleAttempt(text);
 	}
 
 	desktopBrailleDisplayInput.addEventListener("input", () => {
@@ -986,10 +1012,10 @@ function setupDesktopBrailleDisplayListeners() {
 
 	desktopBrailleDisplayInput.addEventListener("beforeinput", e => {
 		if (gameState !== "playing" || getSelectedInputMode() !== "brailleDisplay") return;
+		if (!/Chrome|Chromium/.test(navigator.userAgent || "")) return;
 		const nextText = String(e.data || "").trim().toLowerCase();
 		if (!nextText) return;
-		emitTextAttempt(nextText);
-		resetDesktopBrailleDisplayInput();
+		emitDesktopBrailleAttempt(nextText);
 		e.preventDefault();
 	});
 
