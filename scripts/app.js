@@ -24,6 +24,7 @@ const cashOutArea = document.getElementById("cashOutArea");
 const cashOutHeading = document.getElementById("cashOutHeading");
 const cashOutPrizeOptions = document.getElementById("cashOutPrizeOptions");
 const cashOutTicketCount = document.getElementById("cashOutTicketCount");
+const cashOutPrizeFieldset = document.getElementById("cashOutPrizeFieldset");
 const PRIZE_SHELF_KEY = "whackABraillePrizeShelf";
 const roundLengthFieldset = document.getElementById("roundLengthFieldset");
 const trainingOptionsFieldset = document.getElementById("trainingOptionsFieldset");
@@ -34,6 +35,7 @@ const timerMusicCheckbox = document.getElementById("timerMusicEnabled");
 const spatialMoleMappingCheckbox = document.getElementById("spatialMoleMappingEnabled");
 const mobileBsiEntry = document.getElementById("mobileBsiEntry");
 const mobileBsiInput = document.getElementById("mobileBsiInput");
+const moleChooserSelect = document.getElementById("moleChooserSelect");
 
 const speechRatePercentInput = document.getElementById("speechRatePercent");
 const voiceSelect = document.getElementById("voiceSelect");
@@ -74,11 +76,20 @@ let mobileBsiEnabled = false;
 let cashOutSource = "results";
 
 const TICKET_STORAGE_KEY = "wabTotalTickets";
-const typingModeIds = [
-	"typingSimpleHomeRow",
-	"typingHomeRow",
-	"typingHomeTopRow",
-	"typingHomeBottomRow"
+const moleChooserOptions = [
+	{ value: "typingSimpleHomeRow", label: "Simple Home Row", group: "typing" },
+	{ value: "typingHomeRow", label: "QWERTY Home Row", group: "typing" },
+	{ value: "typingHomeTopRow", label: "QWERTY Home Row + Top Row", group: "typing" },
+	{ value: "typingHomeBottomRow", label: "QWERTY Home Row + Bottom Row", group: "typing" },
+	{ value: "grade1Invasion", label: "Grade 1 Invasion", group: "grade1" },
+	{ value: "letters-aj", label: "Grade 1 Letters A-J", group: "grade1" },
+	{ value: "letters-at", label: "Grade 1 Letters A-T", group: "grade1" },
+	{ value: "grade1Letters", label: "Letters only (Grade 1)", group: "grade1" },
+	{ value: "grade1Numbers", label: "Numbers only (Grade 1)", group: "grade1" },
+	{ value: "grade1LettersNumbers", label: "Letters and numbers (Grade 1)", group: "grade1" },
+	{ value: "grade2Symbols", label: "Grade 2 contractions (symbols)", group: "grade2" },
+	{ value: "grade2Words", label: "Grade 2 whole-word contractions", group: "grade2" },
+	{ value: "grade2Invasion", label: "Grade 2 Invasion", group: "grade2" }
 ];
 
 function announceToSr(message) {
@@ -271,14 +282,26 @@ function isTypingOnlyMode(modeId) {
 	return modeId === "typingSimpleHomeRow" || modeId === "typingHomeRow" || modeId === "typingHomeTopRow" || modeId === "typingHomeBottomRow";
 }
 
-function getForcedInputModeForMode(modeId) {
-	if (isGrade2Mode(modeId) || modeId === "grade2Invasion") {
-		return "perkins";
+function getSelectedInputMode() {
+	return document.querySelector("input[name='inputMode']:checked")?.value || "qwerty";
+}
+
+function getMoleChooserOptionsForInputMode(inputMode) {
+	if (inputMode === "qwerty") {
+		return moleChooserOptions.filter(option => option.group !== "grade2");
 	}
-	if (isTypingOnlyMode(modeId)) {
-		return "qwerty";
+	if (inputMode === "perkins") {
+		return moleChooserOptions.filter(option => option.group !== "typing");
 	}
-	return null;
+	return moleChooserOptions.slice();
+}
+
+function ensureMoleChooserValue() {
+	if (!moleChooserSelect || !moleChooserSelect.options.length) return;
+	if (moleChooserSelect.value) return;
+
+	const fallback = Array.from(moleChooserSelect.options).find(option => option.value === "grade1Letters");
+	moleChooserSelect.value = fallback ? fallback.value : moleChooserSelect.options[0].value;
 }
 
 function setHiddenInert(el, hide) {
@@ -430,42 +453,32 @@ function primeSpeech() {
 
 
 function syncInputModeUI() {
-	const selectedMode = document.querySelector("input[name='brailleMode']:checked")?.value;
-	if (!selectedMode || !grade1InputModeFieldset) return;
-
-	const forcedInputMode = getForcedInputModeForMode(selectedMode);
-	if (forcedInputMode) {
-		grade1InputModeFieldset.disabled = true;
-		const forcedInputRadio = document.querySelector(
-			`input[name='inputMode'][value='${forcedInputMode}']`
-		);
-		if (forcedInputRadio) forcedInputRadio.checked = true;
-	} else {
-		grade1InputModeFieldset.disabled = false;
-	}
-}
-
-function setTypingModeVisibility(hidden) {
-	document.querySelectorAll("input[name='brailleMode'][data-typing-mode='true']").forEach(input => {
-		input.hidden = hidden;
-		const label = document.querySelector(`label[for='${input.id}']`);
-		if (label) {
-			label.hidden = hidden;
-		}
-	});
+	if (!grade1InputModeFieldset) return;
+	grade1InputModeFieldset.disabled = false;
 }
 
 function syncMoleChooserForInputMode() {
-	const selectedInputMode = document.querySelector("input[name='inputMode']:checked")?.value || "qwerty";
-	const shouldHideTypingModes = selectedInputMode === "perkins";
-	setTypingModeVisibility(shouldHideTypingModes);
+	if (!moleChooserSelect) return;
 
-	const selectedMode = document.querySelector("input[name='brailleMode']:checked")?.value;
-	if (shouldHideTypingModes && isTypingOnlyMode(selectedMode)) {
-		const fallback = document.querySelector("input[name='brailleMode'][value='grade1Letters']");
-		if (fallback) {
-			fallback.checked = true;
-		}
+	const selectedInputMode = getSelectedInputMode();
+	const previousValue = moleChooserSelect.value;
+	const allowedOptions = getMoleChooserOptionsForInputMode(selectedInputMode);
+
+	moleChooserSelect.innerHTML = "";
+
+	allowedOptions.forEach(option => {
+		const optionEl = document.createElement("option");
+		optionEl.value = option.value;
+		optionEl.textContent = option.label;
+		moleChooserSelect.appendChild(optionEl);
+	});
+
+	if (allowedOptions.some(option => option.value === previousValue)) {
+		moleChooserSelect.value = previousValue;
+	} else if (allowedOptions.some(option => option.value === "grade1Letters")) {
+		moleChooserSelect.value = "grade1Letters";
+	} else if (allowedOptions.length) {
+		moleChooserSelect.value = allowedOptions[0].value;
 	}
 }
 function applySettingsToUI(settings) {
@@ -510,10 +523,11 @@ function applySettingsToUI(settings) {
 	}
 
 	if (settings.brailleMode) {
-		const el = document.querySelector(
-			`input[name='brailleMode'][value='${settings.brailleMode}']`
-		);
-		if (el) el.checked = true;
+		syncMoleChooserForInputMode();
+		if (moleChooserSelect) {
+			moleChooserSelect.value = settings.brailleMode;
+			ensureMoleChooserValue();
+		}
 	}
 
 	if (typeof settings.speakBrailleDots === "boolean" && speakBrailleDots) {
@@ -541,16 +555,11 @@ function loadGameSettings() {
 }
 
 function getSelectedSettings() {
-	const brailleMode = document.querySelector("input[name='brailleMode']:checked")?.value || "grade1Letters";
+	const brailleMode = moleChooserSelect?.value || "grade1Letters";
 	const roundTimeValue = document.querySelector("input[name='roundTime']:checked")?.value || "30";
 	const roundTime = parseInt(roundTimeValue, 10);
 
-	let inputMode = document.querySelector("input[name='inputMode']:checked")?.value || "qwerty";
-
-	const forcedInputMode = getForcedInputModeForMode(brailleMode);
-	if (forcedInputMode) {
-		inputMode = forcedInputMode;
-	}
+	const inputMode = getSelectedInputMode();
 
 	return {
 		brailleMode,
@@ -701,7 +710,7 @@ document.addEventListener("keydown", e => {
 	});
 
 	document.querySelectorAll(
-		"input[name='difficulty'], input[name='roundTime'], input[name='inputMode'], input[name='brailleMode'], input[name='gameAudio'], #speakBrailleDots, #timerMusicEnabled, #spatialMoleMappingEnabled"
+		"input[name='difficulty'], input[name='roundTime'], input[name='inputMode'], input[name='gameAudio'], #speakBrailleDots, #timerMusicEnabled, #spatialMoleMappingEnabled, #moleChooserSelect"
 ).forEach(el => {
 		el.addEventListener("change", () => {
 			saveGameSettings(getSelectedSettings());
@@ -781,13 +790,12 @@ if (cancelCashOutButton) {
 		radio.addEventListener("change", syncTrainingUI);
 	});
 
-
-	document.querySelectorAll("input[name='brailleMode']").forEach(radio => {
-		radio.addEventListener("change", () => {
+	if (moleChooserSelect) {
+		moleChooserSelect.addEventListener("change", () => {
 			syncInputModeUI();
-			syncMoleChooserForInputMode();
+			saveGameSettings(getSelectedSettings());
 		});
-	});
+	}
 
 	document.querySelectorAll("input[name='inputMode']").forEach(radio => {
 		radio.addEventListener("change", () => {
@@ -962,11 +970,19 @@ function renderCashOut(source = "results") {
 		cancelCashOutButton.hidden = cashOutSource !== "results";
 	}
 
+	if (cashOutPrizeFieldset) {
+		cashOutPrizeFieldset.hidden = totalTickets <= 0;
+	}
+
 	if (cashOutHomeButton) {
 		cashOutHomeButton.textContent =
 			cashOutSource === "results"
 				? "Save Tickets and Return Home"
 				: "Return Home";
+	}
+
+	if (confirmPrizeButton) {
+		confirmPrizeButton.hidden = totalTickets <= 0;
 	}
 
 	if (cashOutSummaryText) {
@@ -1038,6 +1054,8 @@ function init() {
 	loadTotalTickets();
 	updateHomeCashInButton();
 	loadPrizeShelf();
+	syncMoleChooserForInputMode();
+	ensureMoleChooserValue();
 	const savedSettings = loadGameSettings();
 	if (savedSettings) {
 		applySettingsToUI(savedSettings);
@@ -1048,6 +1066,7 @@ function init() {
 	setupScoreListener();
 	syncInputModeUI();
 	syncMoleChooserForInputMode();
+	ensureMoleChooserValue();
 	syncTrainingUI();
 
 	initGameLoop({

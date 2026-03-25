@@ -24,7 +24,13 @@ function setAttemptCallback(cb) {
 }
 
 function setInputMode(mode) {
-	currentInputMode = mode === "perkins" ? "perkins" : "qwerty";
+	if (mode === "perkins") {
+		currentInputMode = "perkins";
+	} else if (mode === "brailleDisplay") {
+		currentInputMode = "brailleDisplay";
+	} else {
+		currentInputMode = "qwerty";
+	}
 	chordDown.clear();
 	chordUsed.clear();
 	chordMoleId = 0;

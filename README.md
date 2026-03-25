@@ -19,10 +19,13 @@ Tickets earned during gameplay are saved into a persistent ticket bank and can b
 
 - QWERTY Keyboard
 - Perkins-style braille keyboard input (F D S J K L chord entry)
-- External braille display support for Desktop, just requires dot 8 or Space Bar to submit the chord
+- Braille Display mode for 8-dot submission across all Mole Chooser modes
 - Mobile Braille Entry field for screen reader braille input on phones/tablets
 
-Typing-focused Mole Chooser modes lock input to QWERTY. Grade 2 modes and Grade 2 Invasion lock input to Perkins. If Perkins is selected manually, the QWERTY typing-only Mole Chooser options are hidden until QWERTY is selected again.
+Game Settings now use a Mole Chooser select menu that rebuilds based on the chosen Keyboard Input Mode:
+- QWERTY shows typing modes and Grade 1 modes
+- Perkins Home Row hides the QWERTY typing-only modes
+- Braille Display shows the full set, including Grade 2 options
 
 Global keyboard shortcuts:
 - Backtick (`) repeats the current target without affecting gameplay
@@ -116,6 +119,7 @@ All speech and audio settings persist across sessions.
 - Earn tickets through gameplay and keep them in a persistent local ticket bank
 - Redeem tickets for randomly selected prizes from Home or after a round
 - Prize claims deduct only the selected prize cost instead of clearing the whole bank
+- If you have 0 tickets, the prize choices and Claim button stay hidden until you earn some
 - Prize shelf persists across sessions
 - Duplicate prizes increment quantity instead of duplicating entries
 - Clearing the Prize Shelf announces "Prize Shelf Cleared" to screen readers
