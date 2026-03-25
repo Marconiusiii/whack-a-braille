@@ -111,7 +111,18 @@ function onKeyUp(event) {
 		return;
 	}
 
-	/* Normal keyboard / braille-display characters */
+	/* Braille displays on macOS often deliver translated text directly. */
+	if (currentInputMode === "brailleDisplay") {
+		if (key.length === 1) {
+			emitAttempt({
+				type: "brailleText",
+				char: key
+			});
+		}
+		return;
+	}
+
+	/* Normal keyboard characters */
 	if (key.length === 1) {
 		emitAttempt({
 			type: "standard",

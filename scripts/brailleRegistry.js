@@ -18,7 +18,27 @@ function dotsToPerkinsKeys(dots) {
 	return dots.map(dot => map[dot]);
 }
 
+function dedupeInputs(inputs) {
+	const seen = new Set();
+	const result = [];
+
+	for (const input of inputs.map(value => String(value || "").trim().toLowerCase())) {
+		if (!input || seen.has(input)) continue;
+		seen.add(input);
+		result.push(input);
+	}
+
+	return result;
+}
+
 function makeItem(id, announceText, dots, modes, standardKey = null, options = {}) {
+	const acceptedInputs = Array.isArray(options.acceptedInputs) ? options.acceptedInputs : [];
+	const acceptedTextInputs = [id];
+	if (standardKey) {
+		acceptedTextInputs.push(standardKey);
+	}
+	acceptedTextInputs.push(...acceptedInputs);
+
 	return {
 		id,
 		modeTags: modes,
@@ -28,6 +48,7 @@ function makeItem(id, announceText, dots, modes, standardKey = null, options = {
 		dotMask: dotsToMask(dots),
 		perkinsKeys: dotsToPerkinsKeys(dots),
 		standardKey,
+		acceptedTextInputs: dedupeInputs(acceptedTextInputs),
 		...options
 	};
 }
@@ -42,6 +63,8 @@ function makeTypingItem(key, announceText, modes) {
 		dotMask: 0,
 		perkinsKeys: [],
 		standardKey: key
+		,
+		acceptedTextInputs: [String(key).toLowerCase()]
 	};
 }
 const grade1Letters = [
@@ -87,53 +110,53 @@ const grade1Numbers = [
 ];
 
 const grade2Symbols = [
-	makeItem("er","E R",[1,2,4,5,6],["grade2Symbols"]),
-	makeItem("ed","E D",[1,2,4,6],["grade2Symbols"]),
-	makeItem("gh","G H",[1,2,6],["grade2Symbols"]),
-	makeItem("ar","A R",[3,4,5],["grade2Symbols"]),
-	makeItem("ow","O W",[2,4,6],["grade2Symbols"]),
-	makeItem("ou","O U",[1,2,5,6],["grade2Symbols"]),
-	makeItem("st","S T",[3,4],["grade2Symbols"]),
-	makeItem("ch","C H",[1,6],["grade2Symbols"]),
-	makeItem("wh","W H",[1,5,6],["grade2Symbols"]),
-	makeItem("ing","I N G",[3,4,6],["grade2Symbols"]),
-	makeItem("dis","dis",[2,5,6],["grade2Symbols"]),
-	makeItem("con","con",[2,5],["grade2Symbols"]),
-	makeItem("of","Of",[1,2,3,5,6],["grade2Symbols"]),
-	makeItem("with","with",[2,3,4,5,6],["grade2Symbols"]),
-	makeItem("and","and",[1,2,3,4,6],["grade2Symbols"]),
-	makeItem("for","for",[1,2,3,4,5,6],["grade2Symbols"]),
-	makeItem("the","The",[2,3,4,6],["grade2Symbols"])
+	makeItem("er","E R",[1,2,4,5,6],["grade2Symbols"], null, { acceptedInputs: ["}"] }),
+	makeItem("ed","E D",[1,2,4,6],["grade2Symbols"], null, { acceptedInputs: ["$"] }),
+	makeItem("gh","G H",[1,2,6],["grade2Symbols"], null, { acceptedInputs: ["<"] }),
+	makeItem("ar","A R",[3,4,5],["grade2Symbols"], null, { acceptedInputs: [">"] }),
+	makeItem("ow","O W",[2,4,6],["grade2Symbols"], null, { acceptedInputs: ["{"] }),
+	makeItem("ou","O U",[1,2,5,6],["grade2Symbols"], null, { acceptedInputs: ["|", "out"] }),
+	makeItem("st","S T",[3,4],["grade2Symbols"], null, { acceptedInputs: ["/", "still"] }),
+	makeItem("ch","C H",[1,6],["grade2Symbols"], null, { acceptedInputs: ["*", "child"] }),
+	makeItem("wh","W H",[1,5,6],["grade2Symbols"], null, { acceptedInputs: [":"] }),
+	makeItem("ing","I N G",[3,4,6],["grade2Symbols"], null, { acceptedInputs: ["+"] }),
+	makeItem("dis","dis",[2,5,6],["grade2Symbols"], null, { acceptedInputs: ["4", "."] }),
+	makeItem("con","con",[2,5],["grade2Symbols"], null, { acceptedInputs: ["3", ":"] }),
+	makeItem("of","Of",[1,2,3,5,6],["grade2Symbols"], null, { acceptedInputs: ["("] }),
+	makeItem("with","with",[2,3,4,5,6],["grade2Symbols"], null, { acceptedInputs: [")"] }),
+	makeItem("and","and",[1,2,3,4,6],["grade2Symbols"], null, { acceptedInputs: ["&"] }),
+	makeItem("for","for",[1,2,3,4,5,6],["grade2Symbols"], null, { acceptedInputs: ["="] }),
+	makeItem("the","The",[2,3,4,6],["grade2Symbols"], null, { acceptedInputs: ["!"] })
 ];
 
 const grade2Words = [
-	makeItem("but","But",[1,2],["grade2Words"]),
-	makeItem("can","Can",[1,4],["grade2Words"]),
-	makeItem("do","Do",[1,4,5],["grade2Words"]),
-	makeItem("every","Every",[1,5],["grade2Words"]),
-	makeItem("from","From",[1,2,4],["grade2Words"]),
-	makeItem("go","Go",[1,2,4,5],["grade2Words"]),
-	makeItem("have","Have",[1,2,5],["grade2Words"]),
-	makeItem("just","Just",[2,4,5],["grade2Words"]),
-	makeItem("knowledge","Knowledge",[1,3],["grade2Words"]),
-	makeItem("like","Like",[1,2,3],["grade2Words"]),
-	makeItem("more","More",[1,3,4],["grade2Words"]),
-	makeItem("not","Not",[1,3,4,5],["grade2Words"]),
-	makeItem("people","People",[1,2,3,4],["grade2Words"]),
-	makeItem("quite","Quite",[1,2,3,4,5],["grade2Words"]),
-	makeItem("rather","Rather",[1,2,3,5],["grade2Words"]),
-	makeItem("so","So",[2,3,4],["grade2Words"]),
-	makeItem("that","That",[2,3,4,5],["grade2Words"]),
-	makeItem("us","Us",[1,3,6],["grade2Words"]),
-	makeItem("very","Very",[1,2,3,6],["grade2Words"]),
-	makeItem("will","Will",[2,4,5,6],["grade2Words"]),
-	makeItem("it","It",[1,3,4,6],["grade2Words"]),
-	makeItem("you","You",[1,3,4,5,6],["grade2Words"]),
-	makeItem("as","As",[1,3,5,6],["grade2Words"]),
-	makeItem("this","This",[1,4,5,6],["grade2Words"]),
-	makeItem("which","Which",[1,5,6],["grade2Words"]),
-	makeItem("child","Child",[1,6],["grade2Words"]),
-	makeItem("shall","Shall",[1,4,6],["grade2Words"])
+	makeItem("but","But",[1,2],["grade2Words"], null, { acceptedInputs: ["b"] }),
+	makeItem("can","Can",[1,4],["grade2Words"], null, { acceptedInputs: ["c"] }),
+	makeItem("do","Do",[1,4,5],["grade2Words"], null, { acceptedInputs: ["d"] }),
+	makeItem("every","Every",[1,5],["grade2Words"], null, { acceptedInputs: ["e"] }),
+	makeItem("from","From",[1,2,4],["grade2Words"], null, { acceptedInputs: ["f"] }),
+	makeItem("go","Go",[1,2,4,5],["grade2Words"], null, { acceptedInputs: ["g"] }),
+	makeItem("have","Have",[1,2,5],["grade2Words"], null, { acceptedInputs: ["h"] }),
+	makeItem("just","Just",[2,4,5],["grade2Words"], null, { acceptedInputs: ["j"] }),
+	makeItem("knowledge","Knowledge",[1,3],["grade2Words"], null, { acceptedInputs: ["k"] }),
+	makeItem("like","Like",[1,2,3],["grade2Words"], null, { acceptedInputs: ["l"] }),
+	makeItem("more","More",[1,3,4],["grade2Words"], null, { acceptedInputs: ["m"] }),
+	makeItem("not","Not",[1,3,4,5],["grade2Words"], null, { acceptedInputs: ["n"] }),
+	makeItem("people","People",[1,2,3,4],["grade2Words"], null, { acceptedInputs: ["p"] }),
+	makeItem("quite","Quite",[1,2,3,4,5],["grade2Words"], null, { acceptedInputs: ["q"] }),
+	makeItem("rather","Rather",[1,2,3,5],["grade2Words"], null, { acceptedInputs: ["r"] }),
+	makeItem("so","So",[2,3,4],["grade2Words"], null, { acceptedInputs: ["s"] }),
+	makeItem("that","That",[2,3,4,5],["grade2Words"], null, { acceptedInputs: ["t"] }),
+	makeItem("us","Us",[1,3,6],["grade2Words"], null, { acceptedInputs: ["u"] }),
+	makeItem("very","Very",[1,2,3,6],["grade2Words"], null, { acceptedInputs: ["v"] }),
+	makeItem("will","Will",[2,4,5,6],["grade2Words"], null, { acceptedInputs: ["w"] }),
+	makeItem("it","It",[1,3,4,6],["grade2Words"], null, { acceptedInputs: ["x"] }),
+	makeItem("you","You",[1,3,4,5,6],["grade2Words"], null, { acceptedInputs: ["y"] }),
+	makeItem("as","As",[1,3,5,6],["grade2Words"], null, { acceptedInputs: ["z"] }),
+	makeItem("this","This",[1,4,5,6],["grade2Words"], null, { acceptedInputs: ["?"] }),
+	makeItem("which","Which",[1,5,6],["grade2Words"], null, { acceptedInputs: ["w", ":"] }),
+	makeItem("child","Child",[1,6],["grade2Words"], null, { acceptedInputs: ["c", "*"] }),
+	makeItem("shall","Shall",[1,4,6],["grade2Words"], null, { acceptedInputs: ["s", "%"] })
 ];
 
 const typingSimpleHomeRowItems = [

@@ -695,7 +695,11 @@ function handleAttempt(attempt) {
 	}
 
 	if (attempt.type === "brailleText") {
-		isHit = String(attempt.char || "").toLowerCase() === String(currentItem.id || "").toLowerCase();
+		const attemptValue = String(attempt.char || "").trim().toLowerCase();
+		const acceptedInputs = Array.isArray(currentItem.acceptedTextInputs)
+			? currentItem.acceptedTextInputs
+			: [String(currentItem.id || "").trim().toLowerCase()];
+		isHit = acceptedInputs.includes(attemptValue);
 	}
 
 	if (isHit) {

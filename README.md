@@ -19,13 +19,14 @@ Tickets earned during gameplay are saved into a persistent ticket bank and can b
 
 - QWERTY Keyboard
 - Perkins-style braille keyboard input (F D S J K L chord entry)
-- Braille Display mode for 8-dot submission across all Mole Chooser modes
+- Braille Display mode for translated 8-dot braille input across all Mole Chooser modes
 - Mobile Braille Entry field for screen reader braille input on phones/tablets
 
 Game Settings now use a Mole Chooser select menu that rebuilds based on the chosen Keyboard Input Mode:
 - QWERTY shows typing modes and Grade 1 modes
 - Perkins Home Row hides the QWERTY typing-only modes
 - Braille Display shows the full set, including Grade 2 options
+- In Braille Display mode, incoming translated characters, contractions, and Grade 2 punctuation aliases are matched directly to the active mole target
 
 Global keyboard shortcuts:
 - Backtick (`) repeats the current target without affecting gameplay
