@@ -201,6 +201,9 @@
 <div id="scoreDisplay" tabindex="0">
 <div role="text" id="scoreText">Score: 0</div>
 </div>
+<div id="gameActions">
+<button id="exitRoundButton" type="button">Exit Round</button>
+</div>
 
 <div id="gameBoard" aria-hidden="true">
 <div class="mole" data-hole="1"></div>
@@ -208,6 +211,11 @@
 <div class="mole" data-hole="3"></div>
 <div class="mole" data-hole="4"></div>
 <div class="mole" data-hole="5"></div>
+</div>
+
+<div id="desktopBrailleDisplayEntry" hidden>
+<label for="desktopBrailleDisplayInput">Braille Display Entry</label>
+<input id="desktopBrailleDisplayInput" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done">
 </div>
 
 <div id="mobileBsiEntry" class="mobileBsiOnly">

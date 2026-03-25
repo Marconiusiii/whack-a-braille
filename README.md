@@ -27,6 +27,7 @@ Game Settings now use a Mole Chooser select menu that rebuilds based on the chos
 - Perkins Home Row hides the QWERTY typing-only modes
 - Braille Display shows the full set, including Grade 2 options
 - In Braille Display mode, incoming translated characters, contractions, and Grade 2 punctuation aliases are matched directly to the active mole target
+- On desktop, Braille Display mode uses a dedicated gameplay text field so translated display input can be captured during the round
 
 Global keyboard shortcuts:
 - Backtick (`) repeats the current target without affecting gameplay
@@ -83,6 +84,7 @@ Features:
 - Optional spoken braille dot patterns
 - Restart training or return home at completion
 - Keyboard shortcut `\` ends training early
+- Exit Round button finishes the current round and moves straight to Results
 
 Training mode disables round length selection and ticket earning.
 

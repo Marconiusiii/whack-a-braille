@@ -1,6 +1,6 @@
 "use strict";
 
-import { initGameLoop, getCurrentSpeechPayload, startRound, stopRound } from "./gameLoop.js";
+import { initGameLoop, getCurrentSpeechPayload, startRound, stopRound, finishRoundEarly } from "./gameLoop.js";
 import { unlockAudio, setGameAudioMode, playEndBuzzer, playStartFlourish, playEverythingStinger, playPrizeFanfare } from "./audioEngine.js";
 import {
 	unlockSpeech,
@@ -36,6 +36,8 @@ const spatialMoleMappingCheckbox = document.getElementById("spatialMoleMappingEn
 const mobileBsiEntry = document.getElementById("mobileBsiEntry");
 const mobileBsiInput = document.getElementById("mobileBsiInput");
 const moleChooserSelect = document.getElementById("moleChooserSelect");
+const desktopBrailleDisplayEntry = document.getElementById("desktopBrailleDisplayEntry");
+const desktopBrailleDisplayInput = document.getElementById("desktopBrailleDisplayInput");
 
 const speechRatePercentInput = document.getElementById("speechRatePercent");
 const voiceSelect = document.getElementById("voiceSelect");
@@ -54,6 +56,7 @@ const homeCashInButton = document.getElementById("homeCashInButton");
 const playAgainButton = document.getElementById("playAgainButton");
 const cashOutButton = document.getElementById("cashOutButton");
 const saveTicketsHomeButton = document.getElementById("saveTicketsHomeButton");
+const exitRoundButton = document.getElementById("exitRoundButton");
 
 const grade1InputModeFieldset = document.getElementById("grade1InputModeFieldset");
 const cashOutSummaryText = document.getElementById("cashOutSummaryText");
@@ -326,6 +329,23 @@ function armMobileBsiInput() {
 	safeFocus(mobileBsiInput);
 }
 
+function armDesktopBrailleDisplayInput() {
+	if (!desktopBrailleDisplayInput || !desktopBrailleDisplayEntry) return;
+	if (gameState !== "playing") return;
+	if (getSelectedInputMode() !== "brailleDisplay") return;
+	safeFocus(desktopBrailleDisplayInput);
+}
+
+function syncDesktopBrailleDisplayUI() {
+	if (!desktopBrailleDisplayEntry || !desktopBrailleDisplayInput) return;
+	const enabled = getSelectedInputMode() === "brailleDisplay";
+	desktopBrailleDisplayEntry.hidden = !enabled;
+	desktopBrailleDisplayInput.disabled = !enabled;
+	if (!enabled) {
+		desktopBrailleDisplayInput.value = "";
+	}
+}
+
 function safeFocus(el) {
 	if (!el) return;
 	try {
@@ -391,6 +411,7 @@ function setGameState(state) {
 
 		setCurrentMoleId(0);
 		armMobileBsiInput();
+		armDesktopBrailleDisplayInput();
 		return;
 	}
 
@@ -639,6 +660,12 @@ function setupEventListeners() {
 		});
 	}
 
+	if (exitRoundButton) {
+		exitRoundButton.addEventListener("click", () => {
+			finishRoundEarly();
+		});
+	}
+
 	if (homeCashInButton) {
 		homeCashInButton.addEventListener("click", () => {
 			renderCashOut("home");
@@ -801,6 +828,7 @@ if (cancelCashOutButton) {
 		radio.addEventListener("change", () => {
 			syncMoleChooserForInputMode();
 			syncInputModeUI();
+			syncDesktopBrailleDisplayUI();
 			saveGameSettings(getSelectedSettings());
 		});
 	});
@@ -917,6 +945,47 @@ function setupMobileBsiListeners() {
 		if (gameState !== "playing") return;
 		setTimeout(() => {
 			armMobileBsiInput();
+		}, 40);
+	});
+}
+
+function setupDesktopBrailleDisplayListeners() {
+	if (!desktopBrailleDisplayInput) return;
+
+	function flushDesktopBrailleDisplayText() {
+		if (gameState !== "playing" || getSelectedInputMode() !== "brailleDisplay") {
+			desktopBrailleDisplayInput.value = "";
+			return;
+		}
+
+		const text = desktopBrailleDisplayInput.value;
+		if (!text) return;
+
+		const normalized = text.trim().toLowerCase();
+		if (normalized) {
+			emitTextAttempt(normalized);
+		}
+
+		desktopBrailleDisplayInput.value = "";
+	}
+
+	desktopBrailleDisplayInput.addEventListener("input", () => {
+		flushDesktopBrailleDisplayText();
+	});
+
+	desktopBrailleDisplayInput.addEventListener("beforeinput", e => {
+		if (gameState !== "playing" || getSelectedInputMode() !== "brailleDisplay") return;
+		const nextText = String(e.data || "").trim().toLowerCase();
+		if (!nextText) return;
+		emitTextAttempt(nextText);
+		desktopBrailleDisplayInput.value = "";
+		e.preventDefault();
+	});
+
+	desktopBrailleDisplayInput.addEventListener("blur", () => {
+		if (gameState !== "playing" || getSelectedInputMode() !== "brailleDisplay") return;
+		setTimeout(() => {
+			armDesktopBrailleDisplayInput();
 		}, 40);
 	});
 }
@@ -1050,6 +1119,7 @@ function init() {
 	if (mobileBsiInput) {
 		mobileBsiInput.disabled = !mobileBsiEnabled;
 	}
+	syncDesktopBrailleDisplayUI();
 
 	loadTotalTickets();
 	updateHomeCashInButton();
@@ -1082,6 +1152,7 @@ function init() {
 
 	attachKeyboardListeners();
 	setupMobileBsiListeners();
+	setupDesktopBrailleDisplayListeners();
 }
 
 init();

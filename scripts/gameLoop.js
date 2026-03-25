@@ -245,6 +245,10 @@ function stopRound() {
 	endRoundNow(true);
 }
 
+function finishRoundEarly() {
+	endRoundNow(false);
+}
+
 function requestRoundEnd() {
 	if (!isRunning) return;
 
@@ -842,5 +846,6 @@ export {
 	initGameLoop,
 	startRound,
 	getCurrentSpeechPayload,
-	stopRound
+	stopRound,
+	finishRoundEarly
 };
