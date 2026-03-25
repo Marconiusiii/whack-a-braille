@@ -70,8 +70,6 @@ const resultsMissesValue = document.getElementById("resultsMissesValue");
 const resultsEscapesValue = document.getElementById("resultsEscapesValue");
 const resultsStreakBonusValue = document.getElementById('resultsStreakBonusValue');
 const resultsSpeedBonusValue = document.getElementById('resultsSpeedBonusValue');
-const brailleDebugSection = document.getElementById("brailleDebugSection");
-const brailleDebugLog = document.getElementById("brailleDebugLog");
 const srLiveRegion = document.getElementById("srLiveRegion");
 
 let gameState = "home";
@@ -79,7 +77,6 @@ let totalTickets = 0;
 let srAnnounceTimer = null;
 let mobileBsiEnabled = false;
 let cashOutSource = "results";
-let brailleDebugEntries = [];
 
 const TICKET_STORAGE_KEY = "wabTotalTickets";
 const moleChooserOptions = [
@@ -109,29 +106,6 @@ function announceToSr(message) {
 		srLiveRegion.textContent = String(message || "");
 		srAnnounceTimer = null;
 	}, 10);
-}
-
-function logBrailleDebug(eventName, detail = "") {
-	if (getSelectedInputMode() !== "brailleDisplay") return;
-	if (!desktopBrailleDisplayInput) return;
-	const value = String(desktopBrailleDisplayInput.value || "");
-	const active = document.activeElement === desktopBrailleDisplayInput ? "active" : "inactive";
-	const detailText = detail ? " " + detail : "";
-	brailleDebugEntries.push(`${new Date().toISOString()} ${eventName}${detailText} value="${value}" ${active}`);
-	if (brailleDebugEntries.length > 150) {
-		brailleDebugEntries = brailleDebugEntries.slice(-150);
-	}
-}
-
-function renderBrailleDebugLog() {
-	if (!brailleDebugSection || !brailleDebugLog) return;
-	if (getSelectedInputMode() !== "brailleDisplay" || brailleDebugEntries.length === 0) {
-		brailleDebugSection.hidden = true;
-		brailleDebugLog.textContent = "";
-		return;
-	}
-	brailleDebugSection.hidden = false;
-	brailleDebugLog.textContent = brailleDebugEntries.join("\n");
 }
 
 function loadStorageObject(key, fallback = {}) {
@@ -380,6 +354,7 @@ function syncDesktopBrailleDisplayUI() {
 	if (!desktopBrailleDisplayEntry || !desktopBrailleDisplayInput) return;
 	const enabled = getSelectedInputMode() === "brailleDisplay";
 	desktopBrailleDisplayEntry.hidden = !enabled;
+	desktopBrailleDisplayInput.hidden = false;
 	desktopBrailleDisplayInput.disabled = !enabled;
 	if (!enabled) {
 		resetDesktopBrailleDisplayInput();
@@ -459,7 +434,6 @@ function setGameState(state) {
 		setHiddenInert(resultsArea, false);
 
 		setCurrentMoleId(0);
-		renderBrailleDebugLog();
 
 		const difficulty = getSelectedDifficulty();
 		if (difficulty !== "training") {
@@ -650,8 +624,6 @@ function startGameFromSettings() {
 			scoreText.textContent = "Score: 0";
 		}
 	}
-
-	brailleDebugEntries = [];
 
 	setInputMode(settings.inputMode);
 	setCurrentMoleId(0);
@@ -1012,7 +984,6 @@ function setupDesktopBrailleDisplayListeners() {
 	function emitDesktopBrailleAttempt(text) {
 		const normalized = String(text || "").trim().toLowerCase();
 		if (!normalized) return;
-		logBrailleDebug("emitAttempt", `text="${normalized}"`);
 
 		const now = performance.now();
 		if (normalized === lastDesktopBrailleValue && now - lastDesktopBrailleAt < 80) {
@@ -1031,7 +1002,6 @@ function setupDesktopBrailleDisplayListeners() {
 			scheduleDesktopBrailleDisplayReset();
 			return;
 		}
-
 		const text = desktopBrailleDisplayInput.value;
 		if (!text) return;
 
@@ -1039,44 +1009,14 @@ function setupDesktopBrailleDisplayListeners() {
 	}
 
 	desktopBrailleDisplayInput.addEventListener("input", () => {
-		logBrailleDebug("input");
 		flushDesktopBrailleDisplayText();
 	});
 
 	desktopBrailleDisplayInput.addEventListener("blur", () => {
-		logBrailleDebug("blur");
 		if (gameState !== "playing" || getSelectedInputMode() !== "brailleDisplay") return;
 		setTimeout(() => {
 			armDesktopBrailleDisplayInput();
 		}, 40);
-	});
-
-	desktopBrailleDisplayInput.addEventListener("focus", () => {
-		logBrailleDebug("focus");
-	});
-
-	desktopBrailleDisplayInput.addEventListener("beforeinput", e => {
-		logBrailleDebug("beforeinput", `type="${String(e.inputType || "")}" data="${String(e.data || "")}"`);
-	});
-
-	desktopBrailleDisplayInput.addEventListener("keydown", e => {
-		logBrailleDebug("keydown", `key="${String(e.key || "")}"`);
-	});
-
-	desktopBrailleDisplayInput.addEventListener("keyup", e => {
-		logBrailleDebug("keyup", `key="${String(e.key || "")}"`);
-	});
-
-	desktopBrailleDisplayInput.addEventListener("compositionstart", e => {
-		logBrailleDebug("compositionstart", `data="${String(e.data || "")}"`);
-	});
-
-	desktopBrailleDisplayInput.addEventListener("compositionupdate", e => {
-		logBrailleDebug("compositionupdate", `data="${String(e.data || "")}"`);
-	});
-
-	desktopBrailleDisplayInput.addEventListener("compositionend", e => {
-		logBrailleDebug("compositionend", `data="${String(e.data || "")}"`);
 	});
 }
 
