@@ -20,6 +20,7 @@ let characterEchoEnabled = false;
 let availableItems = [];
 let roundItems = [];
 let roundLaneItems = [];
+let activeMoleItem = null;
 
 let activeMoleIndex = null;
 let activeMoleId = 0;
@@ -90,11 +91,16 @@ function initGameLoop(options) {
 	moleElements = options.moleElements || [];
 }
 
+function isInvasionMode(modeId) {
+	return modeId === "grade1Invasion" || modeId === "grade2Invasion";
+}
+
 function isSpatialMappingEligibleMode(modeId) {
 	return modeId === "typingSimpleHomeRow" ||
 		modeId === "typingHomeRow" ||
 		modeId === "typingHomeTopRow" ||
 		modeId === "typingHomeBottomRow" ||
+		modeId === "grade1Invasion" ||
 		modeId === "letters-aj" ||
 		modeId === "letters-at" ||
 		modeId === "grade1Letters" ||
@@ -110,6 +116,10 @@ function laneForItem(item) {
 }
 
 function buildRoundLaneItems(modeId, items, useSpatialMapping) {
+	if (isInvasionMode(modeId)) {
+		return Array.from({ length: 5 }, () => null);
+	}
+
 	const lanes = Array.from({ length: 5 }, () => null);
 
 	if (!useSpatialMapping || !isSpatialMappingEligibleMode(modeId)) {
@@ -134,6 +144,10 @@ function buildRoundLaneItems(modeId, items, useSpatialMapping) {
 }
 
 function pickRoundItems(modeId, pool, useSpatialMapping) {
+	if (isInvasionMode(modeId)) {
+		return Array.isArray(pool) ? pool.slice() : [];
+	}
+
 	if (!useSpatialMapping || !isSpatialMappingEligibleMode(modeId)) {
 		return pickFiveItems(pool);
 	}
@@ -174,7 +188,7 @@ function startRound(modeId, durationSeconds, inputMode, difficulty = "normal", o
 
 	currentModeId = modeId;
 	currentDurationSeconds = durationSeconds;
-	currentInputMode = modeId === "everything" ? "perkins" : inputMode;
+	currentInputMode = modeId === "grade2Invasion" ? "perkins" : inputMode;
 
 	isTrainingMode = difficulty === "training";
 	speakBrailleDotsEnabled = !!options.speakBrailleDots && isTrainingMode;
@@ -204,6 +218,7 @@ function startRound(modeId, durationSeconds, inputMode, difficulty = "normal", o
 
 	activeMoleIndex = null;
 	activeMoleId = 0;
+	activeMoleItem = null;
 	missRegisteredForMole = false;
 
 	setCurrentMoleId(0);
@@ -419,8 +434,10 @@ async function showTrainingMole() {
 	activeMoleId++;
 	missRegisteredForMole = false;
 
-	activeMoleIndex = pickNextMoleIndex();
-	const moleItem = roundLaneItems[activeMoleIndex];
+	const nextMole = pickNextMole();
+	activeMoleIndex = nextMole.index;
+	activeMoleItem = nextMole.item;
+	const moleItem = activeMoleItem;
 	if (!moleItem) {
 		clearActiveMole();
 		setCurrentMoleId(0);
@@ -468,8 +485,10 @@ async function showRandomMole() {
 	activeMoleId++;
 	missRegisteredForMole = false;
 
-	activeMoleIndex = pickNextMoleIndex();
-	const moleItem = roundLaneItems[activeMoleIndex];
+	const nextMole = pickNextMole();
+	activeMoleIndex = nextMole.index;
+	activeMoleItem = nextMole.item;
+	const moleItem = activeMoleItem;
 	if (!moleItem) {
 		clearActiveMole();
 		setCurrentMoleId(0);
@@ -533,16 +552,20 @@ async function showRandomMole() {
 	}, upTime);
 }
 
-function pickNextMoleIndex() {
-	const candidates = [];
-	for (let i = 0; i < roundLaneItems.length; i++) {
-		if (roundLaneItems[i]) candidates.push(i);
+function pickLaneIndex(candidates, blockedIndex = null) {
+	if (!candidates.length) return 0;
+	if (candidates.length === 1) {
+		const onlyIndex = candidates[0];
+		if (onlyIndex === lastLaneIndex) {
+			sameLaneRunCount += 1;
+		} else {
+			lastLaneIndex = onlyIndex;
+			sameLaneRunCount = 1;
+		}
+		return onlyIndex;
 	}
 
-	if (!candidates.length) return 0;
-	if (candidates.length === 1) return candidates[0];
-
-	let filtered = candidates.filter(i => i !== activeMoleIndex);
+	let filtered = candidates.filter(i => i !== blockedIndex);
 
 	if (lastLaneIndex !== null && sameLaneRunCount >= MAX_SAME_LANE_IN_ROW) {
 		const withoutStreak = filtered.filter(i => i !== lastLaneIndex);
@@ -567,17 +590,73 @@ function pickNextMoleIndex() {
 	return index;
 }
 
+function pickNextInvasionMole() {
+	if (!Array.isArray(availableItems) || availableItems.length === 0) {
+		return { index: 0, item: null };
+	}
+
+	if (spatialMoleMappingEnabled && isSpatialMappingEligibleMode(currentModeId)) {
+		const laneBuckets = Array.from({ length: 5 }, () => []);
+		for (const item of availableItems) {
+			const lane = laneForItem(item);
+			if (lane === null) continue;
+			laneBuckets[lane].push(item);
+		}
+
+		const laneCandidates = [];
+		for (let i = 0; i < laneBuckets.length; i++) {
+			if (laneBuckets[i].length) {
+				laneCandidates.push(i);
+			}
+		}
+
+		if (!laneCandidates.length) {
+			const fallbackIndex = pickLaneIndex([0, 1, 2, 3, 4], activeMoleIndex);
+			const fallbackItem = availableItems[Math.floor(Math.random() * availableItems.length)] || null;
+			return { index: fallbackIndex, item: fallbackItem };
+		}
+
+		const index = pickLaneIndex(laneCandidates, activeMoleIndex);
+		const bucket = laneBuckets[index];
+		const item = bucket[Math.floor(Math.random() * bucket.length)] || null;
+		return { index, item };
+	}
+
+	const index = pickLaneIndex([0, 1, 2, 3, 4], activeMoleIndex);
+	const item = availableItems[Math.floor(Math.random() * availableItems.length)] || null;
+	return { index, item };
+}
+
+function pickNextMole() {
+	if (isInvasionMode(currentModeId)) {
+		return pickNextInvasionMole();
+	}
+
+	const candidates = [];
+	for (let i = 0; i < roundLaneItems.length; i++) {
+		if (roundLaneItems[i]) candidates.push(i);
+	}
+
+	if (!candidates.length) {
+		return { index: 0, item: null };
+	}
+
+	const index = pickLaneIndex(candidates, activeMoleIndex);
+	return { index, item: roundLaneItems[index] };
+}
+
 function clearActiveMole() {
 	if (activeMoleIndex === null) return;
 	deactivateMoleVisual(activeMoleIndex);
 	activeMoleIndex = null;
+	activeMoleItem = null;
 }
 
 function activateMoleVisual(index) {
 	const mole = moleElements[index];
 	if (!mole) return;
 
-	const item = roundLaneItems[index];
+	const item = activeMoleIndex === index ? activeMoleItem : roundLaneItems[index];
 
 	mole.dataset.label = item?.id || "";
 	mole.classList.add("isUp");
@@ -599,7 +678,8 @@ function handleAttempt(attempt) {
 
 	if (currentInputMode === "perkins" && attempt.type === "standard") return;
 
-	const currentItem = roundLaneItems[activeMoleIndex];
+	const currentItem = activeMoleItem;
+	if (!currentItem) return;
 	let isHit = false;
 
 	if (attempt.type === "perkins") {
@@ -728,7 +808,7 @@ function handleMiss() {
 function getCurrentSpeechPayload() {
 	if (activeMoleIndex === null) return null;
 
-	const item = roundLaneItems[activeMoleIndex];
+	const item = activeMoleItem;
 	if (!item) return null;
 
 	let text = item.announceText;

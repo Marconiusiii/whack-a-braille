@@ -13,7 +13,7 @@ Scoring rewards:
 - Streaks of correct responses
 - Fast reaction times
 
-Tickets earned during gameplay can be redeemed for prizes at the Prize Counter.
+Tickets earned during gameplay are saved into a persistent ticket bank and can be redeemed later at the Prize Counter.
 
 ## Input Modes
 
@@ -22,7 +22,7 @@ Tickets earned during gameplay can be redeemed for prizes at the Prize Counter.
 - External braille display support for Desktop, just requires dot 8 or Space Bar to submit the chord
 - Mobile Braille Entry field for screen reader braille input on phones/tablets
 
-Typing-focused Mole Chooser modes lock input to QWERTY. Grade 2 and Everything continue to lock input to Perkins.
+Typing-focused Mole Chooser modes lock input to QWERTY. Grade 2 modes and Grade 2 Invasion lock input to Perkins. If Perkins is selected manually, the QWERTY typing-only Mole Chooser options are hidden until QWERTY is selected again.
 
 Global keyboard shortcuts:
 - Backtick (`) repeats the current target without affecting gameplay
@@ -33,6 +33,7 @@ Global keyboard shortcuts:
 - QWERTY Home Row
 - QWERTY Home Row + Top Row
 - QWERTY Home Row + Bottom Row
+- Grade 1 Invasion
 - Grade 1 Letters A–J
 - Grade 1 Letters A–T
 - Grade 1 All Letters
@@ -40,9 +41,9 @@ Global keyboard shortcuts:
 - Grade 1 Letters and Numbers
 - Grade 2 Symbols
 - Grade 2 Word Signs
-- Everything (advanced mixed mode)
+- Grade 2 Invasion
 
-Everything mode mixes Grade 1 and Grade 2 content and locks input to Perkins mode.
+Grade 1 Invasion draws each mole from the full Grade 1 letter set as it appears. Grade 2 Invasion does the same with the full Grade 2 pool and uses Perkins input.
 
 ## Spatial Mole Mapping
 
@@ -50,7 +51,7 @@ Spatial Mole Mapping is available in Game Settings and is enabled by default.
 
 - When enabled, typing and eligible Grade 1 targets appear in stereo lanes that match keyboard neighborhoods.
 - When disabled, lane placement is more random for an extra challenge.
-- Grade 2 modes and Everything mode do not use spatial mapping.
+- Grade 2 modes and Grade 2 Invasion do not use spatial mapping.
 - Spawn logic also reduces long same-lane streaks so one lane is less likely to repeat too many times in a row.
 
 ## Difficulty Modes
@@ -105,13 +106,16 @@ Desktop behavior is unchanged: hardware keyboard input still uses QWERTY and Per
 - Spatialized audio cues indicate mole position
 - Independent audio styles selectable via Game Audio settings
 - Optional timer music that accelerates as rounds progress
+- Prize claims trigger a short musical fanfare with a shimmering chime glissando
+- Mole hit feedback has been retuned for a stronger arcade feel
 
 All speech and audio settings persist across sessions.
 
 ## Prize System
 
-- Earn tickets through gameplay
-- Redeem tickets for randomly selected prizes
+- Earn tickets through gameplay and keep them in a persistent local ticket bank
+- Redeem tickets for randomly selected prizes from Home or after a round
+- Prize claims deduct only the selected prize cost instead of clearing the whole bank
 - Prize shelf persists across sessions
 - Duplicate prizes increment quantity instead of duplicating entries
 - Clearing the Prize Shelf announces "Prize Shelf Cleared" to screen readers
@@ -136,8 +140,8 @@ Key files:
 - gameLoop.js: gameplay timing and logic
 - inputEngine.js: keyboard event input and text-attempt emission
 - speechEngine.js: speech synthesis management
-- audioEngine.js: non-speech audio and spatialization
-- brailleRegistry.js: braille data definitions
+- audioEngine.js: non-speech audio, spatialization, and prize fanfares
+- brailleRegistry.js: braille data definitions and invasion-mode pools
 - ticketRules.js: shared ticket conversion thresholds
 - prizeCatalog.js: prize tier definitions and reward content
 

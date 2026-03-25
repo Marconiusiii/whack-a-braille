@@ -60,20 +60,34 @@
 <h2>Game Settings</h2>
 <form id="gameSettings">
 
+<fieldset id="grade1InputModeFieldset">
+<legend>Keyboard Input Mode</legend>
+
+<input type="radio" name="inputMode" id="inputModeQwerty" value="qwerty" checked>
+<label for="inputModeQwerty">QWERTY (type the letter or number key)</label>
+
+<input type="radio" name="inputMode" id="inputModePerkins" value="perkins">
+<label for="inputModePerkins">Perkins Home Row (F D S J K L chords)</label>
+
+</fieldset>
+
 <fieldset>
 <legend>Mole Chooser</legend>
 
-	<input type="radio" id="modeQwertySimpleHomeRow" name="brailleMode" value="typingSimpleHomeRow">
+	<input data-typing-mode="true" type="radio" id="modeQwertySimpleHomeRow" name="brailleMode" value="typingSimpleHomeRow">
 	<label for="modeQwertySimpleHomeRow">Simple Home Row</label>
 
-	<input type="radio" id="modeQwertyHomeRow" name="brailleMode" value="typingHomeRow">
+	<input data-typing-mode="true" type="radio" id="modeQwertyHomeRow" name="brailleMode" value="typingHomeRow">
 	<label for="modeQwertyHomeRow">QWERTY Home Row</label>
 
-	<input type="radio" id="modeQwertyHomeTopRow" name="brailleMode" value="typingHomeTopRow">
+	<input data-typing-mode="true" type="radio" id="modeQwertyHomeTopRow" name="brailleMode" value="typingHomeTopRow">
 	<label for="modeQwertyHomeTopRow">QWERTY Home Row + Top Row</label>
 
-	<input type="radio" id="modeQwertyHomeBottomRow" name="brailleMode" value="typingHomeBottomRow">
+	<input data-typing-mode="true" type="radio" id="modeQwertyHomeBottomRow" name="brailleMode" value="typingHomeBottomRow">
 	<label for="modeQwertyHomeBottomRow">QWERTY Home Row + Bottom Row</label>
+
+	<input type="radio" id="modeGrade1Invasion" name="brailleMode" value="grade1Invasion">
+	<label for="modeGrade1Invasion">Grade 1 Invasion</label>
 
 	<input type="radio" id="brailleLettersAJ" name="brailleMode" value="letters-aj">
 	<label for="brailleLettersAJ">Grade 1 Letters A–J</label>
@@ -94,11 +108,11 @@
 <input type="radio" name="brailleMode" id="modeGrade2Symbols" value="grade2Symbols">
 <label for="modeGrade2Symbols">Grade 2 contractions (symbols)</label>
 
-<input type="radio" name="brailleMode" id="modeGrade2Words" value="grade2Words">
-<label for="modeGrade2Words">Grade 2 whole-word contractions</label>
+	<input type="radio" name="brailleMode" id="modeGrade2Words" value="grade2Words">
+	<label for="modeGrade2Words">Grade 2 whole-word contractions</label>
 
-<input type="radio" name="brailleMode" id="brailleEverything" value="everything" aria-description="Grade 1 and Grade 2 Braille Mole Invasion!">
-<label for="brailleEverything">Everything!</label>
+<input type="radio" name="brailleMode" id="brailleEverything" value="grade2Invasion" aria-description="Grade 2 Braille Mole Invasion!">
+<label for="brailleEverything">Grade 2 Invasion</label>
 
 </fieldset>
 
@@ -140,17 +154,6 @@
 
 <input type="radio" name="roundTime" id="time60" value="60">
 <label for="time60">60 seconds (Does it ever stop?)</label>
-
-</fieldset>
-
-<fieldset id="grade1InputModeFieldset">
-<legend>Keyboard Input Mode</legend>
-
-<input type="radio" name="inputMode" id="inputModeQwerty" value="qwerty" checked>
-<label for="inputModeQwerty">QWERTY (type the letter or number key)</label>
-
-<input type="radio" name="inputMode" id="inputModePerkins" value="perkins">
-<label for="inputModePerkins">Perkins Home Row (F D S J K L chords)</label>
 
 </fieldset>
 
@@ -214,6 +217,7 @@
 </form>
 </details>
 
+<button id="homeCashInButton" type="button">Cash In Tickets: 0 Available</button>
 <button id="startGameButton" type="button">Start Whacking</button>
 
 <details id="prizeShelf">
@@ -273,6 +277,7 @@
 <div id="resultsActions">
 <button id="playAgainButton" type="button">Keep Whacking!</button>
 <button id="cashOutButton" type="button">Cash In Tickets and Pick a Prize</button>
+<button id="saveTicketsHomeButton" type="button">Save Tickets and Return Home</button>
 
 <button id="trainingHomeButton" hidden>
 	Return to Home
@@ -287,7 +292,7 @@
 
 <div id="cashOutSummary" role="text">
 <p>You have <span id="cashOutTicketCount">0</span> tickets.</p>
-<p>Choose one of the wonderful prizes, or keep playing to win more tickets.</p>
+<p id="cashOutSummaryText">Choose one of the wonderful prizes, or keep playing to win more tickets.</p>
 </div>
 
 <fieldset id="cashOutPrizeFieldset">
@@ -301,6 +306,7 @@
 <div id="cashOutActions">
 <button id="confirmPrizeButton" type="button" disabled>Claim Selected Prize</button>
 <button id="cancelCashOutButton" type="button">Keep Whacking!</button>
+<button id="cashOutHomeButton" type="button">Save Tickets and Return Home</button>
 </div>
 
 </section>

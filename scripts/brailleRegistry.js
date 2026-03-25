@@ -206,8 +206,12 @@ const brailleRegistry = [
 ];
 
 function getBrailleItemsForMode(modeId) {
-	if (modeId === "everything") {
-		return brailleOnlyRegistry.slice();
+	if (modeId === "grade1Invasion") {
+		return grade1Letters.slice();
+	}
+
+	if (modeId === "grade2Invasion") {
+		return [...grade2Symbols, ...grade2Words];
 	}
 
 	if (modeId === "letters-aj") {

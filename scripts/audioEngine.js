@@ -416,7 +416,7 @@ function playOriginalHitSound(moleIndex) {
 	const pan = createMolePanner(ctx, moleIndex);
 
 	const master = ctx.createGain();
-	master.gain.value = 0.85;
+	master.gain.value = 1.0;
 	pan.connect(master);
 	master.connect(ctx.destination);
 
@@ -524,6 +524,20 @@ function playOriginalHitSound(moleIndex) {
 	noise.start(now);
 	noise.stop(now + 0.09);
 
+	// bright click for a cleaner arcade snap on contact
+	const clickOsc = ctx.createOscillator();
+	const clickGain = ctx.createGain();
+	clickOsc.type = "square";
+	clickOsc.frequency.setValueAtTime(1300 + Math.random() * 180, now);
+	clickOsc.frequency.exponentialRampToValueAtTime(420, now + 0.03);
+	clickGain.gain.setValueAtTime(0.0001, now);
+	clickGain.gain.exponentialRampToValueAtTime(0.14, now + 0.005);
+	clickGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.04);
+	clickOsc.connect(clickGain);
+	clickGain.connect(pan);
+	clickOsc.start(now);
+	clickOsc.stop(now + 0.05);
+
 	// mechanical spring release
 
 	const springOsc = ctx.createOscillator();
@@ -588,6 +602,100 @@ function playOriginalHitSound(moleIndex) {
 
 	springOsc.stop(now + springDuration + 0.05);
 	springWobble.stop(now + springDuration + 0.05);
+}
+
+function playPrizeFanfare() {
+	if (!isUnlocked) return;
+
+	const ctx = getAudioContext();
+	ensureRunning(ctx);
+
+	const now = ctx.currentTime;
+	const master = ctx.createGain();
+	master.gain.value = 0.5;
+	master.connect(ctx.destination);
+
+	const beat = 60 / 210;
+	const baseMidi = 60 + Math.floor(Math.random() * 5);
+	const melody = [0, 4, 7, 12];
+	const chord = [0, 4, 7, 11];
+
+	melody.forEach((step, index) => {
+		const start = now + (index * beat * 0.7);
+		const duration = index === melody.length - 1 ? beat * 2.8 : beat * 0.9;
+		const freq = 440 * Math.pow(2, (baseMidi + step - 69) / 12);
+
+		const osc = ctx.createOscillator();
+		const gain = ctx.createGain();
+
+		osc.type = "triangle";
+		osc.frequency.setValueAtTime(freq, start);
+
+		if (index === melody.length - 1) {
+			const vibrato = ctx.createOscillator();
+			const vibratoGain = ctx.createGain();
+			vibrato.frequency.value = 4.8;
+			vibratoGain.gain.value = 3.5;
+			vibrato.connect(vibratoGain);
+			vibratoGain.connect(osc.frequency);
+			vibrato.start(start);
+			vibrato.stop(start + duration);
+		}
+
+		gain.gain.setValueAtTime(0.0001, start);
+		gain.gain.exponentialRampToValueAtTime(0.34, start + 0.02);
+		gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+
+		osc.connect(gain);
+		gain.connect(master);
+
+		osc.start(start);
+		osc.stop(start + duration);
+	});
+
+	chord.forEach(step => {
+		const start = now + 0.05;
+		const duration = beat * 3.6;
+		const freq = 440 * Math.pow(2, (baseMidi + step - 69) / 12);
+		const osc = ctx.createOscillator();
+		const gain = ctx.createGain();
+		osc.type = "sine";
+		osc.frequency.setValueAtTime(freq, start);
+		gain.gain.setValueAtTime(0.0001, start);
+		gain.gain.exponentialRampToValueAtTime(0.11, start + 0.03);
+		gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+		osc.connect(gain);
+		gain.connect(master);
+		osc.start(start);
+		osc.stop(start + duration);
+	});
+
+	const shimmerStart = now + 0.18;
+	const shimmerDuration = 0.42;
+	for (let i = 0; i < 8; i++) {
+		const start = shimmerStart + i * 0.035;
+		const duration = shimmerDuration - i * 0.02;
+		const progress = i / 7;
+		const startFreq = 880 * Math.pow(2, progress * 0.2);
+		const endFreq = 1760 * Math.pow(2, progress * 0.28);
+
+		const bell = ctx.createOscillator();
+		const bellGain = ctx.createGain();
+
+		bell.type = "triangle";
+		bell.frequency.setValueAtTime(startFreq, start);
+		bell.frequency.exponentialRampToValueAtTime(endFreq, start + duration);
+
+		bellGain.gain.setValueAtTime(0.0001, start);
+		bellGain.gain.exponentialRampToValueAtTime(0.08, start + 0.01);
+		bellGain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+
+		bell.connect(bellGain);
+		bellGain.connect(master);
+
+		bell.start(start);
+		bell.stop(start + duration);
+	}
 }
 
 
@@ -991,6 +1099,7 @@ export {
 	unlockAudio,
 	playStartFlourish,
 	playEverythingStinger,
+	playPrizeFanfare,
 	playHitSound,
 	playMissSound,
 	playRetreatSound,

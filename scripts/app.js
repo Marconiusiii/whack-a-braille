@@ -1,7 +1,7 @@
 "use strict";
 
 import { initGameLoop, getCurrentSpeechPayload, startRound, stopRound } from "./gameLoop.js";
-import { unlockAudio, setGameAudioMode, playEndBuzzer, playStartFlourish, playEverythingStinger } from "./audioEngine.js";
+import { unlockAudio, setGameAudioMode, playEndBuzzer, playStartFlourish, playEverythingStinger, playPrizeFanfare } from "./audioEngine.js";
 import {
 	unlockSpeech,
 	getAvailableVoicesForLanguage,
@@ -44,13 +44,17 @@ const SETTINGS_STORAGE_KEY = "wabGameSettings";
 
 const confirmPrizeButton = document.getElementById("confirmPrizeButton");
 const cancelCashOutButton = document.getElementById("cancelCashOutButton");
+const cashOutHomeButton = document.getElementById("cashOutHomeButton");
 const trainingHomeButton = document.getElementById("trainingHomeButton");
 
 const startButton = document.getElementById("startGameButton");
+const homeCashInButton = document.getElementById("homeCashInButton");
 const playAgainButton = document.getElementById("playAgainButton");
 const cashOutButton = document.getElementById("cashOutButton");
+const saveTicketsHomeButton = document.getElementById("saveTicketsHomeButton");
 
 const grade1InputModeFieldset = document.getElementById("grade1InputModeFieldset");
+const cashOutSummaryText = document.getElementById("cashOutSummaryText");
 
 const resultsHeading = document.getElementById("resultsHeading");
 const resultsScoreValue = document.getElementById("resultsScoreValue");
@@ -67,6 +71,15 @@ let gameState = "home";
 let totalTickets = 0;
 let srAnnounceTimer = null;
 let mobileBsiEnabled = false;
+let cashOutSource = "results";
+
+const TICKET_STORAGE_KEY = "wabTotalTickets";
+const typingModeIds = [
+	"typingSimpleHomeRow",
+	"typingHomeRow",
+	"typingHomeTopRow",
+	"typingHomeBottomRow"
+];
 
 function announceToSr(message) {
 	if (!srLiveRegion) return;
@@ -160,13 +173,18 @@ async function populateVoiceSelect() {
 }
 
 function loadTotalTickets() {
-	const raw = localStorage.getItem("wabTotalTickets");
+	const raw = localStorage.getItem(TICKET_STORAGE_KEY);
 	const n = parseInt(raw, 10);
 	totalTickets = Number.isFinite(n) && n > 0 ? n : 0;
 }
 
 function saveTotalTickets() {
-	localStorage.setItem("wabTotalTickets", String(totalTickets));
+	localStorage.setItem(TICKET_STORAGE_KEY, String(totalTickets));
+}
+
+function updateHomeCashInButton() {
+	if (!homeCashInButton) return;
+	homeCashInButton.textContent = `Cash In Tickets: ${totalTickets} Available`;
 }
 
 	function syncTrainingUI() {
@@ -191,11 +209,6 @@ function percentToSpeechRate(percent) {
 
 	const clamped = Math.min(Math.max(p, 1), 100);
 	return 0.6 + ((clamped - 1) / 99) * 1.4;
-}
-
-function resetTotalTickets() {
-	totalTickets = 0;
-	localStorage.removeItem("wabTotalTickets");
 }
 
 function loadPrizeShelf() {
@@ -250,12 +263,16 @@ function isGrade2Mode(modeId) {
 	return modeId === "grade2Symbols" || modeId === "grade2Words";
 }
 
+function isInvasionMode(modeId) {
+	return modeId === "grade1Invasion" || modeId === "grade2Invasion";
+}
+
 function isTypingOnlyMode(modeId) {
 	return modeId === "typingSimpleHomeRow" || modeId === "typingHomeRow" || modeId === "typingHomeTopRow" || modeId === "typingHomeBottomRow";
 }
 
 function getForcedInputModeForMode(modeId) {
-	if (isGrade2Mode(modeId) || modeId === "everything") {
+	if (isGrade2Mode(modeId) || modeId === "grade2Invasion") {
 		return "perkins";
 	}
 	if (isTypingOnlyMode(modeId)) {
@@ -427,6 +444,30 @@ function syncInputModeUI() {
 		grade1InputModeFieldset.disabled = false;
 	}
 }
+
+function setTypingModeVisibility(hidden) {
+	document.querySelectorAll("input[name='brailleMode'][data-typing-mode='true']").forEach(input => {
+		input.hidden = hidden;
+		const label = document.querySelector(`label[for='${input.id}']`);
+		if (label) {
+			label.hidden = hidden;
+		}
+	});
+}
+
+function syncMoleChooserForInputMode() {
+	const selectedInputMode = document.querySelector("input[name='inputMode']:checked")?.value || "qwerty";
+	const shouldHideTypingModes = selectedInputMode === "perkins";
+	setTypingModeVisibility(shouldHideTypingModes);
+
+	const selectedMode = document.querySelector("input[name='brailleMode']:checked")?.value;
+	if (shouldHideTypingModes && isTypingOnlyMode(selectedMode)) {
+		const fallback = document.querySelector("input[name='brailleMode'][value='grade1Letters']");
+		if (fallback) {
+			fallback.checked = true;
+		}
+	}
+}
 function applySettingsToUI(settings) {
 	if (!settings) return;
 
@@ -548,7 +589,7 @@ function startGameFromSettings() {
 
 	setGameState("playing");
 
-	if (settings.brailleMode === "everything") {
+	if (isInvasionMode(settings.brailleMode)) {
 		playEverythingStinger();
 	} else {
 		playStartFlourish();
@@ -556,7 +597,7 @@ function startGameFromSettings() {
 
 
 	const openingAnnouncement =
-		settings.brailleMode === "everything"
+		isInvasionMode(settings.brailleMode)
 			? "Incoming Mole Invasion!"
 			: "Ready?";
 
@@ -586,6 +627,13 @@ function setupEventListeners() {
 		startButton.addEventListener("click", () => {
 			primeSpeech();
 			startGameFromSettings();
+		});
+	}
+
+	if (homeCashInButton) {
+		homeCashInButton.addEventListener("click", () => {
+			renderCashOut("home");
+			setGameState("cashout");
 		});
 	}
 
@@ -677,8 +725,14 @@ if (clearPrizeShelfButton) {
 
 	if (cashOutButton) {
 		cashOutButton.addEventListener("click", () => {
-			renderCashOut();
+			renderCashOut("results");
 			setGameState("cashout");
+		});
+	}
+
+	if (saveTicketsHomeButton) {
+		saveTicketsHomeButton.addEventListener("click", () => {
+			setGameState("home");
 		});
 	}
 
@@ -688,24 +742,40 @@ if (clearPrizeShelfButton) {
 		});
 	}
 
-if (confirmPrizeButton) {
-	confirmPrizeButton.addEventListener("click", () => {
-		if (!selectedPrizeId) return;
+	if (confirmPrizeButton) {
+		confirmPrizeButton.addEventListener("click", () => {
+			if (!selectedPrizeId) return;
 
-		const prize = prizeCatalog.find(p => p.id === selectedPrizeId);
-		if (!prize) return;
+			const prize = prizeCatalog.find(p => p.id === selectedPrizeId);
+			if (!prize) return;
 
-		addPrizeToShelf(prize.label);
-		resetTotalTickets();
-		setGameState("home");
-	});
-}
+			const ticketCost = getPrizeTicketCost(prize);
+			if (totalTickets < ticketCost) return;
+
+			playPrizeFanfare();
+			addPrizeToShelf(prize.label);
+			totalTickets = Math.max(0, totalTickets - ticketCost);
+			saveTotalTickets();
+			updateHomeCashInButton();
+			setGameState("home");
+		});
+	}
 
 if (cancelCashOutButton) {
 	cancelCashOutButton.addEventListener("click", () => {
+		if (cashOutSource === "home") {
+			setGameState("home");
+			return;
+		}
 		setGameState("results");
 	});
 }
+
+	if (cashOutHomeButton) {
+		cashOutHomeButton.addEventListener("click", () => {
+			setGameState("home");
+		});
+	}
 
 	document.querySelectorAll("input[name='difficulty']").forEach(radio => {
 		radio.addEventListener("change", syncTrainingUI);
@@ -713,7 +783,18 @@ if (cancelCashOutButton) {
 
 
 	document.querySelectorAll("input[name='brailleMode']").forEach(radio => {
-		radio.addEventListener("change", syncInputModeUI);
+		radio.addEventListener("change", () => {
+			syncInputModeUI();
+			syncMoleChooserForInputMode();
+		});
+	});
+
+	document.querySelectorAll("input[name='inputMode']").forEach(radio => {
+		radio.addEventListener("change", () => {
+			syncMoleChooserForInputMode();
+			syncInputModeUI();
+			saveGameSettings(getSelectedSettings());
+		});
 	});
 
 	document.addEventListener("wabRoundEnded", (e) => {
@@ -736,6 +817,7 @@ if (cancelCashOutButton) {
 	if (!isTraining) {
 		totalTickets += ticketsThisRound;
 		saveTotalTickets();
+		updateHomeCashInButton();
 	}
 
 	const streakBonusValue = ticketBreakdown ? (Number(ticketBreakdown.streakBonus) || 0) : 0;
@@ -758,6 +840,10 @@ if (cancelCashOutButton) {
 
 	if (cashOutButton) {
 		cashOutButton.hidden = isTraining;
+	}
+
+	if (saveTicketsHomeButton) {
+		saveTicketsHomeButton.hidden = isTraining;
 	}
 
 	if (trainingHomeButton) {
@@ -856,7 +942,12 @@ function pickRandomPrizes(prizes, count = 3) {
 
 let selectedPrizeId = null;
 
-function renderCashOut() {
+function getPrizeTicketCost(prize) {
+	return Math.max(1, Number(prize?.minTickets) || 0);
+}
+
+function renderCashOut(source = "results") {
+	cashOutSource = source === "home" ? "home" : "results";
 	selectedPrizeId = null;
 
 	if (confirmPrizeButton) {
@@ -867,7 +958,29 @@ function renderCashOut() {
 		cashOutTicketCount.textContent = String(totalTickets);
 	}
 
-	const eligible = getEligiblePrizes(totalTickets);
+	if (cancelCashOutButton) {
+		cancelCashOutButton.hidden = cashOutSource !== "results";
+	}
+
+	if (cashOutHomeButton) {
+		cashOutHomeButton.textContent =
+			cashOutSource === "results"
+				? "Save Tickets and Return Home"
+				: "Return Home";
+	}
+
+	if (cashOutSummaryText) {
+		if (totalTickets <= 0) {
+			cashOutSummaryText.textContent = "Your ticket jar is empty right now. Go whack some moles and come back for something shiny.";
+		} else {
+			cashOutSummaryText.textContent =
+				cashOutSource === "results"
+					? "Choose one of the wonderful prizes, or keep playing to win more tickets."
+					: "Choose one of the wonderful prizes, or save your tickets and come back later.";
+		}
+	}
+
+	const eligible = totalTickets > 0 ? getEligiblePrizes(totalTickets) : [];
 	const picks = pickRandomPrizes(eligible, 3);
 
 	const existingRadios = document.querySelectorAll("input[name='cashOutPrize']");
@@ -876,6 +989,13 @@ existingRadios.forEach(radio => {
 });
 
 	cashOutPrizeOptions.innerHTML = "";
+
+	if (!picks.length) {
+		const message = document.createElement("p");
+		message.textContent = "No prizes to claim just yet.";
+		cashOutPrizeOptions.appendChild(message);
+		return;
+	}
 
 	picks.forEach((prize, index) => {
 		const wrapper = document.createElement("div");
@@ -888,7 +1008,8 @@ existingRadios.forEach(radio => {
 
 		const label = document.createElement("label");
 		label.setAttribute("for", input.id);
-		label.textContent = prize.label;
+		const ticketCost = getPrizeTicketCost(prize);
+		label.textContent = `${prize.label}, ${ticketCost} ${ticketCost === 1 ? "ticket" : "tickets"}`;
 
 		input.addEventListener("change", () => {
 			selectedPrizeId = prize.id;
@@ -915,6 +1036,7 @@ function init() {
 	}
 
 	loadTotalTickets();
+	updateHomeCashInButton();
 	loadPrizeShelf();
 	const savedSettings = loadGameSettings();
 	if (savedSettings) {
@@ -925,6 +1047,7 @@ function init() {
 	setupEventListeners();
 	setupScoreListener();
 	syncInputModeUI();
+	syncMoleChooserForInputMode();
 	syncTrainingUI();
 
 	initGameLoop({
