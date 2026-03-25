@@ -215,7 +215,7 @@
 
 <div id="desktopBrailleDisplayEntry" hidden>
 <label for="desktopBrailleDisplayInput">Braille Display Entry</label>
-<input id="desktopBrailleDisplayInput" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done">
+<textarea id="desktopBrailleDisplayInput" rows="1" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done"></textarea>
 </div>
 
 <div id="mobileBsiEntry" class="mobileBsiOnly">
@@ -253,6 +253,11 @@
 </button>
 
 </div>
+
+<section id="brailleDebugSection" hidden>
+<h3>Braille Display Debug Log</h3>
+<pre id="brailleDebugLog"></pre>
+</section>
 
 </section>
 <section id="cashOutArea" hidden>

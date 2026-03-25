@@ -111,14 +111,8 @@ function onKeyUp(event) {
 		return;
 	}
 
-	/* Braille displays on macOS often deliver translated text directly. */
+	/* Braille Display mode uses the dedicated text sink in app.js. */
 	if (currentInputMode === "brailleDisplay") {
-		if (key.length === 1) {
-			emitAttempt({
-				type: "brailleText",
-				char: key
-			});
-		}
 		return;
 	}
 
