@@ -336,13 +336,23 @@ function armDesktopBrailleDisplayInput() {
 	safeFocus(desktopBrailleDisplayInput);
 }
 
+function resetDesktopBrailleDisplayInput() {
+	if (!desktopBrailleDisplayInput) return;
+	desktopBrailleDisplayInput.value = "";
+	if (gameState === "playing" && getSelectedInputMode() === "brailleDisplay") {
+		setTimeout(() => {
+			armDesktopBrailleDisplayInput();
+		}, 0);
+	}
+}
+
 function syncDesktopBrailleDisplayUI() {
 	if (!desktopBrailleDisplayEntry || !desktopBrailleDisplayInput) return;
 	const enabled = getSelectedInputMode() === "brailleDisplay";
 	desktopBrailleDisplayEntry.hidden = !enabled;
 	desktopBrailleDisplayInput.disabled = !enabled;
 	if (!enabled) {
-		desktopBrailleDisplayInput.value = "";
+		resetDesktopBrailleDisplayInput();
 	}
 }
 
@@ -835,6 +845,7 @@ if (cancelCashOutButton) {
 
 	document.addEventListener("wabRoundEnded", (e) => {
 	if (gameState !== "playing") return;
+	resetDesktopBrailleDisplayInput();
 
 	const detail = e.detail || {};
 	const isTraining = !!detail.isTraining;
@@ -954,7 +965,7 @@ function setupDesktopBrailleDisplayListeners() {
 
 	function flushDesktopBrailleDisplayText() {
 		if (gameState !== "playing" || getSelectedInputMode() !== "brailleDisplay") {
-			desktopBrailleDisplayInput.value = "";
+			resetDesktopBrailleDisplayInput();
 			return;
 		}
 
@@ -966,7 +977,7 @@ function setupDesktopBrailleDisplayListeners() {
 			emitTextAttempt(normalized);
 		}
 
-		desktopBrailleDisplayInput.value = "";
+		resetDesktopBrailleDisplayInput();
 	}
 
 	desktopBrailleDisplayInput.addEventListener("input", () => {
@@ -978,7 +989,7 @@ function setupDesktopBrailleDisplayListeners() {
 		const nextText = String(e.data || "").trim().toLowerCase();
 		if (!nextText) return;
 		emitTextAttempt(nextText);
-		desktopBrailleDisplayInput.value = "";
+		resetDesktopBrailleDisplayInput();
 		e.preventDefault();
 	});
 
@@ -997,6 +1008,7 @@ function setupScoreListener() {
 		const newScore = e.detail?.score;
 		if (typeof newScore !== "number") return;
 		scoreText.textContent = "Score: " + newScore;
+		resetDesktopBrailleDisplayInput();
 	});
 }
 
