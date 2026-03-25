@@ -38,7 +38,6 @@ const mobileBsiInput = document.getElementById("mobileBsiInput");
 const moleChooserSelect = document.getElementById("moleChooserSelect");
 const desktopBrailleDisplayEntry = document.getElementById("desktopBrailleDisplayEntry");
 const desktopBrailleDisplayInput = document.getElementById("desktopBrailleDisplayInput");
-const desktopBrailleDisplayReset = document.getElementById("desktopBrailleDisplayReset");
 
 const speechRatePercentInput = document.getElementById("speechRatePercent");
 const voiceSelect = document.getElementById("voiceSelect");
@@ -346,15 +345,7 @@ function resetDesktopBrailleDisplayInput() {
 	}
 	if (gameState === "playing" && getSelectedInputMode() === "brailleDisplay") {
 		requestAnimationFrame(() => {
-			if (desktopBrailleDisplayReset) {
-				safeFocus(desktopBrailleDisplayReset);
-			}
-			setTimeout(() => {
-				armDesktopBrailleDisplayInput();
-			}, 20);
-			setTimeout(() => {
-				armDesktopBrailleDisplayInput();
-			}, 60);
+			armDesktopBrailleDisplayInput();
 		});
 	}
 }
