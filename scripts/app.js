@@ -79,6 +79,18 @@ let mobileBsiEnabled = false;
 let cashOutSource = "results";
 
 const TICKET_STORAGE_KEY = "wabTotalTickets";
+const invasionIntroPhrases = [
+	"Incoming moles!",
+	"Invasion Incoming!",
+	"Mole Invasion, Oh no!",
+	"Prepare for Moles!",
+	"So many moles!",
+	"Here comes the mole stampede!",
+	"The moles are on the move!",
+	"Brace yourself for moles!",
+	"Grade 2 moles, everywhere!",
+	"Moles incoming from all sides!"
+];
 const moleChooserOptions = [
 	{ value: "typingSimpleHomeRow", label: "Simple Home Row", group: "typing" },
 	{ value: "typingHomeRow", label: "QWERTY Home Row", group: "typing" },
@@ -106,6 +118,28 @@ function announceToSr(message) {
 		srLiveRegion.textContent = String(message || "");
 		srAnnounceTimer = null;
 	}, 10);
+}
+
+function pickInvasionIntroPhrase() {
+	return invasionIntroPhrases[Math.floor(Math.random() * invasionIntroPhrases.length)] || "Incoming moles!";
+}
+
+function computeOpeningStartDelayMs(speechResult, isInvasionModeActive) {
+	if (!isInvasionModeActive) return 650;
+	const startedAt = Number(
+		speechResult?.onstartAtMs ?? speechResult?.startedAtMs ?? speechResult?.startedAt
+	);
+	const endedAt = Number(
+		speechResult?.endedAtMs ?? speechResult?.endedAt
+	);
+	let speechDurationMs = 0;
+	if (Number.isFinite(startedAt) && Number.isFinite(endedAt) && endedAt > startedAt) {
+		speechDurationMs = endedAt - startedAt;
+	}
+	if (!speechDurationMs) {
+		speechDurationMs = 300;
+	}
+	return Math.max(900, Math.min(3000, speechDurationMs + 240));
 }
 
 function loadStorageObject(key, fallback = {}) {
@@ -641,15 +675,16 @@ function startGameFromSettings() {
 	}
 
 
-	const openingAnnouncement =
-		isInvasionMode(settings.brailleMode)
-			? "Incoming Mole Invasion!"
-			: "Ready?";
+	const invasionModeActive = isInvasionMode(settings.brailleMode);
+	const openingAnnouncement = invasionModeActive
+		? pickInvasionIntroPhrase()
+		: "Ready?";
 
-	speak(openingAnnouncement, {
+	const speechResult = speak(openingAnnouncement, {
 		cancelPrevious: true,
 		dedupe: false
 	});
+	const startDelayMs = computeOpeningStartDelayMs(speechResult, invasionModeActive);
 
 	setTimeout(() => {
 	startRound(
@@ -664,7 +699,7 @@ function startGameFromSettings() {
 			spatialMoleMappingEnabled: settings.spatialMoleMappingEnabled
 		}
 	);
-	}, 650);
+	}, startDelayMs);
 }
 
 function setupEventListeners() {
