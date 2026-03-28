@@ -659,7 +659,7 @@ function playPrizeFanfare(tier = 1) {
 	const now = ctx.currentTime;
 	const master = ctx.createGain();
 	const safeTier = Math.min(Math.max(Number(tier) || 1, 1), 5);
-	master.gain.value = [0.49, 0.51, 0.54, 0.56, 0.6][safeTier - 1];
+	master.gain.value = 0.68;
 	master.connect(ctx.destination);
 
 	const configs = {
