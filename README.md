@@ -25,7 +25,7 @@ Tickets earned during gameplay are saved into a persistent ticket bank and can b
 Game Settings now use a Mole Chooser select menu that rebuilds based on the chosen Keyboard Input Mode:
 - QWERTY shows typing modes and Grade 1 modes
 - Perkins Home Row hides the QWERTY typing-only modes
-- Braille Display shows the full set, including Grade 2 options
+- Braille Display hides the QWERTY typing-only modes and keeps Grade 1 and Grade 2 options available
 - In Braille Display mode, incoming translated characters, contractions, and Grade 2 punctuation aliases are matched directly to the active mole target
 - On desktop, Braille Display mode uses a dedicated gameplay text field so translated display input can be captured during the round
 
@@ -48,7 +48,7 @@ Global keyboard shortcuts:
 - Grade 2 Word Signs
 - Grade 2 Invasion
 
-Grade 1 Invasion draws each mole from the full Grade 1 letter set as it appears. Grade 2 Invasion does the same with the full Grade 2 pool and uses Perkins input.
+Grade 1 Invasion draws each mole from the full Grade 1 pool as it appears. Grade 2 Invasion does the same with the full Grade 2 pool. Invasion rounds also use a rotating set of funny spoken intros before the round begins, and the round start waits for the spoken intro timing instead of a fixed delay.
 
 ## Spatial Mole Mapping
 
@@ -108,11 +108,12 @@ Desktop behavior is unchanged: hardware keyboard input still uses QWERTY and Per
 - Voice loading is resilient to delayed browser voice availability
 - Language-filtered voice list with fallback to all available voices
 - Adjustable speech rate via percentage-based control
+- Adjustable speech volume via percentage-based control
 - Optional Character Echo for Grade 1 letters
 - Spatialized audio cues indicate mole position
 - Independent audio styles selectable via Game Audio settings
 - Optional timer music that accelerates as rounds progress
-- Prize claims trigger a short musical fanfare with a shimmering chime glissando
+- Prize claims trigger tier-based musical fanfares with shimmering chime glissandos
 - Mole hit feedback has been retuned for a stronger arcade feel
 
 All speech and audio settings persist across sessions.
@@ -125,6 +126,9 @@ All speech and audio settings persist across sessions.
 - If you have 0 tickets, the prize choices and Claim button stay hidden until you earn some
 - Prize shelf persists across sessions
 - Duplicate prizes increment quantity instead of duplicating entries
+- Prize shelf entries are buttons that open a detail modal
+- Prize detail view includes claimed date, tier, ticket cost, flavor text, and total owned when applicable
+- Individual prizes can be removed from the shelf one at a time
 - Clearing the Prize Shelf announces "Prize Shelf Cleared" to screen readers
 - Prize catalog includes expanded multi-tier joke, brag, title, and legend rewards, including new coffee and tea themed prizes
 
@@ -150,7 +154,7 @@ Key files:
 - audioEngine.js: non-speech audio, spatialization, and prize fanfares
 - brailleRegistry.js: braille data definitions and invasion-mode pools
 - ticketRules.js: shared ticket conversion thresholds
-- prizeCatalog.js: prize tier definitions and reward content
+- prizeCatalog.js: prize tier definitions, flavor text, and reward content
 
 ## License
 
