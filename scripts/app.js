@@ -8,7 +8,8 @@ import {
 	ensureVoicesReady,
 	speak,
 	setPreferredVoiceName,
-	setSpeechRate
+	setSpeechRate,
+	setSpeechVolume
 } from "./speechEngine.js";
 import { attachKeyboardListeners, setInputMode, setCurrentMoleId, emitTextAttempt } from "./inputEngine.js";
 import { prizeCatalog } from "./prizeCatalog.js";
@@ -40,6 +41,7 @@ const desktopBrailleDisplayEntry = document.getElementById("desktopBrailleDispla
 const desktopBrailleDisplayInput = document.getElementById("desktopBrailleDisplayInput");
 
 const speechRatePercentInput = document.getElementById("speechRatePercent");
+const speechVolumePercentInput = document.getElementById("speechVolumePercent");
 const voiceSelect = document.getElementById("voiceSelect");
 const playVoiceSampleButton = document.getElementById("playVoiceSample");
 
@@ -270,6 +272,13 @@ function percentToSpeechRate(percent) {
 
 	const clamped = Math.min(Math.max(p, 1), 100);
 	return 0.6 + ((clamped - 1) / 99) * 1.4;
+}
+
+function percentToSpeechVolume(percent) {
+	const p = Number(percent);
+	if (!Number.isFinite(p)) return 0.85;
+	const clamped = Math.min(Math.max(p, 5), 100);
+	return clamped / 100;
 }
 
 function loadPrizeShelf() {
@@ -737,6 +746,13 @@ function applySettingsToUI(settings) {
 		const rate = percentToSpeechRate(settings.speechRatePercent);
 		setSpeechRate(rate);
 	}
+	if (
+		typeof settings.speechVolumePercent === "number" &&
+		speechVolumePercentInput
+	) {
+		speechVolumePercentInput.value = settings.speechVolumePercent;
+		setSpeechVolume(percentToSpeechVolume(settings.speechVolumePercent));
+	}
 
 	if (typeof settings.characterEcho === "boolean" && characterEchoCheckbox) {
 		characterEchoCheckbox.checked = settings.characterEcho;
@@ -806,6 +822,7 @@ function getSelectedSettings() {
 		inputMode,
 		voiceName: voiceSelect?.value || null,
 		speechRatePercent: Number(speechRatePercentInput?.value) || 35,
+		speechVolumePercent: Number(speechVolumePercentInput?.value) || 85,
 		difficulty: getSelectedDifficulty(),
 		speakBrailleDots: !!speakBrailleDots?.checked,
 		timerMusicEnabled: !!timerMusicCheckbox?.checked,
@@ -914,6 +931,14 @@ function setupEventListeners() {
 		});
 	}
 
+	if (speechVolumePercentInput) {
+		speechVolumePercentInput.addEventListener("change", () => {
+			const volume = percentToSpeechVolume(speechVolumePercentInput.value);
+			setSpeechVolume(volume);
+			saveGameSettings(getSelectedSettings());
+		});
+	}
+
 	if (playVoiceSampleButton) {
 		playVoiceSampleButton.addEventListener("click", () => {
 			unlockSpeech();
@@ -1007,7 +1032,7 @@ if (clearPrizeShelfButton) {
 			const ticketCost = getPrizeTicketCost(prize);
 			if (totalTickets < ticketCost) return;
 
-			playPrizeFanfare();
+			playPrizeFanfare(getPrizeTierNumber(prize));
 			addPrizeToShelf(prize);
 			totalTickets = Math.max(0, totalTickets - ticketCost);
 			saveTotalTickets();
@@ -1281,6 +1306,12 @@ function getPrizeTicketCost(prize) {
 	return Math.max(1, Number(prize?.minTickets) || 0);
 }
 
+function getPrizeTierNumber(prize) {
+	const match = /^tier(\d+)_/i.exec(prize?.id || "");
+	const tier = Number(match?.[1]);
+	return Number.isFinite(tier) && tier >= 1 && tier <= 5 ? tier : 1;
+}
+
 function renderCashOut(source = "results") {
 	cashOutSource = source === "home" ? "home" : "results";
 	selectedPrizeId = null;
@@ -1378,6 +1409,12 @@ function init() {
 		mobileBsiInput.disabled = !mobileBsiEnabled;
 	}
 	syncDesktopBrailleDisplayUI();
+	if (speechRatePercentInput) {
+		setSpeechRate(percentToSpeechRate(speechRatePercentInput.value));
+	}
+	if (speechVolumePercentInput) {
+		setSpeechVolume(percentToSpeechVolume(speechVolumePercentInput.value));
+	}
 
 	loadTotalTickets();
 	updateHomeCashInButton();

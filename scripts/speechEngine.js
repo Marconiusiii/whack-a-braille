@@ -7,6 +7,7 @@ let currentUtterance = null;
 let lastSpokenText = "";
 let unlockPerformed = false;
 let currentSpeechRate = 1.0;
+let currentSpeechVolume = 0.85;
 
 function isSpeechSupported() {
 	return typeof window !== "undefined" && "speechSynthesis" in window && "SpeechSynthesisUtterance" in window;
@@ -14,6 +15,12 @@ function isSpeechSupported() {
 function setSpeechRate(rate) {
 	if (typeof rate === "number" && rate >= 0.5 && rate <= 2.0) {
 		currentSpeechRate = rate;
+	}
+}
+
+function setSpeechVolume(volume) {
+	if (typeof volume === "number" && volume >= 0.05 && volume <= 1.0) {
+		currentSpeechVolume = volume;
 	}
 }
 
@@ -188,7 +195,7 @@ async function speak(text, options = {}) {
 	const {
 		rate = currentSpeechRate,
 		pitch = 1,
-		volume = 1,
+		volume = currentSpeechVolume,
 		cancelPrevious = true,
 		dedupe = true,
 		timeoutMs = 0,
@@ -351,6 +358,7 @@ export {
 	cancelSpeech,
 	setPreferredVoiceName,
 	setSpeechRate,
+	setSpeechVolume,
 	getAvailableVoicesForLanguage,
 	ensureVoicesReady
 };

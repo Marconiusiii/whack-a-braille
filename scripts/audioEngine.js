@@ -604,7 +604,53 @@ function playOriginalHitSound(moleIndex) {
 	springWobble.stop(now + springDuration + 0.05);
 }
 
-function playPrizeFanfare() {
+function midiToFreq(midi) {
+	return 440 * Math.pow(2, (midi - 69) / 12);
+}
+
+function schedulePrizeTone(ctx, master, start, duration, frequency, peak, type = "triangle", vibratoRate = 0, vibratoDepth = 0) {
+	const osc = ctx.createOscillator();
+	const gain = ctx.createGain();
+	osc.type = type;
+	osc.frequency.setValueAtTime(frequency, start);
+
+	if (vibratoRate > 0 && vibratoDepth > 0) {
+		const vibrato = ctx.createOscillator();
+		const vibratoGain = ctx.createGain();
+		vibrato.type = "sine";
+		vibrato.frequency.value = vibratoRate;
+		vibratoGain.gain.value = vibratoDepth;
+		vibrato.connect(vibratoGain);
+		vibratoGain.connect(osc.frequency);
+		vibrato.start(start);
+		vibrato.stop(start + duration);
+	}
+
+	gain.gain.setValueAtTime(0.0001, start);
+	gain.gain.exponentialRampToValueAtTime(peak, start + 0.02);
+	gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+	osc.connect(gain);
+	gain.connect(master);
+	osc.start(start);
+	osc.stop(start + duration);
+}
+
+function schedulePrizeBell(ctx, master, start, duration, startFreq, endFreq, peak = 0.08) {
+	const bell = ctx.createOscillator();
+	const gain = ctx.createGain();
+	bell.type = "triangle";
+	bell.frequency.setValueAtTime(startFreq, start);
+	bell.frequency.exponentialRampToValueAtTime(endFreq, start + duration);
+	gain.gain.setValueAtTime(0.0001, start);
+	gain.gain.exponentialRampToValueAtTime(peak, start + 0.01);
+	gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+	bell.connect(gain);
+	gain.connect(master);
+	bell.start(start);
+	bell.stop(start + duration);
+}
+
+function playPrizeFanfare(tier = 1) {
 	if (!isUnlocked) return;
 
 	const ctx = getAudioContext();
@@ -612,89 +658,66 @@ function playPrizeFanfare() {
 
 	const now = ctx.currentTime;
 	const master = ctx.createGain();
-	master.gain.value = 0.5;
+	const safeTier = Math.min(Math.max(Number(tier) || 1, 1), 5);
+	master.gain.value = [0.49, 0.51, 0.54, 0.56, 0.6][safeTier - 1];
 	master.connect(ctx.destination);
 
-	const beat = 60 / 210;
-	const baseMidi = 60 + Math.floor(Math.random() * 5);
-	const melody = [0, 4, 7, 12];
-	const chord = [0, 4, 7, 11];
+	const configs = {
+		1: { baseMidi: 63 + Math.floor(Math.random() * 3), melody: [0, 4], starts: [0.0, 0.16], durations: [0.2, 0.28], pad: [0, 4] },
+		2: { baseMidi: 59 + Math.floor(Math.random() * 3), melody: [0, 4, 7], starts: [0.0, 0.12, 0.26], durations: [0.18, 0.18, 0.34], pad: [0, 4, 7] },
+		3: { baseMidi: 62 + Math.floor(Math.random() * 3), melody: [0, 4, 7, 11], starts: [0.0, 0.12, 0.24, 0.36], durations: [0.2, 0.2, 0.2, 0.46], pad: [0, 4, 7] },
+		4: { baseMidi: 61 + Math.floor(Math.random() * 3), melody: [0, 4, 7, 12], starts: [0.0, 0.12, 0.24, 0.37], durations: [0.22, 0.22, 0.22, 0.62], pad: [0, 4, 7, 12] },
+		5: { baseMidi: 65 + Math.floor(Math.random() * 3), melody: [0, 4, 7, 11, 16, 19], starts: [0.0, 0.11, 0.23, 0.36, 0.5, 0.68], durations: [0.22, 0.22, 0.22, 0.22, 0.22, 0.72], pad: [0, 7, 12, 16] }
+	};
+	const config = configs[safeTier];
 
-	melody.forEach((step, index) => {
-		const start = now + (index * beat * 0.7);
-		const duration = index === melody.length - 1 ? beat * 2.8 : beat * 0.9;
-		const freq = 440 * Math.pow(2, (baseMidi + step - 69) / 12);
+	config.melody.forEach((step, index) => {
+		schedulePrizeTone(
+			ctx,
+			master,
+			now + config.starts[index],
+			config.durations[index],
+			midiToFreq(config.baseMidi + step),
+			safeTier >= 4 ? 0.32 : safeTier === 3 ? 0.26 : safeTier === 2 ? 0.21 : 0.18,
+			"triangle",
+			index === config.melody.length - 1 && safeTier >= 4 ? (safeTier === 5 ? 4.2 : 4.8) : 0,
+			index === config.melody.length - 1 && safeTier >= 4 ? (safeTier === 5 ? 1.6 : 2.7) : 0
+		);
+	});
 
-		const osc = ctx.createOscillator();
-		const gain = ctx.createGain();
+	config.pad.forEach(step => {
+		schedulePrizeTone(
+			ctx,
+			master,
+			now + 0.05,
+			safeTier >= 5 ? 0.72 : safeTier >= 4 ? 0.48 : 0.36,
+			midiToFreq(config.baseMidi + step),
+			safeTier >= 4 ? 0.11 : 0.08,
+			"sine"
+		);
+	});
 
-		osc.type = "triangle";
-		osc.frequency.setValueAtTime(freq, start);
+	if (safeTier >= 2) {
+		schedulePrizeTone(ctx, master, now, 0.08, 900 + safeTier * 60, 0.08 + safeTier * 0.01, "sine");
+	}
 
-		if (index === melody.length - 1) {
-			const vibrato = ctx.createOscillator();
-			const vibratoGain = ctx.createGain();
-			vibrato.frequency.value = 4.8;
-			vibratoGain.gain.value = 3.5;
-			vibrato.connect(vibratoGain);
-			vibratoGain.connect(osc.frequency);
-			vibrato.start(start);
-			vibrato.stop(start + duration);
+	if (safeTier >= 3) {
+		[0.18, 0.27, 0.34, 0.42].forEach((offset, index) => {
+			const sparkleFreq = midiToFreq(config.baseMidi + 19 + index);
+			schedulePrizeBell(ctx, master, now + offset, 0.18, sparkleFreq, sparkleFreq * 1.6, 0.06);
+		});
+	}
+
+	if (safeTier >= 4) {
+		const glissStart = now + (safeTier === 5 ? 0.52 : 0.18);
+		const glissDuration = safeTier === 5 ? 0.44 : 0.4;
+		const bellCount = safeTier === 5 ? 6 : 4;
+		for (let i = 0; i < bellCount; i++) {
+			const progress = i / Math.max(1, bellCount - 1);
+			const startFreq = midiToFreq(config.baseMidi + (safeTier === 5 ? 12 : 16)) * Math.pow(2, progress * 0.08);
+			const endFreq = midiToFreq(config.baseMidi + (safeTier === 5 ? 31 : 30)) * Math.pow(2, progress * 0.06);
+			schedulePrizeBell(ctx, master, glissStart + i * 0.03, glissDuration - i * 0.03, startFreq, endFreq, safeTier === 5 ? 0.09 : 0.07);
 		}
-
-		gain.gain.setValueAtTime(0.0001, start);
-		gain.gain.exponentialRampToValueAtTime(0.34, start + 0.02);
-		gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
-
-		osc.connect(gain);
-		gain.connect(master);
-
-		osc.start(start);
-		osc.stop(start + duration);
-	});
-
-	chord.forEach(step => {
-		const start = now + 0.05;
-		const duration = beat * 3.6;
-		const freq = 440 * Math.pow(2, (baseMidi + step - 69) / 12);
-		const osc = ctx.createOscillator();
-		const gain = ctx.createGain();
-		osc.type = "sine";
-		osc.frequency.setValueAtTime(freq, start);
-		gain.gain.setValueAtTime(0.0001, start);
-		gain.gain.exponentialRampToValueAtTime(0.11, start + 0.03);
-		gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
-		osc.connect(gain);
-		gain.connect(master);
-		osc.start(start);
-		osc.stop(start + duration);
-	});
-
-	const shimmerStart = now + 0.18;
-	const shimmerDuration = 0.42;
-	for (let i = 0; i < 8; i++) {
-		const start = shimmerStart + i * 0.035;
-		const duration = shimmerDuration - i * 0.02;
-		const progress = i / 7;
-		const startFreq = 880 * Math.pow(2, progress * 0.2);
-		const endFreq = 1760 * Math.pow(2, progress * 0.28);
-
-		const bell = ctx.createOscillator();
-		const bellGain = ctx.createGain();
-
-		bell.type = "triangle";
-		bell.frequency.setValueAtTime(startFreq, start);
-		bell.frequency.exponentialRampToValueAtTime(endFreq, start + duration);
-
-		bellGain.gain.setValueAtTime(0.0001, start);
-		bellGain.gain.exponentialRampToValueAtTime(0.08, start + 0.01);
-		bellGain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
-
-		bell.connect(bellGain);
-		bellGain.connect(master);
-
-		bell.start(start);
-		bell.stop(start + duration);
 	}
 }
 
