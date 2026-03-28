@@ -57,6 +57,15 @@ const playAgainButton = document.getElementById("playAgainButton");
 const cashOutButton = document.getElementById("cashOutButton");
 const saveTicketsHomeButton = document.getElementById("saveTicketsHomeButton");
 const exitRoundButton = document.getElementById("exitRoundButton");
+const prizeShelfHelp = document.getElementById("prizeShelfHelp");
+const prizeDetailDialog = document.getElementById("prizeDetailDialog");
+const prizeDetailTitle = document.getElementById("prizeDetailTitle");
+const prizeDetailClaimed = document.getElementById("prizeDetailClaimed");
+const prizeDetailTierCost = document.getElementById("prizeDetailTierCost");
+const prizeDetailOwned = document.getElementById("prizeDetailOwned");
+const prizeDetailFlavor = document.getElementById("prizeDetailFlavor");
+const deletePrizeButton = document.getElementById("deletePrizeButton");
+const closePrizeDetailButton = document.getElementById("closePrizeDetailButton");
 
 const grade1InputModeFieldset = document.getElementById("grade1InputModeFieldset");
 const cashOutSummaryText = document.getElementById("cashOutSummaryText");
@@ -77,8 +86,12 @@ let totalTickets = 0;
 let srAnnounceTimer = null;
 let mobileBsiEnabled = false;
 let cashOutSource = "results";
+let activePrizeDetailId = null;
+let lastPrizeShelfTriggerId = null;
 
 const TICKET_STORAGE_KEY = "wabTotalTickets";
+const prizeCatalogById = new Map(prizeCatalog.map(prize => [prize.id, prize]));
+const prizeCatalogByLabel = new Map(prizeCatalog.map(prize => [prize.label, prize]));
 const invasionIntroPhrases = [
 	"Incoming moles!",
 	"Invasion Incoming!",
@@ -260,7 +273,7 @@ function percentToSpeechRate(percent) {
 }
 
 function loadPrizeShelf() {
-	const data = loadStorageObject(PRIZE_SHELF_KEY, {});
+	const data = normalizePrizeShelfData(loadStorageObject(PRIZE_SHELF_KEY, {}));
 	renderPrizeShelf(data);
 }
 
@@ -268,10 +281,58 @@ function savePrizeShelf(data) {
 	localStorage.setItem(PRIZE_SHELF_KEY, JSON.stringify(data));
 }
 
-function addPrizeToShelf(prizeLabel) {
-	const data = loadStorageObject(PRIZE_SHELF_KEY, {});
+function normalizePrizeShelfData(data) {
+	const shelf = {};
+	if (!data || typeof data !== "object" || Array.isArray(data)) return shelf;
 
-	data[prizeLabel] = (data[prizeLabel] || 0) + 1;
+	for (const [key, value] of Object.entries(data)) {
+		if (typeof value === "number") {
+			const prize = prizeCatalogByLabel.get(key);
+			if (!prize || value < 1) continue;
+			shelf[prize.id] = {
+				id: prize.id,
+				label: prize.label,
+				count: value,
+				claimedAt: null,
+				ticketCost: getPrizeTicketCost(prize)
+			};
+			continue;
+		}
+
+		if (!value || typeof value !== "object" || Array.isArray(value)) continue;
+		const prizeId = typeof value.id === "string" ? value.id : key;
+		const prize = prizeCatalogById.get(prizeId) || prizeCatalogByLabel.get(value.label);
+		if (!prize) continue;
+		const count = Math.max(1, Number(value.count) || 1);
+		shelf[prize.id] = {
+			id: prize.id,
+			label: prize.label,
+			count,
+			claimedAt: typeof value.claimedAt === "string" ? value.claimedAt : null,
+			ticketCost: Number.isFinite(Number(value.ticketCost))
+				? Number(value.ticketCost)
+				: getPrizeTicketCost(prize)
+		};
+	}
+
+	return shelf;
+}
+
+function getPrizeShelfData() {
+	return normalizePrizeShelfData(loadStorageObject(PRIZE_SHELF_KEY, {}));
+}
+
+function addPrizeToShelf(prize) {
+	const data = getPrizeShelfData();
+	const existing = data[prize.id];
+
+	data[prize.id] = {
+		id: prize.id,
+		label: prize.label,
+		count: (existing?.count || 0) + 1,
+		claimedAt: existing?.claimedAt || new Date().toISOString(),
+		ticketCost: getPrizeTicketCost(prize)
+	};
 
 	savePrizeShelf(data);
 	renderPrizeShelf(data);
@@ -280,10 +341,13 @@ function addPrizeToShelf(prizeLabel) {
 function renderPrizeShelf(data) {
 	const list = document.getElementById("prizeList");
 	const emptyMessage = document.getElementById("noPrizesMessage");
+	if (prizeShelfHelp) {
+		prizeShelfHelp.hidden = isMobileBsiRuntime();
+	}
 
 	list.innerHTML = "";
 
-	const entries = Object.entries(data);
+	const entries = Object.values(normalizePrizeShelfData(data));
 
 	if (entries.length === 0) {
 		emptyMessage.hidden = false;
@@ -294,16 +358,121 @@ function renderPrizeShelf(data) {
 	emptyMessage.hidden = true;
 	list.hidden = false;
 
-	entries.forEach(([label, count]) => {
+	entries.forEach(entry => {
 		const li = document.createElement("li");
+		const button = document.createElement("button");
+		button.type = "button";
+		button.dataset.prizeId = entry.id;
+		button.id = `prizeShelfButton-${entry.id}`;
+		button.textContent =
+			entry.count > 1
+				? `${entry.label} x ${entry.count}`
+				: entry.label;
+		button.addEventListener("click", () => {
+			openPrizeDetail(entry.id, button.id);
+		});
+		button.addEventListener("keydown", event => {
+			if (event.key !== "Delete" && event.key !== "Backspace") return;
+			event.preventDefault();
+			deletePrizeFromShelf(entry.id, button.id);
+		});
 
-		li.textContent =
-			count > 1
-				? `${label} x ${count}`
-				: label;
-
+		li.appendChild(button);
 		list.appendChild(li);
 	});
+}
+
+function formatClaimedDate(claimedAt) {
+	if (!claimedAt) return "Unknown";
+	const date = new Date(claimedAt);
+	if (Number.isNaN(date.getTime())) return "Unknown";
+	return date.toLocaleDateString(undefined, {
+		year: "numeric",
+		month: "long",
+		day: "numeric"
+	});
+}
+
+function getPrizeTierLabel(prize) {
+	const match = /^tier(\d+)_/i.exec(prize.id || "");
+	if (match) {
+		return `Tier ${match[1]}`;
+	}
+	return "Prize Tier";
+}
+
+function closePrizeDetail() {
+	if (!prizeDetailDialog?.open) return;
+	prizeDetailDialog.close();
+	const trigger = lastPrizeShelfTriggerId ? document.getElementById(lastPrizeShelfTriggerId) : null;
+	if (trigger) {
+		requestAnimationFrame(() => {
+			safeFocus(trigger);
+		});
+	}
+}
+
+function openPrizeDetail(prizeId, triggerId) {
+	const shelf = getPrizeShelfData();
+	const entry = shelf[prizeId];
+	const prize = prizeCatalogById.get(prizeId);
+	if (!entry || !prize || !prizeDetailDialog) return;
+	lastPrizeShelfTriggerId = triggerId || null;
+	activePrizeDetailId = prizeId;
+	prizeDetailTitle.textContent = prize.label;
+	prizeDetailClaimed.textContent = `Date Claimed: ${formatClaimedDate(entry.claimedAt)}`;
+	const ticketCost = entry.ticketCost || getPrizeTicketCost(prize);
+	prizeDetailTierCost.textContent = `${getPrizeTierLabel(prize)}, ${ticketCost} ${ticketCost === 1 ? "ticket" : "tickets"}`;
+	prizeDetailFlavor.textContent = prize.flavorText || "";
+	if (entry.count > 1) {
+		prizeDetailOwned.hidden = false;
+		prizeDetailOwned.textContent = `Total Owned: ${entry.count}`;
+	} else {
+		prizeDetailOwned.hidden = true;
+		prizeDetailOwned.textContent = "";
+	}
+	prizeDetailDialog.showModal();
+	requestAnimationFrame(() => {
+		safeFocus(prizeDetailTitle);
+	});
+}
+
+function focusPrizeShelfAfterDelete(deletedButtonId) {
+	const deletedButton = deletedButtonId ? document.getElementById(deletedButtonId) : null;
+	const shelfButtons = Array.from(document.querySelectorAll("#prizeList button"));
+	if (deletedButton && shelfButtons.length) {
+		const next = shelfButtons.find(button => button.id !== deletedButtonId) || shelfButtons[shelfButtons.length - 1];
+		if (next) {
+			requestAnimationFrame(() => {
+				safeFocus(next);
+			});
+			return;
+		}
+	}
+	const target = document.getElementById("prizeShelf")?.querySelector("summary") || document.getElementById("clearPrizeShelf");
+	if (target) {
+		requestAnimationFrame(() => {
+			safeFocus(target);
+		});
+	}
+}
+
+function deletePrizeFromShelf(prizeId, buttonId = null) {
+	const shelf = getPrizeShelfData();
+	const entry = shelf[prizeId];
+	if (!entry) return;
+	if (entry.count > 1) {
+		entry.count -= 1;
+	} else {
+		delete shelf[prizeId];
+	}
+	savePrizeShelf(shelf);
+	renderPrizeShelf(shelf);
+	if (prizeDetailDialog?.open && activePrizeDetailId === prizeId) {
+		activePrizeDetailId = null;
+		prizeDetailDialog.close();
+	}
+	focusPrizeShelfAfterDelete(buttonId || lastPrizeShelfTriggerId);
 }
 
 
@@ -839,7 +1008,7 @@ if (clearPrizeShelfButton) {
 			if (totalTickets < ticketCost) return;
 
 			playPrizeFanfare();
-			addPrizeToShelf(prize.label);
+			addPrizeToShelf(prize);
 			totalTickets = Math.max(0, totalTickets - ticketCost);
 			saveTotalTickets();
 			updateHomeCashInButton();
@@ -856,6 +1025,29 @@ if (cancelCashOutButton) {
 		setGameState("results");
 	});
 }
+
+	if (closePrizeDetailButton) {
+		closePrizeDetailButton.addEventListener("click", () => {
+			closePrizeDetail();
+		});
+	}
+
+	if (deletePrizeButton) {
+		deletePrizeButton.addEventListener("click", () => {
+			if (!activePrizeDetailId) return;
+			deletePrizeFromShelf(activePrizeDetailId, lastPrizeShelfTriggerId);
+		});
+	}
+
+	if (prizeDetailDialog) {
+		prizeDetailDialog.addEventListener("close", () => {
+			activePrizeDetailId = null;
+		});
+		prizeDetailDialog.addEventListener("cancel", event => {
+			event.preventDefault();
+			closePrizeDetail();
+		});
+	}
 
 	if (cashOutHomeButton) {
 		cashOutHomeButton.addEventListener("click", () => {

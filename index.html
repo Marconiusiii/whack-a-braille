@@ -184,6 +184,7 @@
 <details id="prizeShelf">
 	<summary>Prize Shelf</summary>
 <h2>Prize Shelf</h2>
+	<p id="prizeShelfHelp">Select a prize to view details. Press Delete while focused on a prize to remove one from your shelf.</p>
 	<p id="noPrizesMessage">You haven't won any prizes yet!</p>
 
 	<ul id="prizeList"></ul>
@@ -192,6 +193,20 @@
 		Clear Prize Shelf
 	</button>
 </details>
+
+<dialog id="prizeDetailDialog" aria-labelledby="prizeDetailTitle">
+<div id="prizeDetailContent">
+<h2 id="prizeDetailTitle" tabindex="-1"></h2>
+<p id="prizeDetailClaimed"></p>
+<p id="prizeDetailTierCost"></p>
+<p id="prizeDetailOwned" hidden></p>
+<p id="prizeDetailFlavor"></p>
+<div id="prizeDetailActions">
+<button type="button" id="deletePrizeButton">Delete This Prize</button>
+<button type="button" id="closePrizeDetailButton">Back to Shelf</button>
+</div>
+</div>
+</dialog>
 
 </section>
 
