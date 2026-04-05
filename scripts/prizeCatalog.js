@@ -314,6 +314,14 @@ const prizeCatalog = [
 		flavorText: "Pulled from the Assistant Manager's locker, the aroma promises motivation. The taste promises consequences."
 	},
 	{
+		id: "tier1_balloonSpecies",
+		label: "A Half-Inflated Balloon Animal of Unclear Species",
+		minTickets: 0,
+		maxTickets: 9,
+		category: "joke",
+		flavorText: "Part dog, part snake, part accident, and somehow still trying its best."
+	},
+	{
 		id: "tier2_nearWin",
 		label: "Official Recognition of Being Very Close",
 		minTickets: 10,
@@ -602,6 +610,14 @@ const prizeCatalog = [
 		flavorText: "Proof that the mole got to them first and still could not finish the job."
 	},
 	{
+		id: "tier2_luckyWhackingSocks",
+		label: "A Backup Pair of Lucky Whacking Socks",
+		minTickets: 10,
+		maxTickets: 24,
+		category: "joke",
+		flavorText: "For the serious player who respects the power of rotational superstition."
+	},
+	{
 		id: "tier3_moleHistorian",
 		label: "Official Mole Historian Certification",
 		minTickets: 25,
@@ -720,6 +736,22 @@ const prizeCatalog = [
 		maxTickets: 49,
 		category: "title",
 		flavorText: "A deeply prestigious-sounding title for a very real skill you have definitely earned the hard way."
+	},
+	{
+		id: "tier3_officialKazoo",
+		label: "An Official Whack a Braille Kazoo",
+		minTickets: 25,
+		maxTickets: 49,
+		category: "joke",
+		flavorText: "Small instrument, giant confidence, and absolutely no respect for subtle entrances."
+	},
+	{
+		id: "tier3_arcadeChiliRecipe",
+		label: "A Braille Recipe Card for Arcade Chili",
+		minTickets: 25,
+		maxTickets: 49,
+		category: "tactile",
+		flavorText: "Rich with tactile instructions and a level of confidence the ingredients may not deserve."
 	},
 	{
 		id: "tier3_warpedCane",
@@ -1019,11 +1051,11 @@ const prizeCatalog = [
 	},
 	{
 		id: "tier4_sillyMilkDrinks",
-		label: "Silly milk drinks!",
+		label: "A Finely Flavored Latte",
 		minTickets: 50,
 		maxTickets: 99,
 		category: "joke",
-		flavorText: "A whole category of beverages united only by whimsy, dairy, and questionable decision-making."
+		flavorText: "What exact flavor it is has yet to be determined, but it tastes like pure victory!"
 	},
 	{
 		id: "tier5_moleTruceDay",
@@ -1107,11 +1139,11 @@ const prizeCatalog = [
 	},
 	{
 		id: "tier5_guideDogSnacks2",
-		label: "Premium Guide Dog Snacks",
+		label: "Premium Guide Dog Toys",
 		minTickets: 100,
 		maxTickets: null,
 		category: "legend",
-		flavorText: "Top-tier treats for top-tier working dogs who have very reasonably come to expect the good stuff."
+		flavorText: "Squeaky pickle parties, tug-of-war chewy ropes, all manner of plushy noisemakers for excited guide dogs to use to play the song of their people!"
 	},
 	{
 		id: "tier5_glideTips",
@@ -1119,7 +1151,7 @@ const prizeCatalog = [
 		minTickets: 100,
 		maxTickets: null,
 		category: "legend",
-		flavorText: "Finally, a reward that says practical luxury with the confidence of a well-stocked cane drawer."
+		flavorText: "Never stress about losing another cane tip under the arcade machines again! The sound of these jingling in your pockets is the sound of true mobility independence!"
 	},
 	{
 		id: "tier5_moleskinNotebook",
@@ -1227,11 +1259,11 @@ const prizeCatalog = [
 	},
 	{
 		id: "tier5_brava",
-		label: "A Shiny Brava Oven filled with Chicken Fingies",
+		label: "A Shiny Brava Oven filled with Chicken Fingers",
 		minTickets: 100,
 		maxTickets: null,
 		category: "legend",
-		flavorText: "A luxury appliance and a chaotic feast prize wrapped into one deeply persuasive package."
+		flavorText: "Ready to be set up next to the arcade machines for crisp, lightly breaded fuel for more mole whacking!"
 	},
 	{
 		id: "tier5_brlStylus",
@@ -1239,7 +1271,7 @@ const prizeCatalog = [
 		minTickets: 100,
 		maxTickets: null,
 		category: "legend",
-		flavorText: "Historically impossible, emotionally priceless, and exactly the sort of artifact a great prize counter should probably not be trusted with."
+		flavorText: "A faint sound of a choir seems to suddenly appear every time you pick this stylus up. Also creates perfect punched braille with no mistakes, but only in French."
 	},
 	{
 		id: "tier5_microbraille",
@@ -1247,7 +1279,7 @@ const prizeCatalog = [
 		minTickets: 100,
 		maxTickets: null,
 		category: "legend",
-		flavorText: "Compact, precise, and cool in the quietly serious way that makes other tools straighten up."
+		flavorText: "Perfect for making the the biggest tactile messages with the smallest braille possible."
 	},
 	{
 		id: "tier5_3Dpuzzle",
@@ -1272,6 +1304,22 @@ const prizeCatalog = [
 		maxTickets: null,
 		category: "legend",
 		flavorText: "At last, a properly dramatic tool for settling mole-related disputes in Midgard."
+	},
+	{
+		id: "tier5_infiniteCoffee",
+		label: "The Infinite Coffee Membership of Champions",
+		minTickets: 100,
+		maxTickets: null,
+		category: "legend",
+		flavorText: "A bottomless arrangement for players whose greatness clearly runs on caffeine and momentum."
+	},
+	{
+		id: "tier5_tinyTrumpets",
+		label: "A Floating Parade of Tiny Trumpets",
+		minTickets: 100,
+		maxTickets: null,
+		category: "absurd",
+		flavorText: "Magical, unnecessary, and exactly what should happen when your shelf starts running out of room for normal prizes."
 	}
 ];
 
