@@ -60,6 +60,7 @@ const cashOutButton = document.getElementById("cashOutButton");
 const saveTicketsHomeButton = document.getElementById("saveTicketsHomeButton");
 const exitRoundButton = document.getElementById("exitRoundButton");
 const prizeShelfHelp = document.getElementById("prizeShelfHelp");
+const prizeShelfCountBadge = document.getElementById("prizeShelfCountBadge");
 const prizeDetailDialog = document.getElementById("prizeDetailDialog");
 const prizeDetailTitle = document.getElementById("prizeDetailTitle");
 const prizeDetailClaimed = document.getElementById("prizeDetailClaimed");
@@ -357,6 +358,10 @@ function renderPrizeShelf(data) {
 	list.innerHTML = "";
 
 	const entries = Object.values(normalizePrizeShelfData(data));
+	const totalPrizeCount = entries.reduce((sum, entry) => sum + (Number(entry.count) || 0), 0);
+	if (prizeShelfCountBadge) {
+		prizeShelfCountBadge.textContent = `${totalPrizeCount} ${totalPrizeCount === 1 ? "prize" : "prizes"}`;
+	}
 
 	if (entries.length === 0) {
 		emptyMessage.hidden = false;

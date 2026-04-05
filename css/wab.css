@@ -402,6 +402,19 @@ body[data-game-state="results"] #resultsArea { display: block; }
 #prizeShelf summary::marker {
 	color: #7bdff2;
 }
+
+#prizeShelfCountBadge {
+	display: inline-block;
+	margin-left: 0.5rem;
+	padding: 0.12rem 0.5rem;
+	border-radius: 999px;
+	background: #7bdff2;
+	color: #0b1020;
+	font-size: 0.85rem;
+	font-weight: 700;
+	letter-spacing: 0;
+}
+
 #noPrizesMessage {
 	margin: 0.75rem 0 1rem 0;
 	font-style: italic;
