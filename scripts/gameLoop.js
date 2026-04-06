@@ -295,6 +295,10 @@ function endRoundNow(canceled) {
 	let streakBonusTickets = streakBonusCount;
 	let speedTickets = speedBonusTickets;
 
+	if (currentModeId === "grade2Invasion") {
+		baseTickets = Math.round(baseTickets * 1.5);
+	}
+
 	if (isTrainingMode) {
 		baseTickets = 0;
 		streakBonusTickets = 0;
