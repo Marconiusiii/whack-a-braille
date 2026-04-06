@@ -55,6 +55,15 @@ Global keyboard shortcuts:
 
 Grade 1 Invasion draws each mole from the full Grade 1 pool as it appears, including numbers. Grade 2 Invasion does the same with the full Grade 2 pool, including the newer multi-cell contraction families. Invasion rounds also use a rotating set of funny spoken intros before the round begins, and the round start waits for the spoken intro timing instead of a fixed delay.
 
+## Braille Reference
+
+The bottom of the How to Play area now includes a collapsible Braille Reference for learners.
+
+- Grade 1 and Grade 2 each have their own table
+- Each table shows the character or contraction, the braille dots, and the matching braille cell or cells
+- Grade 1 numbers are shown with the number sign sequence
+- Grade 2 final contractions are listed in a clear, learner-friendly format
+
 ## Spatial Mole Mapping
 
 Spatial Mole Mapping is available in Game Settings and is enabled by default.

@@ -12,6 +12,16 @@ import {
 	setSpeechVolume
 } from "./speechEngine.js";
 import { attachKeyboardListeners, setInputMode, setCurrentMoleId, emitTextAttempt } from "./inputEngine.js";
+import {
+	grade1Letters,
+	grade1Numbers,
+	grade2Symbols,
+	grade2Words,
+	grade2Dot5Initials,
+	grade2Dot45Initials,
+	grade2Dot46Finals,
+	grade2Dot456Initials
+} from "./brailleRegistry.js";
 import { prizeCatalog } from "./prizeCatalog.js";
 import { scoreToTickets } from "./ticketRules.js";
 
@@ -39,6 +49,8 @@ const mobileBsiInput = document.getElementById("mobileBsiInput");
 const moleChooserSelect = document.getElementById("moleChooserSelect");
 const desktopBrailleDisplayEntry = document.getElementById("desktopBrailleDisplayEntry");
 const desktopBrailleDisplayInput = document.getElementById("desktopBrailleDisplayInput");
+const grade1ReferenceBody = document.getElementById("grade1ReferenceBody");
+const grade2ReferenceBody = document.getElementById("grade2ReferenceBody");
 
 const speechRatePercentInput = document.getElementById("speechRatePercent");
 const speechVolumePercentInput = document.getElementById("speechVolumePercent");
@@ -107,6 +119,94 @@ const invasionIntroPhrases = [
 	"Grade 2 moles, everywhere!",
 	"Moles incoming from all sides!"
 ];
+
+function dotSetsToUnicode(dotSets) {
+	return (Array.isArray(dotSets) ? dotSets : []).map(dots => {
+		const list = Array.isArray(dots) ? dots : [];
+		let mask = 0;
+		for (const dot of list) {
+			mask |= 1 << (dot - 1);
+		}
+		return String.fromCodePoint(0x2800 + mask);
+	});
+}
+
+function formatDotSets(dotSets) {
+	return (Array.isArray(dotSets) ? dotSets : [])
+		.map(dots => {
+			const list = Array.isArray(dots) ? dots : [];
+			if (list.length === 1) return `Dot ${list[0]}`;
+			if (list.length > 1) return `Dots ${list.join(" ")}`;
+			return "";
+		})
+		.filter(Boolean)
+		.join(", ");
+}
+
+function getReferenceLabel(item) {
+	if (item?.modeTags?.includes("grade2Dot46Finals")) {
+		return `-${item.id}`;
+	}
+	return String(item?.id || "");
+}
+
+function createUnicodeCell(dotSets) {
+	const wrapper = document.createElement("span");
+	wrapper.className = "brailleReferenceUnicode";
+	dotSetsToUnicode(dotSets).forEach(cell => {
+		const span = document.createElement("span");
+		span.className = "brailleReferenceUnicodeCell";
+		span.textContent = cell;
+		wrapper.appendChild(span);
+	});
+	return wrapper;
+}
+
+function appendReferenceRow(tbody, item) {
+	if (!tbody || !item) return;
+	const row = document.createElement("tr");
+
+	const labelCell = document.createElement("td");
+	labelCell.textContent = getReferenceLabel(item);
+
+	const dotsCell = document.createElement("td");
+	const dotSets = Array.isArray(item.perkinsSequenceDots) && item.perkinsSequenceDots.length
+		? item.perkinsSequenceDots
+		: [Array.isArray(item.dots) ? item.dots : []];
+	dotsCell.textContent = formatDotSets(dotSets);
+
+	const unicodeCell = document.createElement("td");
+	unicodeCell.appendChild(createUnicodeCell(dotSets));
+
+	row.appendChild(labelCell);
+	row.appendChild(dotsCell);
+	row.appendChild(unicodeCell);
+	tbody.appendChild(row);
+}
+
+function renderBrailleReferenceTables() {
+	if (grade1ReferenceBody) {
+		grade1ReferenceBody.innerHTML = "";
+		[...grade1Letters, ...grade1Numbers].forEach(item => {
+			appendReferenceRow(grade1ReferenceBody, item);
+		});
+	}
+
+	if (grade2ReferenceBody) {
+		grade2ReferenceBody.innerHTML = "";
+		[
+			...grade2Symbols,
+			...grade2Words,
+			...grade2Dot5Initials,
+			...grade2Dot45Initials,
+			...grade2Dot46Finals,
+			...grade2Dot456Initials
+		].forEach(item => {
+			appendReferenceRow(grade2ReferenceBody, item);
+		});
+	}
+}
+
 const moleChooserOptions = [
 	{ value: "typingSimpleHomeRow", label: "Simple Home Row", group: "typing" },
 	{ value: "typingHomeRow", label: "QWERTY Home Row", group: "typing" },
@@ -1433,6 +1533,7 @@ function init() {
 	loadTotalTickets();
 	updateHomeCashInButton();
 	loadPrizeShelf();
+	renderBrailleReferenceTables();
 	syncMoleChooserForInputMode();
 	ensureMoleChooserValue();
 	const savedSettings = loadGameSettings();

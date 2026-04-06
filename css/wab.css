@@ -19,6 +19,66 @@ h2 { font-size: 1.75rem; margin: 1.5rem 0 0.75rem 0; color: #7bdff2; }
 #homeContent ol { margin-left: 1.25rem; }
 #homeContent li { margin-bottom: 0.5rem; }
 
+#brailleReferenceContent {
+	margin-top: 1rem;
+}
+
+#brailleReferenceContent h3,
+#brailleReferenceContent h4 {
+	color: #7bdff2;
+}
+
+#brailleReferenceContent h3 {
+	margin-top: 0;
+}
+
+.brailleReferenceGroup + .brailleReferenceGroup {
+	margin-top: 1.5rem;
+}
+
+.brailleReferenceTableWrap {
+	overflow-x: auto;
+	border: 1px solid rgba(123, 223, 242, 0.28);
+	border-radius: 0.75rem;
+	background: rgba(15, 23, 48, 0.88);
+}
+
+.brailleReferenceTableWrap table {
+	width: 100%;
+	border-collapse: collapse;
+	min-width: 38rem;
+}
+
+.brailleReferenceTableWrap th,
+.brailleReferenceTableWrap td {
+	padding: 0.7rem 0.85rem;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+	text-align: left;
+	vertical-align: top;
+}
+
+.brailleReferenceTableWrap th {
+	color: #ffe66d;
+	background: rgba(108, 99, 255, 0.18);
+}
+
+.brailleReferenceTableWrap tbody tr:last-child td {
+	border-bottom: none;
+}
+
+.brailleReferenceUnicode {
+	display: inline-flex;
+	flex-wrap: wrap;
+	gap: 0.35rem;
+	font-size: 1.35rem;
+	line-height: 1.2;
+}
+
+.brailleReferenceUnicodeCell {
+	display: inline-block;
+	min-width: 1ch;
+}
+
 /* Buttons */
 
 button { font-size: 1rem; padding: 0.6rem 1rem; border-radius: 0.5rem; border: none; cursor: pointer; background: #ff6f91; color: #0b1020; }

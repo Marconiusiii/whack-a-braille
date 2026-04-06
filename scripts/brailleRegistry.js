@@ -352,5 +352,13 @@ function getBrailleItemsForMode(modeId) {
 
 export {
 	brailleRegistry,
-	getBrailleItemsForMode
+	getBrailleItemsForMode,
+	grade1Letters,
+	grade1Numbers,
+	grade2Symbols,
+	grade2Words,
+	grade2Dot5Initials,
+	grade2Dot45Initials,
+	grade2Dot46Finals,
+	grade2Dot456Initials
 };

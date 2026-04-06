@@ -18,8 +18,10 @@
 <p>By Marco Salsiccia</p>
 
 <details>
-<summary>Apr 5, 2026 Update Log</summary>
+<summary>Apr 6, 2026 Update Log</summary>
 <ul>
+<li>Added Grade 2 contraction sets in the Mole Chooser. Grade 2 Invasion now pulls from the entire set of contractions instead of just the single-character contractions!</li>
+<li>Added Grade 1 and Grade 2 braille reference tables at the bottom of the How to Play section. Includes Unicode references as well for a visual representation of the braille.</li>
 <li>Added Whack A Braille iOS Promo banner.</li>
 <li>Added link to Whack A Braille Privacy Policy.</li>
 <li>Prize Shelf now has a prize counter badge so you know how many prizes you've won.</li>
@@ -48,6 +50,45 @@
 <li>This game can be played with any standard or Bluetooth keyboard for both desktop and mobile.  External braille displays will require you to hit dot 8 or the space bar to whack the current mole after entering the chord.</li>
 <li>Choose your preferred voice and speech rate based on your system language in Game Settings.</li>
 </ol>
+<details id="brailleReferenceDetails">
+<summary>Braille Reference</summary>
+<div id="brailleReferenceContent">
+<h3>Braille Reference</h3>
+<p>Use these tables as a quick guide while you learn the Grade 1 and Grade 2 patterns used in the game.</p>
+<div class="brailleReferenceGroup">
+<h4>Grade 1</h4>
+<div class="brailleReferenceTableWrap">
+<table id="grade1ReferenceTable">
+<caption>Grade 1 Reference</caption>
+<thead>
+<tr>
+<th scope="col">Character</th>
+<th scope="col">Braille Dots</th>
+<th scope="col">Braille Unicode</th>
+</tr>
+</thead>
+<tbody id="grade1ReferenceBody"></tbody>
+</table>
+</div>
+</div>
+<div class="brailleReferenceGroup">
+<h4>Grade 2</h4>
+<div class="brailleReferenceTableWrap">
+<table id="grade2ReferenceTable">
+<caption>Grade 2 Contraction Reference</caption>
+<thead>
+<tr>
+<th scope="col">Character</th>
+<th scope="col">Braille Dots</th>
+<th scope="col">Braille Unicode</th>
+</tr>
+</thead>
+<tbody id="grade2ReferenceBody"></tbody>
+</table>
+</div>
+</div>
+</div>
+</details>
 </details>
 
 <details open>
@@ -332,7 +373,7 @@ Whack A Braille!">Whack a Braille on iOS</a></li>
 	</nav>
 
 	<p class="footer-copy small muted">
-		&copy;2026 Marco Salsiccia - v.1.7.2</p>
+		&copy;2026 Marco Salsiccia - v.1.8.0</p>
 </footer>
 
 <script type="module" src="scripts/app.js"></script>
