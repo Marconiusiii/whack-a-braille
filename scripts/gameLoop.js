@@ -189,7 +189,7 @@ function startRound(modeId, durationSeconds, inputMode, difficulty = "normal", o
 
 	currentModeId = modeId;
 	currentDurationSeconds = durationSeconds;
-	currentInputMode = modeId === "grade2Invasion" ? "perkins" : inputMode;
+	currentInputMode = inputMode;
 
 	isTrainingMode = difficulty === "training";
 	speakBrailleDotsEnabled = !!options.speakBrailleDots && isTrainingMode;

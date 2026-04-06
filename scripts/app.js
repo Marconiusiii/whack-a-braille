@@ -120,6 +120,10 @@ const moleChooserOptions = [
 	{ value: "grade1Invasion", label: "Grade 1 Invasion", group: "grade1" },
 	{ value: "grade2Symbols", label: "Grade 2 contractions (symbols)", group: "grade2" },
 	{ value: "grade2Words", label: "Grade 2 whole-word contractions", group: "grade2" },
+	{ value: "grade2Dot5Initials", label: "Grade 2 Dot 5 initial-letter contractions", group: "grade2" },
+	{ value: "grade2Dot45Initials", label: "Grade 2 Dots 4 5 initial-letter contractions", group: "grade2" },
+	{ value: "grade2Dot46Finals", label: "Grade 2 Dots 4 6 final-letter contractions", group: "grade2" },
+	{ value: "grade2Dot456Initials", label: "Grade 2 Dots 4 5 6 initial-letter contractions", group: "grade2" },
 	{ value: "grade2Invasion", label: "Grade 2 Invasion", group: "grade2" }
 ];
 
@@ -491,7 +495,12 @@ function deletePrizeFromShelf(prizeId, buttonId = null) {
 
 
 function isGrade2Mode(modeId) {
-	return modeId === "grade2Symbols" || modeId === "grade2Words";
+	return modeId === "grade2Symbols" ||
+		modeId === "grade2Words" ||
+		modeId === "grade2Dot5Initials" ||
+		modeId === "grade2Dot45Initials" ||
+		modeId === "grade2Dot46Finals" ||
+		modeId === "grade2Dot456Initials";
 }
 
 function isInvasionMode(modeId) {

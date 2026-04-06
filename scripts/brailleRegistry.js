@@ -92,6 +92,16 @@ function makeTypingItem(key, announceText, modes) {
 		acceptedTextInputs: [String(key).toLowerCase()]
 	};
 }
+
+function makeSequenceItem(id, announceText, sequenceDots, modes, acceptedInputs = []) {
+	const finalDots = Array.isArray(sequenceDots) && sequenceDots.length
+		? sequenceDots[sequenceDots.length - 1]
+		: [];
+	return makeItem(id, announceText, finalDots, modes, null, {
+		perkinsSequence: sequenceDots,
+		acceptedInputs
+	});
+}
 const grade1Letters = [
 	makeItem("a","a",[1],["grade1Letters","grade1LettersNumbers"],"a",{ nato: "Alpha" }),
 	makeItem("b","b",[1,2],["grade1Letters","grade1LettersNumbers"],"b",{ nato: "Bravo" }),
@@ -184,6 +194,56 @@ const grade2Words = [
 	makeItem("shall","Shall",[1,4,6],["grade2Words"], null, { acceptedInputs: ["s", "%"] })
 ];
 
+const grade2Dot5Initials = [
+	makeSequenceItem("day", "Day", [[5], [1,4,5]], ["grade2Dot5Initials"]),
+	makeSequenceItem("ever", "Ever", [[5], [1,5]], ["grade2Dot5Initials"]),
+	makeSequenceItem("father", "Father", [[5], [1,2,4]], ["grade2Dot5Initials"]),
+	makeSequenceItem("here", "Here", [[5], [1,2,5]], ["grade2Dot5Initials"]),
+	makeSequenceItem("know", "Know", [[5], [1,3]], ["grade2Dot5Initials"]),
+	makeSequenceItem("lord", "Lord", [[5], [1,2,3]], ["grade2Dot5Initials"]),
+	makeSequenceItem("mother", "Mother", [[5], [1,3,4]], ["grade2Dot5Initials"]),
+	makeSequenceItem("name", "Name", [[5], [1,3,4,5]], ["grade2Dot5Initials"]),
+	makeSequenceItem("one", "One", [[5], [1,3,5]], ["grade2Dot5Initials"]),
+	makeSequenceItem("part", "Part", [[5], [1,2,3,4]], ["grade2Dot5Initials"]),
+	makeSequenceItem("question", "Question", [[5], [1,2,3,4,5]], ["grade2Dot5Initials"]),
+	makeSequenceItem("right", "Right", [[5], [1,2,3,5]], ["grade2Dot5Initials"]),
+	makeSequenceItem("some", "Some", [[5], [2,3,4]], ["grade2Dot5Initials"]),
+	makeSequenceItem("time", "Time", [[5], [2,3,4,5]], ["grade2Dot5Initials"]),
+	makeSequenceItem("there", "There", [[5], [2,3,4,6]], ["grade2Dot5Initials"]),
+	makeSequenceItem("under", "Under", [[5], [1,3,6]], ["grade2Dot5Initials"]),
+	makeSequenceItem("work", "Work", [[5], [2,4,5,6]], ["grade2Dot5Initials"]),
+	makeSequenceItem("young", "Young", [[5], [1,3,4,5,6]], ["grade2Dot5Initials"])
+];
+
+const grade2Dot45Initials = [
+	makeSequenceItem("upon", "Upon", [[4,5], [1,3,6]], ["grade2Dot45Initials"]),
+	makeSequenceItem("word", "Word", [[4,5], [2,4,5,6]], ["grade2Dot45Initials"]),
+	makeSequenceItem("these", "These", [[4,5], [2,3,4,6]], ["grade2Dot45Initials"]),
+	makeSequenceItem("through", "Through", [[4,5], [1,4,5,6]], ["grade2Dot45Initials"]),
+	makeSequenceItem("character", "Character", [[4,5], [1,6]], ["grade2Dot45Initials"]),
+	makeSequenceItem("where", "Where", [[4,5], [1,5,6]], ["grade2Dot45Initials"]),
+	makeSequenceItem("ought", "Ought", [[4,5], [1,2,5,6]], ["grade2Dot45Initials"])
+];
+
+const grade2Dot46Finals = [
+	makeSequenceItem("ance", "A N C E", [[4,6], [1,5]], ["grade2Dot46Finals"], ["-ance", "ε"]),
+	makeSequenceItem("sion", "S I O N", [[4,6], [1,3,4,5]], ["grade2Dot46Finals"], ["-sion"]),
+	makeSequenceItem("less", "L E S S", [[4,6], [2,3,4]], ["grade2Dot46Finals"], ["-less"]),
+	makeSequenceItem("ound", "O U N D", [[4,6], [1,4,5]], ["grade2Dot46Finals"], ["-ound"]),
+	makeSequenceItem("ount", "O U N T", [[4,6], [2,3,4,5]], ["grade2Dot46Finals"], ["-ount"])
+];
+
+const grade2Dot456Initials = [
+	makeSequenceItem("those", "Those", [[4,5,6], [1,4,5,6]], ["grade2Dot456Initials"]),
+	makeSequenceItem("whose", "Whose", [[4,5,6], [1,5,6]], ["grade2Dot456Initials"]),
+	makeSequenceItem("cannot", "Cannot", [[4,5,6], [1,4]], ["grade2Dot456Initials"]),
+	makeSequenceItem("had", "Had", [[4,5,6], [1,2,5]], ["grade2Dot456Initials"]),
+	makeSequenceItem("many", "Many", [[4,5,6], [1,3,4]], ["grade2Dot456Initials"]),
+	makeSequenceItem("spirit", "Spirit", [[4,5,6], [2,3,4]], ["grade2Dot456Initials"]),
+	makeSequenceItem("their", "Their", [[4,5,6], [2,3,4,6]], ["grade2Dot456Initials"]),
+	makeSequenceItem("world", "World", [[4,5,6], [2,4,5,6]], ["grade2Dot456Initials"])
+];
+
 const typingSimpleHomeRowItems = [
 	makeTypingItem("a", "a", ["typingSimpleHomeRow"]),
 	makeTypingItem("s", "s", ["typingSimpleHomeRow"]),
@@ -242,7 +302,11 @@ const brailleOnlyRegistry = [
 	...grade1Letters,
 	...grade1Numbers,
 	...grade2Symbols,
-	...grade2Words
+	...grade2Words,
+	...grade2Dot5Initials,
+	...grade2Dot45Initials,
+	...grade2Dot46Finals,
+	...grade2Dot456Initials
 ];
 
 const brailleRegistry = [
@@ -259,7 +323,14 @@ function getBrailleItemsForMode(modeId) {
 	}
 
 	if (modeId === "grade2Invasion") {
-		return [...grade2Symbols, ...grade2Words];
+		return [
+			...grade2Symbols,
+			...grade2Words,
+			...grade2Dot5Initials,
+			...grade2Dot45Initials,
+			...grade2Dot46Finals,
+			...grade2Dot456Initials
+		];
 	}
 
 	if (modeId === "letters-aj") {

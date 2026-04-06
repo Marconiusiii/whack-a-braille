@@ -21,6 +21,7 @@ Tickets earned during gameplay are saved into a persistent ticket bank and can b
 - Perkins-style braille keyboard input (F D S J K L chord entry)
 - Braille Display mode for translated 8-dot braille input across all Mole Chooser modes
 - Mobile Braille Entry field for screen reader braille input on phones/tablets
+- In Perkins mode, Grade 1 numbers now require the number sign followed by the correct number cell instead of allowing the matching letter cell alone
 
 Game Settings now use a Mole Chooser select menu that rebuilds based on the chosen Keyboard Input Mode:
 - QWERTY shows typing modes and Grade 1 modes
@@ -46,9 +47,13 @@ Global keyboard shortcuts:
 - Grade 1 Letters and Numbers
 - Grade 2 Symbols
 - Grade 2 Word Signs
+- Grade 2 Dot 5 Initial-Letter Contractions
+- Grade 2 Dots 4 5 Initial-Letter Contractions
+- Grade 2 Dots 4 6 Final-Letter Contractions
+- Grade 2 Dots 4 5 6 Initial-Letter Contractions
 - Grade 2 Invasion
 
-Grade 1 Invasion draws each mole from the full Grade 1 pool as it appears. Grade 2 Invasion does the same with the full Grade 2 pool. Invasion rounds also use a rotating set of funny spoken intros before the round begins, and the round start waits for the spoken intro timing instead of a fixed delay.
+Grade 1 Invasion draws each mole from the full Grade 1 pool as it appears, including numbers. Grade 2 Invasion does the same with the full Grade 2 pool, including the newer multi-cell contraction families. Invasion rounds also use a rotating set of funny spoken intros before the round begins, and the round start waits for the spoken intro timing instead of a fixed delay.
 
 ## Spatial Mole Mapping
 
@@ -82,6 +87,7 @@ Features:
 - No misses or penalties
 - Fixed 15-mole sequence
 - Optional spoken braille dot patterns
+- Multi-cell braille targets are announced cell by cell so number signs and multi-cell contractions are spoken clearly
 - Restart training or return home at completion
 - Keyboard shortcut `\` ends training early
 - Exit Round button finishes the current round and moves straight to Results
