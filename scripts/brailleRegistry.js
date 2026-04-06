@@ -18,6 +18,21 @@ function dotsToPerkinsKeys(dots) {
 	return dots.map(dot => map[dot]);
 }
 
+function normalizePerkinsSequence(rawSequence, fallbackDots) {
+	const sequence = Array.isArray(rawSequence) && rawSequence.length
+		? rawSequence
+		: [fallbackDots];
+
+	return sequence.map(stepDots => {
+		const dots = Array.isArray(stepDots) ? stepDots.slice() : [];
+		return {
+			dots,
+			dotMask: dotsToMask(dots),
+			perkinsKeys: dotsToPerkinsKeys(dots)
+		};
+	});
+}
+
 function dedupeInputs(inputs) {
 	const seen = new Set();
 	const result = [];
@@ -32,12 +47,18 @@ function dedupeInputs(inputs) {
 }
 
 function makeItem(id, announceText, dots, modes, standardKey = null, options = {}) {
-	const acceptedInputs = Array.isArray(options.acceptedInputs) ? options.acceptedInputs : [];
+	const {
+		acceptedInputs: rawAcceptedInputs = [],
+		perkinsSequence: rawPerkinsSequence,
+		...restOptions
+	} = options;
+	const acceptedInputs = Array.isArray(rawAcceptedInputs) ? rawAcceptedInputs : [];
 	const acceptedTextInputs = [id];
 	if (standardKey) {
 		acceptedTextInputs.push(standardKey);
 	}
 	acceptedTextInputs.push(...acceptedInputs);
+	const perkinsSequence = normalizePerkinsSequence(rawPerkinsSequence, dots);
 
 	return {
 		id,
@@ -47,9 +68,13 @@ function makeItem(id, announceText, dots, modes, standardKey = null, options = {
 		dots,
 		dotMask: dotsToMask(dots),
 		perkinsKeys: dotsToPerkinsKeys(dots),
+		perkinsSequence,
+		perkinsSequenceMasks: perkinsSequence.map(step => step.dotMask),
+		perkinsSequenceDots: perkinsSequence.map(step => step.dots.slice()),
+		expectedPerkinsCellCount: perkinsSequence.length,
 		standardKey,
 		acceptedTextInputs: dedupeInputs(acceptedTextInputs),
-		...options
+		...restOptions
 	};
 }
 
@@ -97,16 +122,16 @@ const grade1Letters = [
 ];
 
 const grade1Numbers = [
-	makeItem("1","1",[1],["grade1Numbers","grade1LettersNumbers"],"1"),
-	makeItem("2","2",[1,2],["grade1Numbers","grade1LettersNumbers"],"2"),
-	makeItem("3","3",[1,4],["grade1Numbers","grade1LettersNumbers"],"3"),
-	makeItem("4","4",[1,4,5],["grade1Numbers","grade1LettersNumbers"],"4"),
-	makeItem("5","5",[1,5],["grade1Numbers","grade1LettersNumbers"],"5"),
-	makeItem("6","6",[1,2,4],["grade1Numbers","grade1LettersNumbers"],"6"),
-	makeItem("7","7",[1,2,4,5],["grade1Numbers","grade1LettersNumbers"],"7"),
-	makeItem("8","8",[1,2,5],["grade1Numbers","grade1LettersNumbers"],"8"),
-	makeItem("9","9",[2,4],["grade1Numbers","grade1LettersNumbers"],"9"),
-	makeItem("0","0",[2,4,5],["grade1Numbers","grade1LettersNumbers"],"0")
+	makeItem("1","1",[1],["grade1Numbers","grade1LettersNumbers"],"1", { perkinsSequence: [[3,4,5,6], [1]] }),
+	makeItem("2","2",[1,2],["grade1Numbers","grade1LettersNumbers"],"2", { perkinsSequence: [[3,4,5,6], [1,2]] }),
+	makeItem("3","3",[1,4],["grade1Numbers","grade1LettersNumbers"],"3", { perkinsSequence: [[3,4,5,6], [1,4]] }),
+	makeItem("4","4",[1,4,5],["grade1Numbers","grade1LettersNumbers"],"4", { perkinsSequence: [[3,4,5,6], [1,4,5]] }),
+	makeItem("5","5",[1,5],["grade1Numbers","grade1LettersNumbers"],"5", { perkinsSequence: [[3,4,5,6], [1,5]] }),
+	makeItem("6","6",[1,2,4],["grade1Numbers","grade1LettersNumbers"],"6", { perkinsSequence: [[3,4,5,6], [1,2,4]] }),
+	makeItem("7","7",[1,2,4,5],["grade1Numbers","grade1LettersNumbers"],"7", { perkinsSequence: [[3,4,5,6], [1,2,4,5]] }),
+	makeItem("8","8",[1,2,5],["grade1Numbers","grade1LettersNumbers"],"8", { perkinsSequence: [[3,4,5,6], [1,2,5]] }),
+	makeItem("9","9",[2,4],["grade1Numbers","grade1LettersNumbers"],"9", { perkinsSequence: [[3,4,5,6], [2,4]] }),
+	makeItem("0","0",[2,4,5],["grade1Numbers","grade1LettersNumbers"],"0", { perkinsSequence: [[3,4,5,6], [2,4,5]] })
 ];
 
 const grade2Symbols = [
@@ -230,7 +255,7 @@ const brailleRegistry = [
 
 function getBrailleItemsForMode(modeId) {
 	if (modeId === "grade1Invasion") {
-		return grade1Letters.slice();
+		return [...grade1Letters, ...grade1Numbers];
 	}
 
 	if (modeId === "grade2Invasion") {

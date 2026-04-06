@@ -19,6 +19,12 @@ let chordDown = new Set();
 let chordUsed = new Set();
 let chordMoleId = 0;
 
+function resetPerkinsChordState() {
+	chordDown.clear();
+	chordUsed.clear();
+	chordMoleId = 0;
+}
+
 function setAttemptCallback(cb) {
 	attemptCallback = cb;
 }
@@ -31,9 +37,7 @@ function setInputMode(mode) {
 	} else {
 		currentInputMode = "qwerty";
 	}
-	chordDown.clear();
-	chordUsed.clear();
-	chordMoleId = 0;
+	resetPerkinsChordState();
 }
 
 function setCurrentMoleId(id) {
@@ -99,8 +103,7 @@ function onKeyUp(event) {
 		if (chordDown.size === 0 && chordUsed.size > 0) {
 			const mask = dotMaskFromKeys(chordUsed);
 			const attemptMoleId = chordMoleId;
-			chordUsed.clear();
-			chordMoleId = 0;
+			resetPerkinsChordState();
 
 			emitAttempt({
 				type: "perkins",

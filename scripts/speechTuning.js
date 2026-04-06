@@ -10,6 +10,8 @@ function computeMoleWindowMs({
 	speechResult,
 	baseUpTimeMs,
 	reactionBufferMs = 260,
+	extraPerkinsCellMs = 420,
+	expectedInputCellCount = 1,
 	minUpTimeMs = 400,
 	maxUpTimeMs = 1800
 } = {}) {
@@ -31,7 +33,8 @@ function computeMoleWindowMs({
 		speechDuration = 300;
 	}
 
-	const windowMs = baseUpTimeMs + speechDuration + reactionBufferMs;
+	const additionalCells = Math.max(0, Number(expectedInputCellCount || 1) - 1);
+	const windowMs = baseUpTimeMs + speechDuration + reactionBufferMs + (additionalCells * extraPerkinsCellMs);
 
 	if (windowMs < minUpTimeMs) return minUpTimeMs;
 	if (windowMs > maxUpTimeMs) return maxUpTimeMs;

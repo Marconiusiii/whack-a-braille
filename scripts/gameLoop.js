@@ -26,6 +26,7 @@ let activeMoleIndex = null;
 let activeMoleId = 0;
 let missRegisteredForMole = false;
 let activeMoleShownAtMs = 0;
+let activePerkinsSequenceIndex = 0;
 
 let isRunning = false;
 let roundEnding = false;
@@ -220,6 +221,7 @@ function startRound(modeId, durationSeconds, inputMode, difficulty = "normal", o
 	activeMoleId = 0;
 	activeMoleItem = null;
 	missRegisteredForMole = false;
+	activePerkinsSequenceIndex = 0;
 
 	setCurrentMoleId(0);
 	setAttemptCallback(handleAttempt);
@@ -418,12 +420,28 @@ function buildAnnounceText(item) {
 	}
 
 	if (isTrainingMode && speakBrailleDotsEnabled) {
-		const dots = Array.isArray(item.dots) ? item.dots : [];
+		const perkinsSequenceDots = Array.isArray(item.perkinsSequenceDots) && item.perkinsSequenceDots.length
+			? item.perkinsSequenceDots
+			: [Array.isArray(item.dots) ? item.dots : []];
 
-		if (dots.length === 1) {
-			text += ", Dot " + dots[0];
-		} else if (dots.length > 1) {
-			text += ", Dots " + dots.join(" ");
+		if (perkinsSequenceDots.length === 1) {
+			const dots = perkinsSequenceDots[0];
+			if (dots.length === 1) {
+				text += ", Dot " + dots[0];
+			} else if (dots.length > 1) {
+				text += ", Dots " + dots.join(" ");
+			}
+		} else {
+			const parts = perkinsSequenceDots
+				.map(dots => {
+					if (dots.length === 1) return "Dot " + dots[0];
+					if (dots.length > 1) return "Dots " + dots.join(" ");
+					return "";
+				})
+				.filter(Boolean);
+			if (parts.length) {
+				text += ", " + parts.join(", then ");
+			}
 		}
 	}
 
@@ -437,6 +455,7 @@ async function showTrainingMole() {
 
 	activeMoleId++;
 	missRegisteredForMole = false;
+	activePerkinsSequenceIndex = 0;
 
 	const nextMole = pickNextMole();
 	activeMoleIndex = nextMole.index;
@@ -488,6 +507,7 @@ async function showRandomMole() {
 
 	activeMoleId++;
 	missRegisteredForMole = false;
+	activePerkinsSequenceIndex = 0;
 
 	const nextMole = pickNextMole();
 	activeMoleIndex = nextMole.index;
@@ -530,7 +550,8 @@ async function showRandomMole() {
 
 	const upTime = computeMoleWindowMs({
 		speechResult,
-		baseUpTimeMs: getCurrentUpTime()
+		baseUpTimeMs: getCurrentUpTime(),
+		expectedInputCellCount: getExpectedPerkinsCellCount(moleItem, currentInputMode)
 	});
 
 	activeMoleUpTimeMs = upTime;
@@ -650,6 +671,7 @@ function pickNextMole() {
 }
 
 function clearActiveMole() {
+	activePerkinsSequenceIndex = 0;
 	if (activeMoleIndex === null) return;
 	deactivateMoleVisual(activeMoleIndex);
 	activeMoleIndex = null;
@@ -687,7 +709,19 @@ function handleAttempt(attempt) {
 	let isHit = false;
 
 	if (attempt.type === "perkins") {
-		isHit = attempt.dotMask === currentItem.dotMask;
+		const expectedSequence = getPerkinsSequenceMasks(currentItem);
+		const expectedMask = expectedSequence[activePerkinsSequenceIndex] ?? expectedSequence[0];
+
+		if (attempt.dotMask === expectedMask) {
+			if (activePerkinsSequenceIndex >= expectedSequence.length - 1) {
+				isHit = true;
+			} else {
+				activePerkinsSequenceIndex += 1;
+				return;
+			}
+		} else {
+			activePerkinsSequenceIndex = 0;
+		}
 	}
 
 	if (attempt.type === "standard") {
@@ -830,16 +864,45 @@ function getCurrentSpeechPayload() {
 	}
 
 	if (isTrainingMode && speakBrailleDotsEnabled) {
-		const dots = Array.isArray(item.dots) ? item.dots : [];
+		const perkinsSequenceDots = Array.isArray(item.perkinsSequenceDots) && item.perkinsSequenceDots.length
+			? item.perkinsSequenceDots
+			: [Array.isArray(item.dots) ? item.dots : []];
 
-		if (dots.length === 1) {
-			text += ", Dot " + dots[0];
-		} else if (dots.length > 1) {
-			text += ", Dots " + dots.join(" ");
+		if (perkinsSequenceDots.length === 1) {
+			const dots = perkinsSequenceDots[0];
+			if (dots.length === 1) {
+				text += ", Dot " + dots[0];
+			} else if (dots.length > 1) {
+				text += ", Dots " + dots.join(" ");
+			}
+		} else {
+			const parts = perkinsSequenceDots
+				.map(dots => {
+					if (dots.length === 1) return "Dot " + dots[0];
+					if (dots.length > 1) return "Dots " + dots.join(" ");
+					return "";
+				})
+				.filter(Boolean);
+			if (parts.length) {
+				text += ", " + parts.join(", then ");
+			}
 		}
 	}
 
 	return { text };
+}
+
+function getPerkinsSequenceMasks(item) {
+	const sequence = Array.isArray(item?.perkinsSequenceMasks) && item.perkinsSequenceMasks.length
+		? item.perkinsSequenceMasks
+		: [Number(item?.dotMask) || 0];
+	return sequence;
+}
+
+function getExpectedPerkinsCellCount(item, inputMode) {
+	if (inputMode !== "perkins") return 1;
+	const count = Number(item?.expectedPerkinsCellCount);
+	return Number.isFinite(count) && count > 0 ? count : 1;
 }
 
 export {
