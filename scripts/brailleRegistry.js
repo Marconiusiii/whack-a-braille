@@ -210,19 +210,21 @@ const grade2Dot5Initials = [
 	makeSequenceItem("some", "Some", [[5], [2,3,4]], ["grade2Dot5Initials"]),
 	makeSequenceItem("time", "Time", [[5], [2,3,4,5]], ["grade2Dot5Initials"]),
 	makeSequenceItem("there", "There", [[5], [2,3,4,6]], ["grade2Dot5Initials"]),
+	makeSequenceItem("through", "Through", [[5], [1,4,5,6]], ["grade2Dot5Initials"]),
 	makeSequenceItem("under", "Under", [[5], [1,3,6]], ["grade2Dot5Initials"]),
+	makeSequenceItem("where", "Where", [[5], [1,5,6]], ["grade2Dot5Initials"]),
 	makeSequenceItem("work", "Work", [[5], [2,4,5,6]], ["grade2Dot5Initials"]),
-	makeSequenceItem("young", "Young", [[5], [1,3,4,5,6]], ["grade2Dot5Initials"])
+	makeSequenceItem("young", "Young", [[5], [1,3,4,5,6]], ["grade2Dot5Initials"]),
+	makeSequenceItem("character", "Character", [[5], [1,6]], ["grade2Dot5Initials"]),
+	makeSequenceItem("ought", "Ought", [[5], [1,2,5,6]], ["grade2Dot5Initials"])
 ];
 
 const grade2Dot45Initials = [
 	makeSequenceItem("upon", "Upon", [[4,5], [1,3,6]], ["grade2Dot45Initials"]),
 	makeSequenceItem("word", "Word", [[4,5], [2,4,5,6]], ["grade2Dot45Initials"]),
 	makeSequenceItem("these", "These", [[4,5], [2,3,4,6]], ["grade2Dot45Initials"]),
-	makeSequenceItem("through", "Through", [[4,5], [1,4,5,6]], ["grade2Dot45Initials"]),
-	makeSequenceItem("character", "Character", [[4,5], [1,6]], ["grade2Dot45Initials"]),
-	makeSequenceItem("where", "Where", [[4,5], [1,5,6]], ["grade2Dot45Initials"]),
-	makeSequenceItem("ought", "Ought", [[4,5], [1,2,5,6]], ["grade2Dot45Initials"])
+	makeSequenceItem("those", "Those", [[4,5], [1,4,5,6]], ["grade2Dot45Initials"]),
+	makeSequenceItem("whose", "Whose", [[4,5], [1,5,6]], ["grade2Dot45Initials"])
 ];
 
 const grade2Dot46Finals = [
@@ -234,8 +236,6 @@ const grade2Dot46Finals = [
 ];
 
 const grade2Dot456Initials = [
-	makeSequenceItem("those", "Those", [[4,5,6], [1,4,5,6]], ["grade2Dot456Initials"]),
-	makeSequenceItem("whose", "Whose", [[4,5,6], [1,5,6]], ["grade2Dot456Initials"]),
 	makeSequenceItem("cannot", "Cannot", [[4,5,6], [1,4]], ["grade2Dot456Initials"]),
 	makeSequenceItem("had", "Had", [[4,5,6], [1,2,5]], ["grade2Dot456Initials"]),
 	makeSequenceItem("many", "Many", [[4,5,6], [1,3,4]], ["grade2Dot456Initials"]),
