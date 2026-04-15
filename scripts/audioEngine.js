@@ -282,35 +282,37 @@ function playCartoonWhackHit(moleIndex) {
 		const boingOsc = ctx.createOscillator();
 		const boingGain = ctx.createGain();
 		boingOsc.type = "triangle";
-		const boingBase = 210 + Math.random() * 70;
+		const boingBase = 255 + Math.random() * 65;
 		const boingStart = now + 0.03;
-		boingOsc.frequency.setValueAtTime(boingBase * 0.74, boingStart);
-		boingOsc.frequency.exponentialRampToValueAtTime(boingBase * 1.5, boingStart + 0.09);
-		boingOsc.frequency.exponentialRampToValueAtTime(boingBase * 0.88, boingStart + 0.22);
-		boingOsc.frequency.exponentialRampToValueAtTime(boingBase * 1.08, boingStart + 0.36);
-		boingOsc.frequency.exponentialRampToValueAtTime(boingBase * 0.92, boingStart + 0.5);
-		boingOsc.frequency.exponentialRampToValueAtTime(boingBase * 1.02, boingStart + 0.62);
+		boingOsc.frequency.setValueAtTime(boingBase * 0.78, boingStart);
+		boingOsc.frequency.exponentialRampToValueAtTime(boingBase * 1.42, boingStart + 0.05);
+		boingOsc.frequency.exponentialRampToValueAtTime(boingBase * 0.84, boingStart + 0.11);
+		boingOsc.frequency.exponentialRampToValueAtTime(boingBase * 1.28, boingStart + 0.18);
+		boingOsc.frequency.exponentialRampToValueAtTime(boingBase * 0.9, boingStart + 0.26);
+		boingOsc.frequency.exponentialRampToValueAtTime(boingBase * 1.18, boingStart + 0.35);
+		boingOsc.frequency.exponentialRampToValueAtTime(boingBase * 0.95, boingStart + 0.46);
+		boingOsc.frequency.exponentialRampToValueAtTime(boingBase * 1.06, boingStart + 0.58);
 		boingGain.gain.setValueAtTime(0.0001, boingStart);
 		boingGain.gain.exponentialRampToValueAtTime(0.26 + Math.random() * 0.1, boingStart + 0.03);
-		boingGain.gain.exponentialRampToValueAtTime(0.13, boingStart + 0.24);
-		boingGain.gain.exponentialRampToValueAtTime(0.05, boingStart + 0.46);
-		boingGain.gain.exponentialRampToValueAtTime(0.0001, boingStart + 0.66);
+		boingGain.gain.exponentialRampToValueAtTime(0.18, boingStart + 0.16);
+		boingGain.gain.exponentialRampToValueAtTime(0.08, boingStart + 0.4);
+		boingGain.gain.exponentialRampToValueAtTime(0.0001, boingStart + 0.72);
 		boingOsc.connect(boingGain);
 		boingGain.connect(pan);
 		boingOsc.start(boingStart);
-		boingOsc.stop(boingStart + 0.68);
+		boingOsc.stop(boingStart + 0.74);
 
 		const wobble = ctx.createOscillator();
 		const wobbleGain = ctx.createGain();
 		wobble.type = "sine";
-		wobble.frequency.value = 4 + Math.random() * 1.4;
-		wobbleGain.gain.setValueAtTime(15, boingStart);
-		wobbleGain.gain.exponentialRampToValueAtTime(3.2, boingStart + 0.42);
-		wobbleGain.gain.exponentialRampToValueAtTime(0.9, boingStart + 0.66);
+		wobble.frequency.value = 8.6 + Math.random() * 1.5;
+		wobbleGain.gain.setValueAtTime(24, boingStart);
+		wobbleGain.gain.exponentialRampToValueAtTime(6.2, boingStart + 0.34);
+		wobbleGain.gain.exponentialRampToValueAtTime(1.3, boingStart + 0.72);
 		wobble.connect(wobbleGain);
 		wobbleGain.connect(boingOsc.frequency);
 		wobble.start(boingStart);
-		wobble.stop(boingStart + 0.68);
+		wobble.stop(boingStart + 0.74);
 	}
 
 	if (Math.random() < 0.38) {
@@ -410,7 +412,7 @@ function playCartoonRetreatSound(moleIndex) {
 	pan.connect(master);
 	master.connect(ctx.destination);
 
-	const scamperBuffer = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.58), ctx.sampleRate);
+	const scamperBuffer = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.54), ctx.sampleRate);
 	const scamperData = scamperBuffer.getChannelData(0);
 	for (let i = 0; i < scamperData.length; i++) {
 		const t = i / scamperData.length;
@@ -424,20 +426,19 @@ function playCartoonRetreatSound(moleIndex) {
 	scamperFilter.frequency.setValueAtTime(1100, now + 0.08);
 	scamperFilter.frequency.setValueAtTime(1700, now + 0.15);
 	scamperFilter.frequency.setValueAtTime(900, now + 0.24);
-	scamperFilter.frequency.setValueAtTime(1320, now + 0.33);
-	scamperFilter.frequency.setValueAtTime(820, now + 0.44);
-	scamperFilter.frequency.exponentialRampToValueAtTime(470, now + 0.56);
+	scamperFilter.frequency.setValueAtTime(1380, now + 0.31);
+	scamperFilter.frequency.exponentialRampToValueAtTime(520, now + 0.5);
 	scamperFilter.Q.value = 1.1;
 	const scamperGain = ctx.createGain();
 	scamperGain.gain.setValueAtTime(0.0001, now);
 	scamperGain.gain.exponentialRampToValueAtTime(0.46, now + 0.025);
-	scamperGain.gain.exponentialRampToValueAtTime(0.12, now + 0.34);
-	scamperGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.57);
+	scamperGain.gain.exponentialRampToValueAtTime(0.14, now + 0.34);
+	scamperGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.52);
 	scamperNoise.connect(scamperFilter);
 	scamperFilter.connect(scamperGain);
 	scamperGain.connect(pan);
 	scamperNoise.start(now);
-	scamperNoise.stop(now + 0.58);
+	scamperNoise.stop(now + 0.54);
 
 	const sneakyOsc = ctx.createOscillator();
 	const sneakyGain = ctx.createGain();
@@ -446,33 +447,31 @@ function playCartoonRetreatSound(moleIndex) {
 	sneakyOsc.frequency.setValueAtTime(690, now + 0.07);
 	sneakyOsc.frequency.setValueAtTime(470, now + 0.14);
 	sneakyOsc.frequency.setValueAtTime(620, now + 0.2);
-	sneakyOsc.frequency.setValueAtTime(430, now + 0.3);
-	sneakyOsc.frequency.exponentialRampToValueAtTime(235, now + 0.48);
+	sneakyOsc.frequency.exponentialRampToValueAtTime(250, now + 0.42);
 	sneakyGain.gain.setValueAtTime(0.0001, now);
 	sneakyGain.gain.exponentialRampToValueAtTime(0.17, now + 0.015);
-	sneakyGain.gain.exponentialRampToValueAtTime(0.07, now + 0.3);
-	sneakyGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.5);
+	sneakyGain.gain.exponentialRampToValueAtTime(0.08, now + 0.28);
+	sneakyGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.44);
 	sneakyOsc.connect(sneakyGain);
 	sneakyGain.connect(pan);
 	sneakyOsc.start(now);
-	sneakyOsc.stop(now + 0.52);
+	sneakyOsc.stop(now + 0.45);
 
 	const tauntOsc = ctx.createOscillator();
 	const tauntGain = ctx.createGain();
-	const tauntStart = now + 0.28;
+	const tauntStart = now + 0.24;
 	tauntOsc.type = "triangle";
 	tauntOsc.frequency.setValueAtTime(940, tauntStart);
 	tauntOsc.frequency.exponentialRampToValueAtTime(660, tauntStart + 0.06);
 	tauntOsc.frequency.exponentialRampToValueAtTime(1010, tauntStart + 0.12);
-	tauntOsc.frequency.exponentialRampToValueAtTime(720, tauntStart + 0.19);
 	tauntGain.gain.setValueAtTime(0.0001, tauntStart);
 	tauntGain.gain.exponentialRampToValueAtTime(0.15, tauntStart + 0.01);
-	tauntGain.gain.exponentialRampToValueAtTime(0.06, tauntStart + 0.13);
-	tauntGain.gain.exponentialRampToValueAtTime(0.0001, tauntStart + 0.22);
+	tauntGain.gain.exponentialRampToValueAtTime(0.05, tauntStart + 0.11);
+	tauntGain.gain.exponentialRampToValueAtTime(0.0001, tauntStart + 0.18);
 	tauntOsc.connect(tauntGain);
 	tauntGain.connect(pan);
 	tauntOsc.start(tauntStart);
-	tauntOsc.stop(tauntStart + 0.24);
+	tauntOsc.stop(tauntStart + 0.19);
 }
 
 
