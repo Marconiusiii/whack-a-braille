@@ -277,37 +277,37 @@ function playCartoonWhackHit(moleIndex) {
 	reboundOsc.start(reboundStart);
 	reboundOsc.stop(reboundStart + 0.24);
 
-	const boingChance = Math.random();
-	if (boingChance < 0.86) {
-		const boingOsc = ctx.createOscillator();
-		const boingGain = ctx.createGain();
-		boingOsc.type = "triangle";
-		const boingBase = 208 + Math.random() * 86;
-		const boingStart = now + 0.03;
-		boingOsc.frequency.setValueAtTime(boingBase, boingStart);
-		boingGain.gain.setValueAtTime(0.0001, boingStart);
-		boingGain.gain.exponentialRampToValueAtTime(0.17 + Math.random() * 0.06, boingStart + 0.03);
-		boingGain.gain.exponentialRampToValueAtTime(0.12, boingStart + 0.16);
-		boingGain.gain.exponentialRampToValueAtTime(0.07, boingStart + 0.46);
-		boingGain.gain.exponentialRampToValueAtTime(0.04, boingStart + 0.72);
-		boingGain.gain.exponentialRampToValueAtTime(0.0001, boingStart + 0.92);
-		boingOsc.connect(boingGain);
-		boingGain.connect(pan);
-		boingOsc.start(boingStart);
-		boingOsc.stop(boingStart + 0.95);
+	const boingOsc = ctx.createOscillator();
+	const boingGain = ctx.createGain();
+	boingOsc.type = "triangle";
+	const boingBase = 228 + Math.random() * 92;
+	const boingStart = now + 0.03;
+	const boingDuration = 0.79;
+	const springCycles = 4 + Math.random() * 3;
+	const wobbleRate = springCycles / boingDuration;
+	boingOsc.frequency.setValueAtTime(boingBase, boingStart);
+	boingGain.gain.setValueAtTime(0.0001, boingStart);
+	boingGain.gain.exponentialRampToValueAtTime(0.14 + Math.random() * 0.13, boingStart + 0.03);
+	boingGain.gain.exponentialRampToValueAtTime(0.09, boingStart + 0.16);
+	boingGain.gain.exponentialRampToValueAtTime(0.05, boingStart + 0.38);
+	boingGain.gain.exponentialRampToValueAtTime(0.018, boingStart + 0.58);
+	boingGain.gain.exponentialRampToValueAtTime(0.0001, boingStart + 0.76);
+	boingOsc.connect(boingGain);
+	boingGain.connect(pan);
+	boingOsc.start(boingStart);
+	boingOsc.stop(boingStart + boingDuration);
 
-		const wobble = ctx.createOscillator();
-		const wobbleGain = ctx.createGain();
-		wobble.type = "sine";
-		wobble.frequency.value = 8.6;
-		wobbleGain.gain.setValueAtTime(24, boingStart);
-		wobbleGain.gain.exponentialRampToValueAtTime(7.6, boingStart + 0.42);
-		wobbleGain.gain.exponentialRampToValueAtTime(1.2, boingStart + 0.92);
-		wobble.connect(wobbleGain);
-		wobbleGain.connect(boingOsc.frequency);
-		wobble.start(boingStart);
-		wobble.stop(boingStart + 0.95);
-	}
+	const wobble = ctx.createOscillator();
+	const wobbleGain = ctx.createGain();
+	wobble.type = "sine";
+	wobble.frequency.value = wobbleRate;
+	wobbleGain.gain.setValueAtTime(28, boingStart);
+	wobbleGain.gain.exponentialRampToValueAtTime(9.2, boingStart + 0.42);
+	wobbleGain.gain.exponentialRampToValueAtTime(1.4, boingStart + 0.76);
+	wobble.connect(wobbleGain);
+	wobbleGain.connect(boingOsc.frequency);
+	wobble.start(boingStart);
+	wobble.stop(boingStart + boingDuration);
 
 	if (Math.random() < 0.38) {
 		const glitterBuffer = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.08), ctx.sampleRate);
@@ -347,7 +347,7 @@ function playCartoonMissSound(moleIndex) {
 	pan.connect(master);
 	master.connect(ctx.destination);
 
-	const whooshBuffer = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.34), ctx.sampleRate);
+	const whooshBuffer = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.6), ctx.sampleRate);
 	const whooshData = whooshBuffer.getChannelData(0);
 	for (let i = 0; i < whooshData.length; i++) {
 		const decay = 1 - (i / whooshData.length);
@@ -358,14 +358,16 @@ function playCartoonMissSound(moleIndex) {
 	const filter = ctx.createBiquadFilter();
 	filter.type = "bandpass";
 	const wideWhoosh = Math.random() < 0.5;
-	filter.frequency.setValueAtTime(wideWhoosh ? 960 : 760, now);
-	filter.frequency.exponentialRampToValueAtTime(wideWhoosh ? 420 : 360, now + 0.24);
+	const whooshStart = wideWhoosh ? 1080 + Math.random() * 140 : 700 + Math.random() * 200;
+	const whooshEnd = wideWhoosh ? 380 + Math.random() * 90 : 300 + Math.random() * 100;
+	filter.frequency.setValueAtTime(whooshStart, now);
+	filter.frequency.exponentialRampToValueAtTime(whooshEnd, now + 0.52);
 	filter.Q.value = wideWhoosh ? 0.68 : 0.82;
 	const gain = ctx.createGain();
 	gain.gain.setValueAtTime(0.0001, now);
-	gain.gain.exponentialRampToValueAtTime(0.22, now + 0.024);
-	gain.gain.exponentialRampToValueAtTime(0.06, now + 0.11);
-	gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.26);
+	gain.gain.exponentialRampToValueAtTime(0.22, now + 0.05);
+	gain.gain.exponentialRampToValueAtTime(0.09, now + 0.22);
+	gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.5);
 	whoosh.connect(filter);
 	filter.connect(gain);
 	gain.connect(pan);
@@ -375,44 +377,44 @@ function playCartoonMissSound(moleIndex) {
 	const swooshGain = ctx.createGain();
 	const swooshFilter = ctx.createBiquadFilter();
 	swooshOsc.type = "sine";
-	swooshOsc.frequency.setValueAtTime(110, now);
-	swooshOsc.frequency.exponentialRampToValueAtTime(58, now + 0.12);
-	swooshOsc.frequency.exponentialRampToValueAtTime(42, now + 0.24);
+	swooshOsc.frequency.setValueAtTime(96 + Math.random() * 18, now);
+	swooshOsc.frequency.exponentialRampToValueAtTime(52 + Math.random() * 10, now + 0.28);
+	swooshOsc.frequency.exponentialRampToValueAtTime(38 + Math.random() * 8, now + 0.5);
 	swooshFilter.type = "lowpass";
 	swooshFilter.frequency.value = 220;
 	swooshFilter.Q.value = 0.4;
 	swooshGain.gain.setValueAtTime(0.0001, now);
-	swooshGain.gain.exponentialRampToValueAtTime(0.06, now + 0.024);
-	swooshGain.gain.exponentialRampToValueAtTime(0.02, now + 0.11);
-	swooshGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.24);
+	swooshGain.gain.exponentialRampToValueAtTime(0.06, now + 0.05);
+	swooshGain.gain.exponentialRampToValueAtTime(0.026, now + 0.24);
+	swooshGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.52);
 	swooshOsc.connect(swooshFilter);
 	swooshFilter.connect(swooshGain);
 	swooshGain.connect(pan);
 	swooshOsc.start(now);
-	swooshOsc.stop(now + 0.26);
+	swooshOsc.stop(now + 0.54);
 
 	const whistleOsc = ctx.createOscillator();
 	const whistleGain = ctx.createGain();
 	const whistleStart = now + 0.02;
 	whistleOsc.type = "triangle";
 	if (wideWhoosh) {
-		whistleOsc.frequency.setValueAtTime(480, whistleStart);
-		whistleOsc.frequency.exponentialRampToValueAtTime(300, whistleStart + 0.11);
+		whistleOsc.frequency.setValueAtTime(450 + Math.random() * 80, whistleStart);
+		whistleOsc.frequency.exponentialRampToValueAtTime(280 + Math.random() * 40, whistleStart + 0.28);
 	} else {
-		whistleOsc.frequency.setValueAtTime(410, whistleStart);
-		whistleOsc.frequency.exponentialRampToValueAtTime(520, whistleStart + 0.06);
-		whistleOsc.frequency.exponentialRampToValueAtTime(260, whistleStart + 0.17);
+		whistleOsc.frequency.setValueAtTime(360 + Math.random() * 90, whistleStart);
+		whistleOsc.frequency.exponentialRampToValueAtTime(500 + Math.random() * 60, whistleStart + 0.12);
+		whistleOsc.frequency.exponentialRampToValueAtTime(240 + Math.random() * 50, whistleStart + 0.38);
 	}
 	whistleGain.gain.setValueAtTime(0.0001, whistleStart);
-	whistleGain.gain.exponentialRampToValueAtTime(0.035, whistleStart + 0.012);
-	whistleGain.gain.exponentialRampToValueAtTime(0.012, whistleStart + 0.08);
-	whistleGain.gain.exponentialRampToValueAtTime(0.0001, whistleStart + 0.18);
+	whistleGain.gain.exponentialRampToValueAtTime(0.035, whistleStart + 0.018);
+	whistleGain.gain.exponentialRampToValueAtTime(0.016, whistleStart + 0.2);
+	whistleGain.gain.exponentialRampToValueAtTime(0.0001, whistleStart + 0.42);
 	whistleOsc.connect(whistleGain);
 	whistleGain.connect(pan);
 	whistleOsc.start(whistleStart);
-	whistleOsc.stop(whistleStart + 0.19);
+	whistleOsc.stop(whistleStart + 0.44);
 
-	whoosh.stop(now + 0.28);
+	whoosh.stop(now + 0.6);
 }
 
 function playCartoonRetreatSound(moleIndex) {
@@ -424,7 +426,7 @@ function playCartoonRetreatSound(moleIndex) {
 	const now = ctx.currentTime;
 	const pan = createMolePanner(ctx, moleIndex);
 	const master = ctx.createGain();
-	master.gain.value = 0.78;
+	master.gain.value = 1.02;
 	pan.connect(master);
 	master.connect(ctx.destination);
 
@@ -457,6 +459,8 @@ function playCartoonRetreatSound(moleIndex) {
 
 	const sneakyOsc = ctx.createOscillator();
 	const sneakyGain = ctx.createGain();
+	const lowBurrowOsc = ctx.createOscillator();
+	const lowBurrowGain = ctx.createGain();
 	sneakyOsc.type = "triangle";
 	sneakyOsc.frequency.setValueAtTime(360 + Math.random() * 30, now);
 	sneakyOsc.frequency.setValueAtTime(330, now + 0.06);
@@ -472,13 +476,26 @@ function playCartoonRetreatSound(moleIndex) {
 	sneakyOsc.start(now);
 	sneakyOsc.stop(now + 0.54);
 
-	const dirtBuffer = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.34), ctx.sampleRate);
+	lowBurrowOsc.type = "sine";
+	lowBurrowOsc.frequency.setValueAtTime(122 + Math.random() * 10, now + 0.04);
+	lowBurrowOsc.frequency.exponentialRampToValueAtTime(72 + Math.random() * 8, now + 0.26);
+	lowBurrowOsc.frequency.exponentialRampToValueAtTime(46 + Math.random() * 6, now + 0.6);
+	lowBurrowGain.gain.setValueAtTime(0.0001, now + 0.04);
+	lowBurrowGain.gain.exponentialRampToValueAtTime(0.16, now + 0.1);
+	lowBurrowGain.gain.exponentialRampToValueAtTime(0.07, now + 0.34);
+	lowBurrowGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.66);
+	lowBurrowOsc.connect(lowBurrowGain);
+	lowBurrowGain.connect(pan);
+	lowBurrowOsc.start(now + 0.04);
+	lowBurrowOsc.stop(now + 0.68);
+
+	const dirtBuffer = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.42), ctx.sampleRate);
 	const dirtData = dirtBuffer.getChannelData(0);
 	for (let i = 0; i < dirtData.length; i++) {
 		const t = i / dirtData.length;
 		const chunk = Math.sin(t * Math.PI * 10) > 0 ? 1 : -1;
 		const grit = (Math.random() * 2 - 1) * (0.2 - t * 0.12);
-		const clump = (Math.random() * 2 - 1) * chunk * (0.42 - t * 0.24);
+		const clump = (Math.random() * 2 - 1) * chunk * (0.54 - t * 0.28);
 		dirtData[i] = clump + grit;
 	}
 	const dirtNoise = ctx.createBufferSource();
@@ -486,20 +503,20 @@ function playCartoonRetreatSound(moleIndex) {
 	const dirtFilter = ctx.createBiquadFilter();
 	dirtFilter.type = "lowpass";
 	dirtFilter.frequency.setValueAtTime(760, now + 0.26);
-	dirtFilter.frequency.exponentialRampToValueAtTime(150, now + 0.76);
+	dirtFilter.frequency.exponentialRampToValueAtTime(130, now + 0.86);
 	dirtFilter.Q.value = 0.35;
 	const dirtGain = ctx.createGain();
-	const dirtStart = now + 0.2;
+	const dirtStart = now + 0.08;
 	dirtGain.gain.setValueAtTime(0.0001, dirtStart);
-	dirtGain.gain.exponentialRampToValueAtTime(0.18, dirtStart + 0.05);
-	dirtGain.gain.exponentialRampToValueAtTime(0.56, dirtStart + 0.16);
-	dirtGain.gain.exponentialRampToValueAtTime(0.22, dirtStart + 0.4);
-	dirtGain.gain.exponentialRampToValueAtTime(0.0001, dirtStart + 0.56);
+	dirtGain.gain.exponentialRampToValueAtTime(0.24, dirtStart + 0.04);
+	dirtGain.gain.exponentialRampToValueAtTime(0.66, dirtStart + 0.14);
+	dirtGain.gain.exponentialRampToValueAtTime(0.32, dirtStart + 0.44);
+	dirtGain.gain.exponentialRampToValueAtTime(0.0001, dirtStart + 0.64);
 	dirtNoise.connect(dirtFilter);
 	dirtFilter.connect(dirtGain);
 	dirtGain.connect(pan);
 	dirtNoise.start(dirtStart);
-	dirtNoise.stop(dirtStart + 0.58);
+	dirtNoise.stop(dirtStart + 0.66);
 }
 
 
