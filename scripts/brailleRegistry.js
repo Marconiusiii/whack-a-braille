@@ -227,12 +227,19 @@ const grade2Dot45Initials = [
 	makeSequenceItem("whose", "Whose", [[4,5], [1,5,6]], ["grade2Dot45Initials"])
 ];
 
-const grade2Dot46Finals = [
-	makeSequenceItem("ance", "A N C E", [[4,6], [1,5]], ["grade2Dot46Finals"], ["-ance", "ε"]),
-	makeSequenceItem("sion", "S I O N", [[4,6], [1,3,4,5]], ["grade2Dot46Finals"], ["-sion"]),
-	makeSequenceItem("less", "L E S S", [[4,6], [2,3,4]], ["grade2Dot46Finals"], ["-less"]),
-	makeSequenceItem("ound", "O U N D", [[4,6], [1,4,5]], ["grade2Dot46Finals"], ["-ound"]),
-	makeSequenceItem("ount", "O U N T", [[4,6], [2,3,4,5]], ["grade2Dot46Finals"], ["-ount"])
+const grade2Suffixes = [
+	makeSequenceItem("ance", "A N C E", [[4,6], [1,5]], ["grade2Suffixes"], ["-ance", "ε"]),
+	makeSequenceItem("sion", "S I O N", [[4,6], [1,3,4,5]], ["grade2Suffixes"], ["-sion"]),
+	makeSequenceItem("less", "L E S S", [[4,6], [2,3,4]], ["grade2Suffixes"], ["-less"]),
+	makeSequenceItem("ound", "O U N D", [[4,6], [1,4,5]], ["grade2Suffixes"], ["-ound"]),
+	makeSequenceItem("ount", "O U N T", [[4,6], [2,3,4,5]], ["grade2Suffixes"], ["-ount"]),
+	makeSequenceItem("ence", "E N C E", [[5,6], [1,5]], ["grade2Suffixes"], ["-ence"]),
+	makeSequenceItem("ong", "O N G", [[5,6], [1,2,4,5]], ["grade2Suffixes"], ["-ong"]),
+	makeSequenceItem("ful", "F U L", [[5,6], [1,2,4]], ["grade2Suffixes"], ["-ful"]),
+	makeSequenceItem("tion", "T I O N", [[5,6], [2,3,4,5]], ["grade2Suffixes"], ["-tion"]),
+	makeSequenceItem("ness", "N E S S", [[5,6], [1,3,4,5]], ["grade2Suffixes"], ["-ness"]),
+	makeSequenceItem("ment", "M E N T", [[5,6], [1,3,4]], ["grade2Suffixes"], ["-ment"]),
+	makeSequenceItem("ity", "I T Y", [[5,6], [1,3,4,5,6]], ["grade2Suffixes"], ["-ity"])
 ];
 
 const grade2Dot456Initials = [
@@ -305,7 +312,7 @@ const brailleOnlyRegistry = [
 	...grade2Words,
 	...grade2Dot5Initials,
 	...grade2Dot45Initials,
-	...grade2Dot46Finals,
+	...grade2Suffixes,
 	...grade2Dot456Initials
 ];
 
@@ -328,7 +335,7 @@ function getBrailleItemsForMode(modeId) {
 			...grade2Words,
 			...grade2Dot5Initials,
 			...grade2Dot45Initials,
-			...grade2Dot46Finals,
+			...grade2Suffixes,
 			...grade2Dot456Initials
 		];
 	}
@@ -359,6 +366,6 @@ export {
 	grade2Words,
 	grade2Dot5Initials,
 	grade2Dot45Initials,
-	grade2Dot46Finals,
+	grade2Suffixes,
 	grade2Dot456Initials
 };

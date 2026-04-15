@@ -19,7 +19,7 @@ import {
 	grade2Words,
 	grade2Dot5Initials,
 	grade2Dot45Initials,
-	grade2Dot46Finals,
+	grade2Suffixes,
 	grade2Dot456Initials
 } from "./brailleRegistry.js";
 import { prizeCatalog } from "./prizeCatalog.js";
@@ -144,7 +144,7 @@ function formatDotSets(dotSets) {
 }
 
 function getReferenceLabel(item) {
-	if (item?.modeTags?.includes("grade2Dot46Finals")) {
+	if (item?.modeTags?.includes("grade2Suffixes")) {
 		return `-${item.id}`;
 	}
 	return String(item?.id || "");
@@ -199,7 +199,7 @@ function renderBrailleReferenceTables() {
 			...grade2Words,
 			...grade2Dot5Initials,
 			...grade2Dot45Initials,
-			...grade2Dot46Finals,
+			...grade2Suffixes,
 			...grade2Dot456Initials
 		].forEach(item => {
 			appendReferenceRow(grade2ReferenceBody, item);
@@ -222,7 +222,7 @@ const moleChooserOptions = [
 	{ value: "grade2Words", label: "Grade 2 whole-word contractions", group: "grade2" },
 	{ value: "grade2Dot5Initials", label: "Grade 2 Dot 5 initial-letter contractions", group: "grade2" },
 	{ value: "grade2Dot45Initials", label: "Grade 2 Dots 4 5 initial-letter contractions", group: "grade2" },
-	{ value: "grade2Dot46Finals", label: "Grade 2 Dots 4 6 final-letter contractions", group: "grade2" },
+	{ value: "grade2Suffixes", label: "Grade 2 suffix contractions", group: "grade2" },
 	{ value: "grade2Dot456Initials", label: "Grade 2 Dots 4 5 6 initial-letter contractions", group: "grade2" },
 	{ value: "grade2Invasion", label: "Grade 2 Invasion", group: "grade2" }
 ];
@@ -599,7 +599,7 @@ function isGrade2Mode(modeId) {
 		modeId === "grade2Words" ||
 		modeId === "grade2Dot5Initials" ||
 		modeId === "grade2Dot45Initials" ||
-		modeId === "grade2Dot46Finals" ||
+		modeId === "grade2Suffixes" ||
 		modeId === "grade2Dot456Initials";
 }
 
