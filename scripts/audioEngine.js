@@ -43,7 +43,7 @@ function checkFiftyPointSound(score) {
 let lastScoreAnnounced = 0;
 
 function setGameAudioMode(mode) {
-	gameAudioMode = mode === "silly" || mode === "goofy" ? mode : "original";
+	gameAudioMode = mode === "silly" || mode === "goofy" || mode === "retro" ? mode : "original";
 }
 async function loadSillySounds() {
 	if (sillyHitBuffer && fiftyPointBuffer) return;
@@ -177,6 +177,248 @@ function playFiftyPointSound() {
 
 	src.connect(sillyGainNode);
 	src.start();
+}
+
+function getCurrentBeatHarmonyMidis() {
+	const pattern = [0, 4, 7, 2];
+	const patternIndex = beatStepIndex === 0 ? 0 : (beatStepIndex - 1) % pattern.length;
+	const rootMidi = beatRootMidi;
+	const currentStep = pattern[patternIndex];
+	const currentMidi = rootMidi + currentStep;
+
+	return {
+		rootMidi,
+		currentMidi,
+		chordMidis: [rootMidi, rootMidi + 4, rootMidi + 7]
+	};
+}
+
+function playRetroHitSound(moleIndex) {
+	if (!isUnlocked) return;
+
+	const ctx = getAudioContext();
+	ensureRunning(ctx);
+
+	const now = ctx.currentTime;
+	const pan = createMolePanner(ctx, moleIndex);
+	const master = ctx.createGain();
+	master.gain.value = 1.05;
+	pan.connect(master);
+	master.connect(ctx.destination);
+
+	const harmony = getCurrentBeatHarmonyMidis();
+	const chordMidis = harmony.chordMidis;
+	const leadMidiPool = [chordMidis[2] - 12, chordMidis[0], chordMidis[1]];
+	const flourishMidis = [chordMidis[0], chordMidis[1], chordMidis[1] + 4];
+
+	const bass = ctx.createOscillator();
+	const bassGain = ctx.createGain();
+	bass.type = "triangle";
+	bass.frequency.setValueAtTime(midiToFreq(harmony.rootMidi - 10), now);
+	bass.frequency.exponentialRampToValueAtTime(midiToFreq(harmony.rootMidi - 17), now + 0.18);
+	bassGain.gain.setValueAtTime(0.0001, now);
+	bassGain.gain.exponentialRampToValueAtTime(0.58, now + 0.008);
+	bassGain.gain.exponentialRampToValueAtTime(0.14, now + 0.12);
+	bassGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.28);
+	bass.connect(bassGain);
+	bassGain.connect(pan);
+	bass.start(now);
+	bass.stop(now + 0.3);
+
+	const rumble = ctx.createOscillator();
+	const rumbleGain = ctx.createGain();
+	rumble.type = "sine";
+	rumble.frequency.setValueAtTime(midiToFreq(harmony.rootMidi - 22), now);
+	rumble.frequency.exponentialRampToValueAtTime(midiToFreq(harmony.rootMidi - 29), now + 0.24);
+	rumbleGain.gain.setValueAtTime(0.0001, now);
+	rumbleGain.gain.exponentialRampToValueAtTime(0.24, now + 0.014);
+	rumbleGain.gain.exponentialRampToValueAtTime(0.07, now + 0.16);
+	rumbleGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.34);
+	rumble.connect(rumbleGain);
+	rumbleGain.connect(pan);
+	rumble.start(now);
+	rumble.stop(now + 0.36);
+
+	const leadStart = now + 0.01;
+	leadMidiPool.forEach((midi, index) => {
+		const osc = ctx.createOscillator();
+		const gain = ctx.createGain();
+		const start = leadStart + index * 0.01;
+		const freq = midiToFreq(midi + 12);
+		osc.type = index === 0 ? "square" : "triangle";
+		osc.frequency.setValueAtTime(freq, start);
+		const vibrato = ctx.createOscillator();
+		const vibratoGain = ctx.createGain();
+		vibrato.type = "sine";
+		vibrato.frequency.value = 7.2;
+		vibratoGain.gain.setValueAtTime(6, start);
+		vibratoGain.gain.exponentialRampToValueAtTime(0.8, start + 0.14);
+		vibrato.connect(vibratoGain);
+		vibratoGain.connect(osc.frequency);
+		gain.gain.setValueAtTime(0.0001, start);
+		gain.gain.exponentialRampToValueAtTime(index === 0 ? 0.2 : 0.14, start + 0.006);
+		gain.gain.exponentialRampToValueAtTime(0.1, start + 0.1);
+		gain.gain.exponentialRampToValueAtTime(0.04, start + 0.18);
+		gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.38);
+		osc.connect(gain);
+		gain.connect(pan);
+		osc.start(start);
+		vibrato.start(start);
+		osc.stop(start + 0.4);
+		vibrato.stop(start + 0.18);
+	});
+
+	flourishMidis.forEach((midi, index) => {
+		const flourish = ctx.createOscillator();
+		const flourishGain = ctx.createGain();
+		const flourishStart = now + 0.05 + index * 0.028;
+		const flourishFreq = midiToFreq(midi + 12);
+		flourish.type = "square";
+		flourish.frequency.setValueAtTime(flourishFreq, flourishStart);
+		flourish.frequency.exponentialRampToValueAtTime(flourishFreq * 1.02, flourishStart + 0.06);
+		flourishGain.gain.setValueAtTime(0.0001, flourishStart);
+		flourishGain.gain.exponentialRampToValueAtTime(0.05 - index * 0.008, flourishStart + 0.006);
+		flourishGain.gain.exponentialRampToValueAtTime(0.0001, flourishStart + 0.085);
+		flourish.connect(flourishGain);
+		flourishGain.connect(pan);
+		flourish.start(flourishStart);
+		flourish.stop(flourishStart + 0.09);
+	});
+}
+
+function playRetroMissSound(moleIndex) {
+	if (!isUnlocked) return;
+
+	const ctx = getAudioContext();
+	ensureRunning(ctx);
+
+	const now = ctx.currentTime;
+	const pan = createMolePanner(ctx, moleIndex);
+	const master = ctx.createGain();
+	master.gain.value = 0.72;
+	pan.connect(master);
+	master.connect(ctx.destination);
+
+	const bass = ctx.createOscillator();
+	const bassGain = ctx.createGain();
+	bass.type = "triangle";
+	bass.frequency.setValueAtTime(132 + Math.random() * 12, now);
+	bass.frequency.exponentialRampToValueAtTime(74 + Math.random() * 8, now + 0.12);
+	bass.frequency.exponentialRampToValueAtTime(54 + Math.random() * 6, now + 0.28);
+	bassGain.gain.setValueAtTime(0.0001, now);
+	bassGain.gain.exponentialRampToValueAtTime(0.14, now + 0.018);
+	bassGain.gain.exponentialRampToValueAtTime(0.05, now + 0.12);
+	bassGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.3);
+	bass.connect(bassGain);
+	bassGain.connect(pan);
+	bass.start(now);
+	bass.stop(now + 0.32);
+
+	const failStart = now + 0.01;
+	const failA = 520 + Math.random() * 100;
+	const failB = failA * (Math.random() < 0.5 ? 0.79 : 0.67);
+	[failA, failB].forEach((freq, index) => {
+		const osc = ctx.createOscillator();
+		const gain = ctx.createGain();
+		osc.type = index === 0 ? "square" : "sawtooth";
+		osc.frequency.setValueAtTime(freq, failStart);
+		osc.frequency.exponentialRampToValueAtTime(freq * 0.76, failStart + 0.12);
+		osc.frequency.exponentialRampToValueAtTime(freq * 0.6, failStart + 0.24);
+		gain.gain.setValueAtTime(0.0001, failStart);
+		gain.gain.exponentialRampToValueAtTime(index === 0 ? 0.1 : 0.06, failStart + 0.012);
+		gain.gain.exponentialRampToValueAtTime(0.03, failStart + 0.12);
+		gain.gain.exponentialRampToValueAtTime(0.0001, failStart + 0.28);
+		osc.connect(gain);
+		gain.connect(pan);
+		osc.start(failStart);
+		osc.stop(failStart + 0.3);
+	});
+
+	const blip = ctx.createOscillator();
+	const blipGain = ctx.createGain();
+	const blipStart = now + 0.12;
+	blip.type = "square";
+	blip.frequency.setValueAtTime(340 + Math.random() * 60, blipStart);
+	blip.frequency.exponentialRampToValueAtTime(240 + Math.random() * 40, blipStart + 0.1);
+	blipGain.gain.setValueAtTime(0.0001, blipStart);
+	blipGain.gain.exponentialRampToValueAtTime(0.045, blipStart + 0.01);
+	blipGain.gain.exponentialRampToValueAtTime(0.0001, blipStart + 0.12);
+	blip.connect(blipGain);
+	blipGain.connect(pan);
+	blip.start(blipStart);
+	blip.stop(blipStart + 0.14);
+}
+
+function playRetroRetreatSound(moleIndex) {
+	if (!isUnlocked) return;
+
+	const ctx = getAudioContext();
+	ensureRunning(ctx);
+
+	const now = ctx.currentTime;
+	const pan = createMolePanner(ctx, moleIndex);
+	const master = ctx.createGain();
+	master.gain.value = 0.82;
+	pan.connect(master);
+	master.connect(ctx.destination);
+
+	const bass = ctx.createOscillator();
+	const bassGain = ctx.createGain();
+	bass.type = "triangle";
+	bass.frequency.setValueAtTime(148 + Math.random() * 14, now);
+	bass.frequency.exponentialRampToValueAtTime(84 + Math.random() * 8, now + 0.16);
+	bass.frequency.exponentialRampToValueAtTime(52 + Math.random() * 6, now + 0.34);
+	bassGain.gain.setValueAtTime(0.0001, now);
+	bassGain.gain.exponentialRampToValueAtTime(0.18, now + 0.016);
+	bassGain.gain.exponentialRampToValueAtTime(0.06, now + 0.16);
+	bassGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.36);
+	bass.connect(bassGain);
+	bassGain.connect(pan);
+	bass.start(now);
+	bass.stop(now + 0.38);
+
+	const retreatStart = now + 0.008;
+	const phrase = [780, 620, 500, 360].map(freq => freq + Math.random() * 40);
+	phrase.forEach((freq, index) => {
+		const osc = ctx.createOscillator();
+		const gain = ctx.createGain();
+		const stepStart = retreatStart + index * 0.055;
+		osc.type = index % 2 === 0 ? "square" : "triangle";
+		osc.frequency.setValueAtTime(freq, stepStart);
+		osc.frequency.exponentialRampToValueAtTime(freq * 0.9, stepStart + 0.04);
+		gain.gain.setValueAtTime(0.0001, stepStart);
+		gain.gain.exponentialRampToValueAtTime(index === 0 ? 0.12 : 0.09, stepStart + 0.006);
+		gain.gain.exponentialRampToValueAtTime(0.0001, stepStart + 0.06);
+		osc.connect(gain);
+		gain.connect(pan);
+		osc.start(stepStart);
+		osc.stop(stepStart + 0.07);
+	});
+
+	const noiseBuffer = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.2), ctx.sampleRate);
+	const noiseData = noiseBuffer.getChannelData(0);
+	for (let i = 0; i < noiseData.length; i++) {
+		const t = i / noiseData.length;
+		const gate = Math.sin(t * Math.PI * 26) > 0 ? 1 : -1;
+		noiseData[i] = (Math.random() * 2 - 1) * gate * (0.3 - t * 0.2);
+	}
+	const dirt = ctx.createBufferSource();
+	dirt.buffer = noiseBuffer;
+	const dirtFilter = ctx.createBiquadFilter();
+	dirtFilter.type = "lowpass";
+	dirtFilter.frequency.setValueAtTime(920, now + 0.1);
+	dirtFilter.frequency.exponentialRampToValueAtTime(220, now + 0.34);
+	const dirtGain = ctx.createGain();
+	const dirtStart = now + 0.08;
+	dirtGain.gain.setValueAtTime(0.0001, dirtStart);
+	dirtGain.gain.exponentialRampToValueAtTime(0.17, dirtStart + 0.03);
+	dirtGain.gain.exponentialRampToValueAtTime(0.06, dirtStart + 0.16);
+	dirtGain.gain.exponentialRampToValueAtTime(0.0001, dirtStart + 0.26);
+	dirt.connect(dirtFilter);
+	dirtFilter.connect(dirtGain);
+	dirtGain.connect(pan);
+	dirt.start(dirtStart);
+	dirt.stop(dirtStart + 0.28);
 }
 
 function playCartoonWhackHit(moleIndex) {
@@ -347,7 +589,7 @@ function playCartoonMissSound(moleIndex) {
 	pan.connect(master);
 	master.connect(ctx.destination);
 
-	const whooshBuffer = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.6), ctx.sampleRate);
+	const whooshBuffer = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.68), ctx.sampleRate);
 	const whooshData = whooshBuffer.getChannelData(0);
 	for (let i = 0; i < whooshData.length; i++) {
 		const decay = 1 - (i / whooshData.length);
@@ -361,13 +603,13 @@ function playCartoonMissSound(moleIndex) {
 	const whooshStart = wideWhoosh ? 1080 + Math.random() * 140 : 700 + Math.random() * 200;
 	const whooshEnd = wideWhoosh ? 380 + Math.random() * 90 : 300 + Math.random() * 100;
 	filter.frequency.setValueAtTime(whooshStart, now);
-	filter.frequency.exponentialRampToValueAtTime(whooshEnd, now + 0.52);
+	filter.frequency.exponentialRampToValueAtTime(whooshEnd, now + 0.6);
 	filter.Q.value = wideWhoosh ? 0.68 : 0.82;
 	const gain = ctx.createGain();
 	gain.gain.setValueAtTime(0.0001, now);
-	gain.gain.exponentialRampToValueAtTime(0.22, now + 0.05);
-	gain.gain.exponentialRampToValueAtTime(0.09, now + 0.22);
-	gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.5);
+	gain.gain.exponentialRampToValueAtTime(0.22, now + 0.08);
+	gain.gain.exponentialRampToValueAtTime(0.12, now + 0.26);
+	gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.42);
 	whoosh.connect(filter);
 	filter.connect(gain);
 	gain.connect(pan);
@@ -378,20 +620,20 @@ function playCartoonMissSound(moleIndex) {
 	const swooshFilter = ctx.createBiquadFilter();
 	swooshOsc.type = "sine";
 	swooshOsc.frequency.setValueAtTime(96 + Math.random() * 18, now);
-	swooshOsc.frequency.exponentialRampToValueAtTime(52 + Math.random() * 10, now + 0.28);
-	swooshOsc.frequency.exponentialRampToValueAtTime(38 + Math.random() * 8, now + 0.5);
+	swooshOsc.frequency.exponentialRampToValueAtTime(52 + Math.random() * 10, now + 0.34);
+	swooshOsc.frequency.exponentialRampToValueAtTime(38 + Math.random() * 8, now + 0.6);
 	swooshFilter.type = "lowpass";
 	swooshFilter.frequency.value = 220;
 	swooshFilter.Q.value = 0.4;
 	swooshGain.gain.setValueAtTime(0.0001, now);
-	swooshGain.gain.exponentialRampToValueAtTime(0.06, now + 0.05);
-	swooshGain.gain.exponentialRampToValueAtTime(0.026, now + 0.24);
-	swooshGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.52);
+	swooshGain.gain.exponentialRampToValueAtTime(0.06, now + 0.08);
+	swooshGain.gain.exponentialRampToValueAtTime(0.03, now + 0.3);
+	swooshGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.46);
 	swooshOsc.connect(swooshFilter);
 	swooshFilter.connect(swooshGain);
 	swooshGain.connect(pan);
 	swooshOsc.start(now);
-	swooshOsc.stop(now + 0.54);
+	swooshOsc.stop(now + 0.64);
 
 	const whistleOsc = ctx.createOscillator();
 	const whistleGain = ctx.createGain();
@@ -399,22 +641,22 @@ function playCartoonMissSound(moleIndex) {
 	whistleOsc.type = "triangle";
 	if (wideWhoosh) {
 		whistleOsc.frequency.setValueAtTime(450 + Math.random() * 80, whistleStart);
-		whistleOsc.frequency.exponentialRampToValueAtTime(280 + Math.random() * 40, whistleStart + 0.28);
+		whistleOsc.frequency.exponentialRampToValueAtTime(280 + Math.random() * 40, whistleStart + 0.36);
 	} else {
 		whistleOsc.frequency.setValueAtTime(360 + Math.random() * 90, whistleStart);
-		whistleOsc.frequency.exponentialRampToValueAtTime(500 + Math.random() * 60, whistleStart + 0.12);
-		whistleOsc.frequency.exponentialRampToValueAtTime(240 + Math.random() * 50, whistleStart + 0.38);
+		whistleOsc.frequency.exponentialRampToValueAtTime(500 + Math.random() * 60, whistleStart + 0.16);
+		whistleOsc.frequency.exponentialRampToValueAtTime(240 + Math.random() * 50, whistleStart + 0.46);
 	}
 	whistleGain.gain.setValueAtTime(0.0001, whistleStart);
-	whistleGain.gain.exponentialRampToValueAtTime(0.035, whistleStart + 0.018);
-	whistleGain.gain.exponentialRampToValueAtTime(0.016, whistleStart + 0.2);
-	whistleGain.gain.exponentialRampToValueAtTime(0.0001, whistleStart + 0.42);
+	whistleGain.gain.exponentialRampToValueAtTime(0.035, whistleStart + 0.03);
+	whistleGain.gain.exponentialRampToValueAtTime(0.018, whistleStart + 0.24);
+	whistleGain.gain.exponentialRampToValueAtTime(0.0001, whistleStart + 0.38);
 	whistleOsc.connect(whistleGain);
 	whistleGain.connect(pan);
 	whistleOsc.start(whistleStart);
-	whistleOsc.stop(whistleStart + 0.44);
+	whistleOsc.stop(whistleStart + 0.5);
 
-	whoosh.stop(now + 0.6);
+	whoosh.stop(now + 0.68);
 }
 
 function playCartoonRetreatSound(moleIndex) {
@@ -461,6 +703,8 @@ function playCartoonRetreatSound(moleIndex) {
 	const sneakyGain = ctx.createGain();
 	const lowBurrowOsc = ctx.createOscillator();
 	const lowBurrowGain = ctx.createGain();
+	const deepDigOsc = ctx.createOscillator();
+	const deepDigGain = ctx.createGain();
 	sneakyOsc.type = "triangle";
 	sneakyOsc.frequency.setValueAtTime(360 + Math.random() * 30, now);
 	sneakyOsc.frequency.setValueAtTime(330, now + 0.06);
@@ -488,6 +732,19 @@ function playCartoonRetreatSound(moleIndex) {
 	lowBurrowGain.connect(pan);
 	lowBurrowOsc.start(now + 0.04);
 	lowBurrowOsc.stop(now + 0.68);
+
+	deepDigOsc.type = "sine";
+	deepDigOsc.frequency.setValueAtTime(68 + Math.random() * 8, now + 0.06);
+	deepDigOsc.frequency.exponentialRampToValueAtTime(42 + Math.random() * 5, now + 0.3);
+	deepDigOsc.frequency.exponentialRampToValueAtTime(28 + Math.random() * 4, now + 0.72);
+	deepDigGain.gain.setValueAtTime(0.0001, now + 0.06);
+	deepDigGain.gain.exponentialRampToValueAtTime(0.14, now + 0.14);
+	deepDigGain.gain.exponentialRampToValueAtTime(0.08, now + 0.38);
+	deepDigGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.78);
+	deepDigOsc.connect(deepDigGain);
+	deepDigGain.connect(pan);
+	deepDigOsc.start(now + 0.06);
+	deepDigOsc.stop(now + 0.8);
 
 	const dirtBuffer = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.42), ctx.sampleRate);
 	const dirtData = dirtBuffer.getChannelData(0);
@@ -1075,11 +1332,21 @@ function playHitSound(score, moleIndex) {
 		return;
 	}
 
+	if (gameAudioMode === "retro") {
+		playRetroHitSound(moleIndex);
+		return;
+	}
+
 	playOriginalHitSound(moleIndex);
 }
 
 
 function playMissSound(moleIndex) {
+	if (gameAudioMode === "retro") {
+		playRetroMissSound(moleIndex);
+		return;
+	}
+
 	if (gameAudioMode === "goofy") {
 		playCartoonMissSound(moleIndex);
 		return;
@@ -1205,6 +1472,11 @@ function playMolePopSound(moleIndex) {
 
 
 function playRetreatSound(moleIndex) {
+	if (gameAudioMode === "retro") {
+		playRetroRetreatSound(moleIndex);
+		return;
+	}
+
 	if (gameAudioMode === "goofy") {
 		playCartoonRetreatSound(moleIndex);
 		return;
