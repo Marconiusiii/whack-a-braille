@@ -208,7 +208,7 @@ function playRetroHitSound(moleIndex) {
 
 	const harmony = getCurrentBeatHarmonyMidis();
 	const chordMidis = harmony.chordMidis;
-	const leadMidiPool = [chordMidis[2] - 12, chordMidis[0], chordMidis[1]];
+	const leadMidiPool = [chordMidis[2] - 19, chordMidis[2] - 12, chordMidis[0], chordMidis[1]];
 	const flourishMidis = [chordMidis[0], chordMidis[1], chordMidis[1] + 4];
 
 	const bass = ctx.createOscillator();
@@ -245,27 +245,27 @@ function playRetroHitSound(moleIndex) {
 		const gain = ctx.createGain();
 		const start = leadStart + index * 0.01;
 		const freq = midiToFreq(midi + 12);
-		osc.type = index === 0 ? "square" : "triangle";
+		osc.type = index <= 1 ? "square" : "triangle";
 		osc.frequency.setValueAtTime(freq, start);
 		const vibrato = ctx.createOscillator();
 		const vibratoGain = ctx.createGain();
 		vibrato.type = "sine";
-		vibrato.frequency.value = 7.2;
-		vibratoGain.gain.setValueAtTime(6, start);
-		vibratoGain.gain.exponentialRampToValueAtTime(0.8, start + 0.14);
+		vibrato.frequency.value = 7.8;
+		vibratoGain.gain.setValueAtTime(10, start);
+		vibratoGain.gain.exponentialRampToValueAtTime(1.2, start + 0.38);
 		vibrato.connect(vibratoGain);
 		vibratoGain.connect(osc.frequency);
 		gain.gain.setValueAtTime(0.0001, start);
-		gain.gain.exponentialRampToValueAtTime(index === 0 ? 0.2 : 0.14, start + 0.006);
-		gain.gain.exponentialRampToValueAtTime(0.1, start + 0.1);
-		gain.gain.exponentialRampToValueAtTime(0.04, start + 0.18);
+		gain.gain.exponentialRampToValueAtTime(index === 0 ? 0.13 : index === 1 ? 0.17 : 0.11, start + 0.006);
+		gain.gain.exponentialRampToValueAtTime(0.08, start + 0.1);
+		gain.gain.exponentialRampToValueAtTime(0.03, start + 0.18);
 		gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.38);
 		osc.connect(gain);
 		gain.connect(pan);
 		osc.start(start);
 		vibrato.start(start);
 		osc.stop(start + 0.4);
-		vibrato.stop(start + 0.18);
+		vibrato.stop(start + 0.4);
 	});
 
 	flourishMidis.forEach((midi, index) => {
