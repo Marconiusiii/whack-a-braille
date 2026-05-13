@@ -23,6 +23,7 @@
 <li>Added more Grade 2 Moles in the Mole Chooser.</li>
 <li>Grade 2 Invasion now pulls from the entire set of contractions instead of just the single-character contractions!</li>
 <li>Added Goofy and Retro sound effect packs!</li>
+<li>Added Custom Moles so you can hand-pick 5 favorites or build your own Invasion Army.</li>
 <li>Added Grade 1 and Grade 2 braille reference tables at the bottom of the How to Play section. Includes Unicode references as well for a visual representation of the braille.</li>
 <li>Prize Shelf now has a prize counter badge so you know how many prizes you've won.</li>
 <li>Giving the web game parity with the iOS app.</li>
@@ -44,6 +45,7 @@
 <li>At the end of the round, cash in your tickets for a prize or keep playing to whack more moles.</li>
 <li>You get bonus tickets per round for hitting a streak of 5 moles or more, and Speed bonuses for how fast you hit the moles when they pop up.</li>
 <li>Enjoy your prizes on your Prize Shelf, which will persist every time you come back to the game until you clear the shelf.</li>
+<li>Custom Moles lets you hand-pick 5 favorite targets or assemble your own Invasion Army when certain moles have simply had it too good for too long.</li>
 <li>Training Mode Difficulty: practice your typing or braille entry by whacking 15 moles without a timer. You don't get a score nor any tickets, but it's a great way to work on your skills before going into the main game. Training mode also has a Speak Braille Dots toggle in Game Settings, further helping you learn along the way. Training mode works with any Braille and Typing mode.</li>
 <li>For Jaws and NVDA users on Windows: be sure to enter Forms or Focus mode when the game starts.</li>
 <li>This game can be played with any standard or Bluetooth keyboard for both desktop and mobile.  External braille displays will require you to hit dot 8 or the space bar to whack the current mole after entering the chord.</li>
@@ -113,6 +115,7 @@
 <legend>Mole Chooser</legend>
 <label for="moleChooserSelect">Choose your mole set</label>
 <select id="moleChooserSelect" name="brailleMode"></select>
+<button type="button" id="pickCustomMolesButton" disabled>Pick Custom Moles...</button>
 
 </fieldset>
 
@@ -269,6 +272,45 @@
 <div id="prizeDetailActions">
 <button type="button" id="deletePrizeButton">Delete This Prize</button>
 <button type="button" id="closePrizeDetailButton">Back to Shelf</button>
+</div>
+</div>
+</dialog>
+
+<dialog id="customMolesDialog" aria-labelledby="customMolesTitle">
+<div id="customMolesContent">
+<h2 id="customMolesTitle" tabindex="-1">Pick Custom Moles</h2>
+<p id="customMolesIntro">Pick the moles you most want to bash, or build your own Invasion!</p>
+
+<fieldset id="customMolePlayModeFieldset">
+<legend>Custom mole picker mode</legend>
+<input type="radio" name="customMolePlayMode" id="customMolePlayModeIndividual" value="individual" checked>
+<label for="customMolePlayModeIndividual">Individual Moles</label>
+<input type="radio" name="customMolePlayMode" id="customMolePlayModeInvasion" value="invasion">
+<label for="customMolePlayModeInvasion">Invasion Army</label>
+</fieldset>
+
+<div id="customMoleIndividualPanel">
+<p>Choose 5 moles to whack!</p>
+<div id="customMoleSlots"></div>
+</div>
+
+<div id="customMoleInvasionPanel" hidden>
+<p>Recruit all the moles you wish to whack!</p>
+<p id="customMoleInvasionCount">0 moles selected</p>
+<div id="customMoleInvasionActions">
+<button type="button" id="customMoleSelectAllButton">Select All</button>
+<button type="button" id="customMoleClearAllButton">Clear All</button>
+<button type="button" id="customMoleClearGrade1Button">Clear Grade 1</button>
+<button type="button" id="customMoleClearGrade2Button">Clear Grade 2</button>
+</div>
+<div id="customMoleInvasionSections"></div>
+</div>
+
+<p id="customMoleMinimumMessage" hidden>You have to choose at least 5 moles for the whacking can commence!</p>
+
+<div id="customMolesActions">
+<button type="button" id="customMolesCancelButton">Cancel</button>
+<button type="button" id="customMolesSaveButton">Save</button>
 </div>
 </div>
 </dialog>

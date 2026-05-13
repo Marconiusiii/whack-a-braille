@@ -258,6 +258,15 @@ body[data-game-state="results"] #resultsArea { display: block; }
 	outline-offset: 2px;
 }
 
+#pickCustomMolesButton {
+	margin-top: 0.75rem;
+}
+
+#pickCustomMolesButton:disabled {
+	opacity: 0.55;
+	cursor: default;
+}
+
 
 #resultsSummary p {
 	margin: 0 0 0.75rem 0;
@@ -317,6 +326,90 @@ body[data-game-state="results"] #resultsArea { display: block; }
 	display: flex;
 	gap: 1rem;
 	justify-content: center;
+}
+
+dialog {
+	border: none;
+	border-radius: 1rem;
+	padding: 0;
+	background: #101937;
+	color: #f5f7ff;
+	max-width: min(42rem, calc(100vw - 2rem));
+	width: 100%;
+	box-shadow: 0 1.25rem 2.75rem rgba(0, 0, 0, 0.55);
+}
+
+dialog::backdrop {
+	background: rgba(4, 8, 20, 0.75);
+}
+
+#prizeDetailContent,
+#customMolesContent {
+	padding: 1.25rem;
+}
+
+#customMolePlayModeFieldset {
+	margin-top: 1rem;
+}
+
+#customMoleSlots,
+#customMoleInvasionSections {
+	display: grid;
+	gap: 1rem;
+	margin-top: 1rem;
+}
+
+.customMoleSlotRow,
+.customMoleSectionBlock {
+	padding: 0.9rem;
+	border-radius: 0.75rem;
+	background: rgba(255, 255, 255, 0.06);
+}
+
+.customMoleSlotRow label,
+.customMoleSectionBlock h3 {
+	display: block;
+	margin: 0 0 0.45rem 0;
+	font-weight: 700;
+}
+
+.customMoleSlotRow select,
+.customMoleSectionBlock input[type="search"] {
+	width: 100%;
+	font-size: 1rem;
+	padding: 0.55rem 0.65rem;
+	border-radius: 0.5rem;
+	border: 2px solid #7bdff2;
+	background: #0f1730;
+	color: #f5f7ff;
+}
+
+.customMoleCheckboxList {
+	display: grid;
+	gap: 0.55rem;
+}
+
+.customMoleCheckboxRow {
+	display: flex;
+	align-items: start;
+	gap: 0.6rem;
+}
+
+.customMoleCheckboxRow label {
+	flex: 1;
+}
+
+#customMoleInvasionActions,
+#customMolesActions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.75rem;
+	margin-top: 1rem;
+}
+
+#customMoleMinimumMessage {
+	margin-top: 1rem;
+	color: #ffe66d;
 }
 /* Mole visuals with coordinated label and motion */
 

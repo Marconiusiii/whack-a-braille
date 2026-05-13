@@ -20,7 +20,8 @@ import {
 	grade2Dot5Initials,
 	grade2Dot45Initials,
 	grade2Suffixes,
-	grade2Dot456Initials
+	grade2Dot456Initials,
+	getCustomMoleSectionsForInputMode
 } from "./brailleRegistry.js";
 import { prizeCatalog } from "./prizeCatalog.js";
 import { scoreToTickets } from "./ticketRules.js";
@@ -47,6 +48,7 @@ const spatialMoleMappingCheckbox = document.getElementById("spatialMoleMappingEn
 const mobileBsiEntry = document.getElementById("mobileBsiEntry");
 const mobileBsiInput = document.getElementById("mobileBsiInput");
 const moleChooserSelect = document.getElementById("moleChooserSelect");
+const pickCustomMolesButton = document.getElementById("pickCustomMolesButton");
 const desktopBrailleDisplayEntry = document.getElementById("desktopBrailleDisplayEntry");
 const desktopBrailleDisplayInput = document.getElementById("desktopBrailleDisplayInput");
 const grade1ReferenceBody = document.getElementById("grade1ReferenceBody");
@@ -81,6 +83,20 @@ const prizeDetailOwned = document.getElementById("prizeDetailOwned");
 const prizeDetailFlavor = document.getElementById("prizeDetailFlavor");
 const deletePrizeButton = document.getElementById("deletePrizeButton");
 const closePrizeDetailButton = document.getElementById("closePrizeDetailButton");
+const customMolesDialog = document.getElementById("customMolesDialog");
+const customMolesTitle = document.getElementById("customMolesTitle");
+const customMoleSlots = document.getElementById("customMoleSlots");
+const customMoleInvasionSections = document.getElementById("customMoleInvasionSections");
+const customMoleInvasionCount = document.getElementById("customMoleInvasionCount");
+const customMoleMinimumMessage = document.getElementById("customMoleMinimumMessage");
+const customMoleIndividualPanel = document.getElementById("customMoleIndividualPanel");
+const customMoleInvasionPanel = document.getElementById("customMoleInvasionPanel");
+const customMolesCancelButton = document.getElementById("customMolesCancelButton");
+const customMolesSaveButton = document.getElementById("customMolesSaveButton");
+const customMoleSelectAllButton = document.getElementById("customMoleSelectAllButton");
+const customMoleClearAllButton = document.getElementById("customMoleClearAllButton");
+const customMoleClearGrade1Button = document.getElementById("customMoleClearGrade1Button");
+const customMoleClearGrade2Button = document.getElementById("customMoleClearGrade2Button");
 
 const grade1InputModeFieldset = document.getElementById("grade1InputModeFieldset");
 const cashOutSummaryText = document.getElementById("cashOutSummaryText");
@@ -103,6 +119,13 @@ let mobileBsiEnabled = false;
 let cashOutSource = "results";
 let activePrizeDetailId = null;
 let lastPrizeShelfTriggerId = null;
+let customMolePlayMode = "individual";
+let customIndividualMoleIDs = [];
+let customInvasionMoleIDs = [];
+let customMoleSections = [];
+let customMoleAllItems = [];
+let customMoleTriggerId = null;
+let customMoleSnapshot = null;
 
 const TICKET_STORAGE_KEY = "wabTotalTickets";
 const prizeCatalogById = new Map(prizeCatalog.map(prize => [prize.id, prize]));
@@ -224,7 +247,8 @@ const moleChooserOptions = [
 	{ value: "grade2Dot45Initials", label: "Grade 2 Dots 4 5 initial-letter contractions", group: "grade2" },
 	{ value: "grade2Suffixes", label: "Grade 2 suffix contractions", group: "grade2" },
 	{ value: "grade2Dot456Initials", label: "Grade 2 Dots 4 5 6 initial-letter contractions", group: "grade2" },
-	{ value: "grade2Invasion", label: "Grade 2 Invasion", group: "grade2" }
+	{ value: "grade2Invasion", label: "Grade 2 Invasion", group: "grade2" },
+	{ value: "customMoles", label: "Custom Moles", group: "custom" }
 ];
 
 function announceToSr(message) {
@@ -604,7 +628,9 @@ function isGrade2Mode(modeId) {
 }
 
 function isInvasionMode(modeId) {
-	return modeId === "grade1Invasion" || modeId === "grade2Invasion";
+	return modeId === "grade1Invasion" ||
+		modeId === "grade2Invasion" ||
+		(modeId === "customMoles" && customMolePlayMode === "invasion");
 }
 
 function isTypingOnlyMode(modeId) {
@@ -613,6 +639,217 @@ function isTypingOnlyMode(modeId) {
 
 function getSelectedInputMode() {
 	return document.querySelector("input[name='inputMode']:checked")?.value || "qwerty";
+}
+
+function getCustomMolePlayMode() {
+	return document.querySelector("input[name='customMolePlayMode']:checked")?.value === "invasion"
+		? "invasion"
+		: "individual";
+}
+
+function dedupeIds(ids) {
+	return Array.from(new Set((Array.isArray(ids) ? ids : []).filter(Boolean)));
+}
+
+function getDefaultCustomMoleSelection(inputMode) {
+	return getCustomMoleSectionsForInputMode(inputMode)
+		.flatMap(section => section.items)
+		.slice(0, 5)
+		.map(item => item.id);
+}
+
+function normalizeCustomSelections(inputMode) {
+	customMoleSections = getCustomMoleSectionsForInputMode(inputMode);
+	customMoleAllItems = customMoleSections.flatMap(section => section.items);
+	const validIds = new Set(customMoleAllItems.map(item => item.id));
+	const defaultIds = getDefaultCustomMoleSelection(inputMode);
+
+	customIndividualMoleIDs = customIndividualMoleIDs.filter(id => validIds.has(id)).slice(0, 5);
+	while (customIndividualMoleIDs.length < 5 && defaultIds[customIndividualMoleIDs.length]) {
+		customIndividualMoleIDs.push(defaultIds[customIndividualMoleIDs.length]);
+	}
+
+	customInvasionMoleIDs = dedupeIds(customInvasionMoleIDs.filter(id => validIds.has(id)));
+	if (!customInvasionMoleIDs.length) {
+		customInvasionMoleIDs = customMoleAllItems.map(item => item.id);
+	}
+}
+
+function updateCustomMoleButtonState() {
+	if (!pickCustomMolesButton) return;
+	pickCustomMolesButton.disabled = moleChooserSelect?.value !== "customMoles";
+}
+
+function updateCustomMoleInvasionCount() {
+	if (!customMoleInvasionCount) return;
+	const count = customInvasionMoleIDs.length;
+	customMoleInvasionCount.textContent = `${count} ${count === 1 ? "mole" : "moles"} selected`;
+}
+
+function renderCustomMoleSlots() {
+	if (!customMoleSlots) return;
+	customMoleSlots.innerHTML = "";
+
+	for (let index = 0; index < 5; index += 1) {
+		const row = document.createElement("div");
+		row.className = "customMoleSlotRow";
+
+		const label = document.createElement("label");
+		const selectId = `customMoleSlot-${index + 1}`;
+		label.setAttribute("for", selectId);
+		label.textContent = `Mole ${index + 1}`;
+
+		const select = document.createElement("select");
+		select.id = selectId;
+		customMoleSections.forEach(section => {
+			const group = document.createElement("optgroup");
+			group.label = section.title;
+			section.items.forEach(item => {
+				const option = document.createElement("option");
+				option.value = item.id;
+				option.textContent = item.displayLabel;
+				group.appendChild(option);
+			});
+			select.appendChild(group);
+		});
+		select.value = customIndividualMoleIDs[index] || "";
+		select.addEventListener("change", () => {
+			customIndividualMoleIDs[index] = select.value;
+		});
+
+		row.appendChild(label);
+		row.appendChild(select);
+		customMoleSlots.appendChild(row);
+	}
+}
+
+function renderCustomMoleInvasionSections() {
+	if (!customMoleInvasionSections) return;
+	customMoleInvasionSections.innerHTML = "";
+
+	customMoleSections.forEach(section => {
+		const block = document.createElement("div");
+		block.className = "customMoleSectionBlock";
+
+		const heading = document.createElement("h3");
+		heading.textContent = section.title;
+		block.appendChild(heading);
+
+		const list = document.createElement("div");
+		list.className = "customMoleCheckboxList";
+
+		section.items.forEach(item => {
+			const row = document.createElement("div");
+			row.className = "customMoleCheckboxRow";
+
+			const input = document.createElement("input");
+			input.type = "checkbox";
+			input.id = `customInvasion-${item.id}`;
+			input.checked = customInvasionMoleIDs.includes(item.id);
+			input.addEventListener("change", () => {
+				if (input.checked) {
+					customInvasionMoleIDs = dedupeIds([...customInvasionMoleIDs, item.id]);
+				} else {
+					customInvasionMoleIDs = customInvasionMoleIDs.filter(id => id !== item.id);
+				}
+				updateCustomMoleInvasionCount();
+			});
+
+			const label = document.createElement("label");
+			label.setAttribute("for", input.id);
+			label.textContent = item.displayLabel;
+
+			row.appendChild(input);
+			row.appendChild(label);
+			list.appendChild(row);
+		});
+
+		block.appendChild(list);
+		customMoleInvasionSections.appendChild(block);
+	});
+
+	updateCustomMoleInvasionCount();
+}
+
+function syncCustomMoleDialogModeUI() {
+	customMolePlayMode = getCustomMolePlayMode();
+	if (customMoleIndividualPanel) {
+		customMoleIndividualPanel.hidden = customMolePlayMode !== "individual";
+	}
+	if (customMoleInvasionPanel) {
+		customMoleInvasionPanel.hidden = customMolePlayMode !== "invasion";
+	}
+	if (customMoleMinimumMessage) {
+		customMoleMinimumMessage.hidden = true;
+	}
+}
+
+function openCustomMolesDialog(triggerId = null) {
+	if (!customMolesDialog) return;
+	customMoleTriggerId = triggerId;
+	customMoleSnapshot = {
+		playMode: customMolePlayMode,
+		individualMoleIDs: customIndividualMoleIDs.slice(),
+		invasionMoleIDs: customInvasionMoleIDs.slice()
+	};
+	normalizeCustomSelections(getSelectedInputMode());
+	renderCustomMoleSlots();
+	renderCustomMoleInvasionSections();
+	const modeInput = document.querySelector(`input[name='customMolePlayMode'][value='${customMolePlayMode}']`);
+	if (modeInput) {
+		modeInput.checked = true;
+	}
+	syncCustomMoleDialogModeUI();
+	customMolesDialog.showModal();
+	requestAnimationFrame(() => {
+		safeFocus(customMolesTitle);
+	});
+}
+
+function restoreCustomMoleSnapshot() {
+	if (!customMoleSnapshot) return;
+	customMolePlayMode = customMoleSnapshot.playMode;
+	customIndividualMoleIDs = customMoleSnapshot.individualMoleIDs.slice();
+	customInvasionMoleIDs = customMoleSnapshot.invasionMoleIDs.slice();
+	normalizeCustomSelections(getSelectedInputMode());
+	customMoleSnapshot = null;
+}
+
+function closeCustomMolesDialog(restoreSnapshot = true) {
+	if (!customMolesDialog?.open) return;
+	if (restoreSnapshot) {
+		restoreCustomMoleSnapshot();
+	} else {
+		customMoleSnapshot = null;
+	}
+	customMolesDialog.close();
+	const trigger = customMoleTriggerId ? document.getElementById(customMoleTriggerId) : pickCustomMolesButton;
+	if (trigger) {
+		requestAnimationFrame(() => {
+			safeFocus(trigger);
+		});
+	}
+}
+
+function saveCustomMolesFromDialog() {
+	const mode = getCustomMolePlayMode();
+	const selectedCount = mode === "invasion"
+		? customInvasionMoleIDs.length
+		: customIndividualMoleIDs.filter(Boolean).length;
+
+	if (selectedCount < 5) {
+		if (customMoleMinimumMessage) {
+			customMoleMinimumMessage.hidden = false;
+		}
+		return;
+	}
+
+	customMolePlayMode = mode;
+	if (customMoleMinimumMessage) {
+		customMoleMinimumMessage.hidden = true;
+	}
+	saveGameSettings(getSelectedSettings());
+	closeCustomMolesDialog(false);
 }
 
 function getMoleChooserOptionsForInputMode(inputMode) {
@@ -842,6 +1079,8 @@ function syncMoleChooserForInputMode() {
 	} else if (allowedOptions.length) {
 		moleChooserSelect.value = allowedOptions[0].value;
 	}
+
+	updateCustomMoleButtonState();
 }
 function applySettingsToUI(settings) {
 	if (!settings) return;
@@ -899,6 +1138,12 @@ function applySettingsToUI(settings) {
 		}
 	}
 
+	customMolePlayMode = settings.customMolePlayMode === "invasion" ? "invasion" : "individual";
+	customIndividualMoleIDs = Array.isArray(settings.customIndividualMoleIDs) ? settings.customIndividualMoleIDs.slice(0, 5) : [];
+	customInvasionMoleIDs = Array.isArray(settings.customInvasionMoleIDs) ? settings.customInvasionMoleIDs.slice() : [];
+	normalizeCustomSelections(getSelectedInputMode());
+	updateCustomMoleButtonState();
+
 	if (typeof settings.speakBrailleDots === "boolean" && speakBrailleDots) {
 		speakBrailleDots.checked = settings.speakBrailleDots;
 	}
@@ -934,6 +1179,9 @@ function getSelectedSettings() {
 		brailleMode,
 		roundTime: Number.isFinite(roundTime) ? roundTime : 30,
 		inputMode,
+		customMolePlayMode,
+		customIndividualMoleIDs: customIndividualMoleIDs.slice(0, 5),
+		customInvasionMoleIDs: customInvasionMoleIDs.slice(),
 		voiceName: voiceSelect?.value || null,
 		speechRatePercent: Number(speechRatePercentInput?.value) || 35,
 		speechVolumePercent: Number(speechVolumePercentInput?.value) || 85,
@@ -996,7 +1244,11 @@ function startGameFromSettings() {
 			speakBrailleDots: settings.speakBrailleDots,
 			characterEcho: settings.characterEcho,
 			timerMusicEnabled: settings.timerMusicEnabled,
-			spatialMoleMappingEnabled: settings.spatialMoleMappingEnabled
+			spatialMoleMappingEnabled: settings.spatialMoleMappingEnabled,
+			customMolePlayMode: settings.customMolePlayMode,
+			customMoleIDs: settings.customMolePlayMode === "invasion"
+				? settings.customInvasionMoleIDs
+				: settings.customIndividualMoleIDs
 		}
 	);
 	}, startDelayMs);
@@ -1060,6 +1312,68 @@ function setupEventListeners() {
 				cancelPrevious: true,
 				dedupe: false
 			});
+		});
+	}
+
+	if (pickCustomMolesButton) {
+		pickCustomMolesButton.addEventListener("click", () => {
+			openCustomMolesDialog("pickCustomMolesButton");
+		});
+	}
+
+	if (customMolesCancelButton) {
+		customMolesCancelButton.addEventListener("click", () => {
+			closeCustomMolesDialog();
+		});
+	}
+
+	if (customMolesSaveButton) {
+		customMolesSaveButton.addEventListener("click", () => {
+			saveCustomMolesFromDialog();
+		});
+	}
+
+	document.querySelectorAll("input[name='customMolePlayMode']").forEach(radio => {
+		radio.addEventListener("change", () => {
+			syncCustomMoleDialogModeUI();
+		});
+	});
+
+	if (customMoleSelectAllButton) {
+		customMoleSelectAllButton.addEventListener("click", () => {
+			customInvasionMoleIDs = customMoleAllItems.map(item => item.id);
+			renderCustomMoleInvasionSections();
+		});
+	}
+
+	if (customMoleClearAllButton) {
+		customMoleClearAllButton.addEventListener("click", () => {
+			customInvasionMoleIDs = [];
+			renderCustomMoleInvasionSections();
+		});
+	}
+
+	if (customMoleClearGrade1Button) {
+		customMoleClearGrade1Button.addEventListener("click", () => {
+			const grade1Ids = new Set(
+				customMoleSections
+					.filter(section => section.id === "grade1Letters" || section.id === "grade1Numbers")
+					.flatMap(section => section.items.map(item => item.id))
+			);
+			customInvasionMoleIDs = customInvasionMoleIDs.filter(id => !grade1Ids.has(id));
+			renderCustomMoleInvasionSections();
+		});
+	}
+
+	if (customMoleClearGrade2Button) {
+		customMoleClearGrade2Button.addEventListener("click", () => {
+			const grade2Ids = new Set(
+				customMoleSections
+					.filter(section => section.id !== "grade1Letters" && section.id !== "grade1Numbers")
+					.flatMap(section => section.items.map(item => item.id))
+			);
+			customInvasionMoleIDs = customInvasionMoleIDs.filter(id => !grade2Ids.has(id));
+			renderCustomMoleInvasionSections();
 		});
 	}
 
@@ -1188,6 +1502,18 @@ if (cancelCashOutButton) {
 		});
 	}
 
+	if (customMolesDialog) {
+		customMolesDialog.addEventListener("cancel", event => {
+			event.preventDefault();
+			closeCustomMolesDialog();
+		});
+		customMolesDialog.addEventListener("close", () => {
+			if (customMoleMinimumMessage) {
+				customMoleMinimumMessage.hidden = true;
+			}
+		});
+	}
+
 	if (cashOutHomeButton) {
 		cashOutHomeButton.addEventListener("click", () => {
 			setGameState("home");
@@ -1201,6 +1527,7 @@ if (cancelCashOutButton) {
 	if (moleChooserSelect) {
 		moleChooserSelect.addEventListener("change", () => {
 			syncInputModeUI();
+			updateCustomMoleButtonState();
 			saveGameSettings(getSelectedSettings());
 		});
 	}
@@ -1210,6 +1537,7 @@ if (cancelCashOutButton) {
 			syncMoleChooserForInputMode();
 			syncInputModeUI();
 			syncDesktopBrailleDisplayUI();
+			normalizeCustomSelections(getSelectedInputMode());
 			saveGameSettings(getSelectedSettings());
 		});
 	});
@@ -1534,12 +1862,14 @@ function init() {
 	updateHomeCashInButton();
 	loadPrizeShelf();
 	renderBrailleReferenceTables();
+	normalizeCustomSelections(getSelectedInputMode());
 	syncMoleChooserForInputMode();
 	ensureMoleChooserValue();
 	const savedSettings = loadGameSettings();
 	if (savedSettings) {
 		applySettingsToUI(savedSettings);
 	}
+	updateCustomMoleButtonState();
 	syncTrainingUI();
 	setGameState("home");
 	setupEventListeners();

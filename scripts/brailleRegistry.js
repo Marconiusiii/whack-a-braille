@@ -324,6 +324,44 @@ const brailleRegistry = [
 	...typingBottomRowItems
 ];
 
+function isCustomMoleItemAllowed(item, inputMode) {
+	if (inputMode === "qwerty") {
+		return !item.modeTags?.includes("grade2Dot456Initials");
+	}
+
+	if (inputMode === "brailleDisplay") {
+		return !item.modeTags?.includes("grade2Suffixes");
+	}
+
+	return true;
+}
+
+function getCustomMoleSectionsForInputMode(inputMode) {
+	return [
+		{ id: "grade1Letters", title: "Grade 1 Letters", items: grade1Letters },
+		{ id: "grade1Numbers", title: "Grade 1 Numbers", items: grade1Numbers },
+		{ id: "grade2Symbols", title: "Grade 2 Contractions", items: grade2Symbols },
+		{ id: "grade2Words", title: "Grade 2 Whole-Word Contractions", items: grade2Words },
+		{ id: "grade2Dot5Initials", title: "Grade 2 Dot 5 Initials", items: grade2Dot5Initials },
+		{ id: "grade2Dot45Initials", title: "Grade 2 Dot 45 Initials", items: grade2Dot45Initials },
+		{ id: "grade2Suffixes", title: "Grade 2 Suffixes", items: grade2Suffixes },
+		{ id: "grade2Dot456Initials", title: "Grade 2 Dot 456 Initials", items: grade2Dot456Initials }
+	].map(section => ({
+		...section,
+		items: section.items.filter(item => isCustomMoleItemAllowed(item, inputMode))
+	})).filter(section => section.items.length);
+}
+
+function getCustomMoleItemsForInputMode(inputMode) {
+	return getCustomMoleSectionsForInputMode(inputMode).flatMap(section => section.items);
+}
+
+function getCustomMoleItemsByIds(ids, inputMode) {
+	const allowedItems = getCustomMoleItemsForInputMode(inputMode);
+	const itemsById = new Map(allowedItems.map(item => [item.id, item]));
+	return (Array.isArray(ids) ? ids : []).map(id => itemsById.get(id)).filter(Boolean);
+}
+
 function getBrailleItemsForMode(modeId) {
 	if (modeId === "grade1Invasion") {
 		return [...grade1Letters, ...grade1Numbers];
@@ -354,11 +392,18 @@ function getBrailleItemsForMode(modeId) {
 		);
 	}
 
+	if (modeId === "customMoles") {
+		return getCustomMoleItemsForInputMode("perkins");
+	}
+
 	return brailleRegistry.filter(item => item.modeTags.includes(modeId));
 }
 
 export {
 	brailleRegistry,
+	getCustomMoleSectionsForInputMode,
+	getCustomMoleItemsForInputMode,
+	getCustomMoleItemsByIds,
 	getBrailleItemsForMode,
 	grade1Letters,
 	grade1Numbers,

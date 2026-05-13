@@ -1,6 +1,6 @@
 "use strict";
 
-import { getBrailleItemsForMode } from "./brailleRegistry.js";
+import { getBrailleItemsForMode, getCustomMoleItemsByIds, getCustomMoleItemsForInputMode } from "./brailleRegistry.js";
 import { setAttemptCallback, setCurrentMoleId } from "./inputEngine.js";
 import {
 	playHitSound,
@@ -57,6 +57,8 @@ let difficultyMultiplier = 1.0;
 let currentModeId = "";
 let currentInputMode = "qwerty";
 let currentDurationSeconds = 30;
+let currentCustomMolePlayMode = "individual";
+let currentCustomMoleIDs = [];
 
 const startIntervalMs = 900;
 const endIntervalMs = 300;
@@ -93,7 +95,9 @@ function initGameLoop(options) {
 }
 
 function isInvasionMode(modeId) {
-	return modeId === "grade1Invasion" || modeId === "grade2Invasion";
+	return modeId === "grade1Invasion" ||
+		modeId === "grade2Invasion" ||
+		(modeId === "customMoles" && currentCustomMolePlayMode === "invasion");
 }
 
 function isSpatialMappingEligibleMode(modeId) {
@@ -149,6 +153,10 @@ function pickRoundItems(modeId, pool, useSpatialMapping) {
 		return Array.isArray(pool) ? pool.slice() : [];
 	}
 
+	if (modeId === "customMoles" && currentCustomMolePlayMode === "individual") {
+		return Array.isArray(pool) ? pool.slice(0, 5) : [];
+	}
+
 	if (!useSpatialMapping || !isSpatialMappingEligibleMode(modeId)) {
 		return pickFiveItems(pool);
 	}
@@ -190,6 +198,8 @@ function startRound(modeId, durationSeconds, inputMode, difficulty = "normal", o
 	currentModeId = modeId;
 	currentDurationSeconds = durationSeconds;
 	currentInputMode = inputMode;
+	currentCustomMolePlayMode = options.customMolePlayMode === "invasion" ? "invasion" : "individual";
+	currentCustomMoleIDs = Array.isArray(options.customMoleIDs) ? options.customMoleIDs.slice() : [];
 
 	isTrainingMode = difficulty === "training";
 	speakBrailleDotsEnabled = !!options.speakBrailleDots && isTrainingMode;
@@ -202,7 +212,7 @@ function startRound(modeId, durationSeconds, inputMode, difficulty = "normal", o
 	difficultyMultiplier = DIFFICULTY_MULTIPLIERS[difficulty] ?? 1.0;
 
 	roundDurationMs = durationSeconds * 1000;
-	availableItems = getBrailleItemsForMode(modeId);
+	availableItems = getItemsForRoundMode(modeId, inputMode);
 	roundItems = pickRoundItems(modeId, availableItems, spatialMoleMappingEnabled);
 	roundLaneItems = buildRoundLaneItems(modeId, roundItems, spatialMoleMappingEnabled);
 
@@ -245,6 +255,19 @@ function startRound(modeId, durationSeconds, inputMode, difficulty = "normal", o
 
 function stopRound() {
 	endRoundNow(true);
+}
+
+function getItemsForRoundMode(modeId, inputMode) {
+	if (modeId !== "customMoles") {
+		return getBrailleItemsForMode(modeId);
+	}
+
+	const selectedItems = getCustomMoleItemsByIds(currentCustomMoleIDs, inputMode);
+	if (selectedItems.length >= 5) {
+		return selectedItems;
+	}
+
+	return getCustomMoleItemsForInputMode(inputMode).slice(0, 5);
 }
 
 function finishRoundEarly() {
