@@ -887,6 +887,84 @@ function playStartFlourish() {
 	});
 }
 
+function playTrainingFlourish() {
+	if (!isUnlocked) return 0;
+
+	const ctx = getAudioContext();
+	ensureRunning(ctx);
+
+	const now = ctx.currentTime;
+	const master = ctx.createGain();
+	master.gain.value = 0.42;
+	master.connect(ctx.destination);
+
+	const beat = 60 / 210;
+	const motifChoices = [
+		{ rootMidi: 60, intervals: [0, 4, 7, 12] },
+		{ rootMidi: 62, intervals: [0, 3, 7, 10] },
+		{ rootMidi: 65, intervals: [0, 5, 9, 12] }
+	];
+	const motif = motifChoices[Math.floor(Math.random() * motifChoices.length)];
+	const noteStarts = [0.0, beat * 0.72, beat * 1.35, beat * 2.05];
+	const noteDurations = [beat * 0.95, beat * 0.9, beat * 0.9, beat * 2.35];
+
+	noteStarts.forEach((start, index) => {
+		const noteMidi = motif.rootMidi + motif.intervals[index];
+		const noteFreq = midiToFreq(noteMidi);
+		const supportFreq = midiToFreq(noteMidi - 12);
+		const localStart = now + start;
+		const duration = noteDurations[index];
+
+		const leadOsc = ctx.createOscillator();
+		leadOsc.type = "triangle";
+		leadOsc.frequency.setValueAtTime(noteFreq, localStart);
+
+		const supportOsc = ctx.createOscillator();
+		supportOsc.type = index === noteStarts.length - 1 ? "sine" : "triangle";
+		supportOsc.frequency.setValueAtTime(supportFreq, localStart);
+
+		const leadGain = ctx.createGain();
+		leadGain.gain.setValueAtTime(0.0001, localStart);
+		leadGain.gain.exponentialRampToValueAtTime(index === noteStarts.length - 1 ? 0.26 : 0.2, localStart + 0.03);
+		leadGain.gain.exponentialRampToValueAtTime(0.0001, localStart + duration);
+
+		const supportGain = ctx.createGain();
+		supportGain.gain.setValueAtTime(0.0001, localStart);
+		supportGain.gain.exponentialRampToValueAtTime(index === noteStarts.length - 1 ? 0.16 : 0.12, localStart + 0.04);
+		supportGain.gain.exponentialRampToValueAtTime(0.0001, localStart + duration);
+
+		leadOsc.connect(leadGain);
+		supportOsc.connect(supportGain);
+		leadGain.connect(master);
+		supportGain.connect(master);
+
+		leadOsc.start(localStart);
+		supportOsc.start(localStart);
+		leadOsc.stop(localStart + duration + 0.02);
+		supportOsc.stop(localStart + duration + 0.02);
+	});
+
+	const chimeTimes = [beat * 1.55, beat * 1.9, beat * 2.25];
+	chimeTimes.forEach((start, index) => {
+		const localStart = now + start;
+		const baseFreq = midiToFreq(motif.rootMidi + 12 + index * 2);
+		const osc = ctx.createOscillator();
+		const gain = ctx.createGain();
+		osc.type = "sine";
+		osc.frequency.setValueAtTime(baseFreq, localStart);
+		osc.frequency.exponentialRampToValueAtTime(baseFreq * 1.4, localStart + 0.16);
+		gain.gain.setValueAtTime(0.0001, localStart);
+		gain.gain.exponentialRampToValueAtTime(0.08, localStart + 0.02);
+		gain.gain.exponentialRampToValueAtTime(0.0001, localStart + 0.24);
+		osc.connect(gain);
+		gain.connect(master);
+		osc.start(localStart);
+		osc.stop(localStart + 0.26);
+	});
+
+	return Math.round((beat * 4.6) * 1000);
+}
+
 function playEverythingStinger() {
 	if (!isUnlocked) return;
 
@@ -1791,6 +1869,7 @@ function playBeatPulse(progress) {
 export {
 	unlockAudio,
 	playStartFlourish,
+	playTrainingFlourish,
 	playEverythingStinger,
 	playPrizeFanfare,
 	playHitSound,

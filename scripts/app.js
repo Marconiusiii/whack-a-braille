@@ -1,7 +1,7 @@
 "use strict";
 
 import { initGameLoop, getCurrentSpeechPayload, startRound, stopRound, finishRoundEarly } from "./gameLoop.js";
-import { unlockAudio, setGameAudioMode, playEndBuzzer, playStartFlourish, playEverythingStinger, playPrizeFanfare } from "./audioEngine.js";
+import { unlockAudio, setGameAudioMode, playEndBuzzer, playStartFlourish, playTrainingFlourish, playEverythingStinger, playPrizeFanfare } from "./audioEngine.js";
 import {
 	unlockSpeech,
 	getAvailableVoicesForLanguage,
@@ -331,7 +331,7 @@ function computeOpeningStartDelayMs(speechResult, isTraining) {
 	if (!speechDurationMs) {
 		speechDurationMs = 300;
 	}
-	const postSpeechBeatMs = isTraining ? 850 : 300;
+	const postSpeechBeatMs = isTraining ? 1200 : 300;
 	return Math.min(3000, speechDurationMs + postSpeechBeatMs);
 }
 
@@ -990,7 +990,7 @@ function beginMoleReconRound(items) {
 		spatialMoleMappingEnabled: false,
 		customMolePlayMode: "individual",
 		customMoleIDs: selectedItems.map(item => item.id),
-		openingAnnouncement: null
+		openingAnnouncement: "Training round."
 	};
 
 	beginRound(roundConfig);
@@ -1377,12 +1377,6 @@ function beginRound(config) {
 
 	setGameState("playing");
 
-	if (isInvasionMode(config.modeId)) {
-		playEverythingStinger();
-	} else {
-		playStartFlourish();
-	}
-
 	const launchRound = () => {
 		startRound(
 			config.modeId,
@@ -1408,22 +1402,35 @@ function beginRound(config) {
 	const focusHandoffDelayMs = getFocusHandoffDelayMs(config.inputMode);
 	const focusSettleDelayMs = getFocusSettleDelayMs(config.inputMode);
 
+	const preSpeechDelayMs = isTraining ? 900 : 0;
+
 	setTimeout(() => {
+		let openingCueDurationMs = 0;
+		if (isTraining) {
+			openingCueDurationMs = playTrainingFlourish() || 0;
+		} else if (isInvasionMode(config.modeId)) {
+			playEverythingStinger();
+		} else {
+			playStartFlourish();
+		}
+
 		const speechResult = speak(config.openingAnnouncement, {
 			cancelPrevious: true,
 			dedupe: false
 		});
 		const startDelayMs = computeOpeningStartDelayMs(speechResult, config.difficulty === "training");
 		setTimeout(launchRound, startDelayMs);
-	}, focusHandoffDelayMs + focusSettleDelayMs);
+	}, focusHandoffDelayMs + focusSettleDelayMs + Math.max(preSpeechDelayMs, openingCueDurationMs));
 }
 
 function startGameFromSettings() {
 	const settings = getSelectedSettings();
 	const invasionModeActive = isInvasionMode(settings.brailleMode);
-	const openingAnnouncement = invasionModeActive
-		? pickInvasionIntroPhrase()
-		: "Ready?";
+	const openingAnnouncement = settings.difficulty === "training"
+		? "Training round."
+		: invasionModeActive
+			? pickInvasionIntroPhrase()
+			: "Ready?";
 
 	beginRound({
 		modeId: settings.brailleMode,
