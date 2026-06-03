@@ -67,6 +67,9 @@ const startUpTimeMs = 650;
 const endUpTimeMs = 250;
 
 const TRAINING_MOLE_CAP = 15;
+const TRAINING_FIRST_MOLE_DELAY_MS = 650;
+const TRAINING_POST_HIT_DELAY_MS = 750;
+const STARTUP_FIRST_MOLE_DELAY_MS = 300;
 
 let isTrainingMode = false;
 let trainingMolesCompleted = 0;
@@ -253,12 +256,12 @@ function startRound(modeId, durationSeconds, inputMode, difficulty = "normal", o
 	moleUpTimer = null;
 
 	if (isTrainingMode) {
-		scheduleNextTrainingMole(0);
+		scheduleNextTrainingMole(TRAINING_FIRST_MOLE_DELAY_MS);
 		return;
 	}
 
 	roundTimer = setTimeout(requestRoundEnd, roundDurationMs);
-	scheduleNextMole(0);
+	scheduleNextMole(STARTUP_FIRST_MOLE_DELAY_MS);
 }
 
 function stopRound() {
@@ -834,7 +837,7 @@ function handleHit() {
 		clearActiveMole();
 		setCurrentMoleId(0);
 
-		scheduleNextTrainingMole(180);
+		scheduleNextTrainingMole(TRAINING_POST_HIT_DELAY_MS);
 		return;
 	}
 

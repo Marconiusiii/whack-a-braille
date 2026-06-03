@@ -297,8 +297,27 @@ function pickInvasionIntroPhrase() {
 	return invasionIntroPhrases[Math.floor(Math.random() * invasionIntroPhrases.length)] || "Incoming moles!";
 }
 
-function computeOpeningStartDelayMs(speechResult, isInvasionModeActive) {
-	if (!isInvasionModeActive) return 650;
+function inputModeUsesBufferedTextEntry(inputMode) {
+	return inputMode === "brailleDisplay";
+}
+
+function getFocusHandoffDelayMs(inputMode) {
+	return inputModeUsesBufferedTextEntry(inputMode) ? 600 : 300;
+}
+
+function getFocusSettleDelayMs(inputMode) {
+	switch (inputMode) {
+		case "brailleDisplay":
+			return 1250;
+		case "perkins":
+			return 900;
+		case "qwerty":
+		default:
+			return 900;
+	}
+}
+
+function computeOpeningStartDelayMs(speechResult, isTraining) {
 	const startedAt = Number(
 		speechResult?.onstartAtMs ?? speechResult?.startedAtMs ?? speechResult?.startedAt
 	);
@@ -312,7 +331,8 @@ function computeOpeningStartDelayMs(speechResult, isInvasionModeActive) {
 	if (!speechDurationMs) {
 		speechDurationMs = 300;
 	}
-	return Math.max(900, Math.min(3000, speechDurationMs + 240));
+	const postSpeechBeatMs = isTraining ? 850 : 300;
+	return Math.min(3000, speechDurationMs + postSpeechBeatMs);
 }
 
 function loadStorageObject(key, fallback = {}) {
@@ -1385,12 +1405,17 @@ function beginRound(config) {
 		return;
 	}
 
-	const speechResult = speak(config.openingAnnouncement, {
-		cancelPrevious: true,
-		dedupe: false
-	});
-	const startDelayMs = computeOpeningStartDelayMs(speechResult, isInvasionMode(config.modeId));
-	setTimeout(launchRound, startDelayMs);
+	const focusHandoffDelayMs = getFocusHandoffDelayMs(config.inputMode);
+	const focusSettleDelayMs = getFocusSettleDelayMs(config.inputMode);
+
+	setTimeout(() => {
+		const speechResult = speak(config.openingAnnouncement, {
+			cancelPrevious: true,
+			dedupe: false
+		});
+		const startDelayMs = computeOpeningStartDelayMs(speechResult, config.difficulty === "training");
+		setTimeout(launchRound, startDelayMs);
+	}, focusHandoffDelayMs + focusSettleDelayMs);
 }
 
 function startGameFromSettings() {
