@@ -1401,14 +1401,23 @@ function beginRound(config) {
 
 	const focusHandoffDelayMs = getFocusHandoffDelayMs(config.inputMode);
 	const focusSettleDelayMs = getFocusSettleDelayMs(config.inputMode);
-
-	const preSpeechDelayMs = isTraining ? 900 : 0;
+	const openingDelayMs = isTraining ? Math.min(250, focusHandoffDelayMs) : focusHandoffDelayMs + focusSettleDelayMs;
 
 	setTimeout(() => {
-		let openingCueDurationMs = 0;
 		if (isTraining) {
-			openingCueDurationMs = playTrainingFlourish() || 0;
-		} else if (isInvasionMode(config.modeId)) {
+			const openingCueDurationMs = playTrainingFlourish() || 0;
+			setTimeout(() => {
+				const speechResult = speak(config.openingAnnouncement, {
+					cancelPrevious: true,
+					dedupe: false
+				});
+				const startDelayMs = computeOpeningStartDelayMs(speechResult, true);
+				setTimeout(launchRound, startDelayMs);
+			}, openingCueDurationMs);
+			return;
+		}
+
+		if (isInvasionMode(config.modeId)) {
 			playEverythingStinger();
 		} else {
 			playStartFlourish();
@@ -1420,7 +1429,7 @@ function beginRound(config) {
 		});
 		const startDelayMs = computeOpeningStartDelayMs(speechResult, config.difficulty === "training");
 		setTimeout(launchRound, startDelayMs);
-	}, focusHandoffDelayMs + focusSettleDelayMs + Math.max(preSpeechDelayMs, openingCueDurationMs));
+	}, openingDelayMs);
 }
 
 function startGameFromSettings() {
