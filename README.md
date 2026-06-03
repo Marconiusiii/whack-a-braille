@@ -55,6 +55,16 @@ Global keyboard shortcuts:
 
 Grade 1 Invasion draws each mole from the full Grade 1 pool as it appears, including numbers. Grade 2 Invasion does the same with the full Grade 2 pool, including the newer multi-cell contraction families. Invasion rounds also use a rotating set of funny spoken intros before the round begins, and the round start waits for the spoken intro timing instead of a fixed delay.
 
+## Custom Moles
+
+Custom Moles appears in the Mole Chooser and opens a dedicated picker in Game Settings.
+
+- Individual Moles lets you hand-pick 5 exact moles for a round
+- Invasion Army lets you build your own larger invasion pool
+- Custom selections are saved with the rest of the game settings
+- Custom mode is filtered by the selected Keyboard Input mode so unavailable targets do not appear
+- A minimum of 5 moles is required before a custom setup can be saved
+
 ## Braille Reference
 
 The bottom of the How to Play area now includes a collapsible Braille Reference for learners.
@@ -103,6 +113,16 @@ Features:
 
 Training mode disables round length selection and ticket earning.
 
+## Mole Recon
+
+Mole Recon is a follow-up training mode that appears from Round Results after a normal game round.
+
+- If moles were missed or escaped, Mole Recon builds a practice round from those troublemakers
+- If no moles got away, Mole Recon falls back to a grudge-match list of all the moles shown during the round
+- Grudge-match recon lets the player choose which of those moles to practice
+- Recon practice starts immediately from the modal and runs as a training round with spoken dot support enabled
+- Keep Training repeats the active Mole Recon set after a recon practice round
+
 ## Mobile Braille Input
 
 Whack A Braille includes a mobile-only Braille Entry field in the game area for:
@@ -127,8 +147,10 @@ Desktop behavior is unchanged: hardware keyboard input still uses QWERTY and Per
 - Optional Character Echo for Grade 1 letters
 - Spatialized audio cues indicate mole position
 - Independent audio styles selectable via Game Audio settings
+- Includes Original, Silly, Goofy, and Retro sound packs
 - Optional timer music that accelerates as rounds progress
 - Prize claims trigger tier-based musical fanfares with shimmering chime glissandos
+- Tier 6 prize wins now use an extra over-the-top magical and sparkly fanfare above the Tier 5 cue
 - Mole hit feedback has been retuned for a stronger arcade feel
 
 All speech and audio settings persist across sessions.
@@ -145,7 +167,15 @@ All speech and audio settings persist across sessions.
 - Prize detail view includes claimed date, tier, ticket cost, flavor text, and total owned when applicable
 - Individual prizes can be removed from the shelf one at a time
 - Clearing the Prize Shelf announces "Prize Shelf Cleared" to screen readers
-- Prize catalog includes expanded multi-tier joke, brag, title, and legend rewards, including new coffee and tea themed prizes
+- Prize catalog includes expanded multi-tier joke, brag, title, and legend rewards, including coffee and tea themed prizes
+- Prize tiers now extend through Tier 6, with 500-ticket top-tier rewards
+
+## Results And Cash-In Flow
+
+- Tickets are saved in a persistent local ticket bank instead of being burned after every prize claim
+- Players can enter the Prize Counter directly from Home with the current ticket total announced in the button label
+- Round Results offers Keep Whacking, Mole Recon when available, Cash In, and Save Tickets and Return Home
+- Prize choices include ticket cost directly in each label
 
 ## Accessibility Notes
 

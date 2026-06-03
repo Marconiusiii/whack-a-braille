@@ -1264,7 +1264,8 @@ function playPrizeFanfare(tier = 1) {
 		2: { baseMidi: 59 + Math.floor(Math.random() * 3), melody: [0, 4, 7], starts: [0.0, 0.12, 0.26], durations: [0.18, 0.18, 0.34], pad: [0, 4, 7] },
 		3: { baseMidi: 62 + Math.floor(Math.random() * 3), melody: [0, 4, 7, 11], starts: [0.0, 0.12, 0.24, 0.36], durations: [0.2, 0.2, 0.2, 0.46], pad: [0, 4, 7] },
 		4: { baseMidi: 61 + Math.floor(Math.random() * 3), melody: [0, 4, 7, 12], starts: [0.0, 0.12, 0.24, 0.37], durations: [0.22, 0.22, 0.22, 0.62], pad: [0, 4, 7, 12] },
-		5: { baseMidi: 65 + Math.floor(Math.random() * 3), melody: [0, 4, 7, 11, 16, 19], starts: [0.0, 0.11, 0.23, 0.36, 0.5, 0.68], durations: [0.22, 0.22, 0.22, 0.22, 0.22, 0.72], pad: [0, 7, 12, 16] }
+		5: { baseMidi: 65 + Math.floor(Math.random() * 3), melody: [0, 4, 7, 11, 16, 19], starts: [0.0, 0.11, 0.23, 0.36, 0.5, 0.68], durations: [0.22, 0.22, 0.22, 0.22, 0.22, 0.72], pad: [0, 7, 12, 16] },
+		6: { baseMidi: 67 + Math.floor(Math.random() * 2), melody: [0, 4, 7, 12, 16, 19, 24, 28], starts: [0.0, 0.1, 0.2, 0.32, 0.46, 0.61, 0.79, 1.0], durations: [0.24, 0.24, 0.24, 0.26, 0.26, 0.28, 0.32, 1.0], pad: [-5, 0, 7, 12, 16, 24] }
 	};
 	const config = configs[safeTier] || configs[5];
 
@@ -1275,10 +1276,10 @@ function playPrizeFanfare(tier = 1) {
 			now + config.starts[index],
 			config.durations[index],
 			midiToFreq(config.baseMidi + step),
-			safeTier >= 4 ? 0.32 : safeTier === 3 ? 0.26 : safeTier === 2 ? 0.21 : 0.18,
+			safeTier >= 6 ? 0.36 : safeTier >= 4 ? 0.32 : safeTier === 3 ? 0.26 : safeTier === 2 ? 0.21 : 0.18,
 			"triangle",
-			index === config.melody.length - 1 && safeTier >= 4 ? (safeTier === 5 ? 4.2 : 4.8) : 0,
-			index === config.melody.length - 1 && safeTier >= 4 ? (safeTier === 5 ? 1.6 : 2.7) : 0
+			index === config.melody.length - 1 && safeTier >= 4 ? (safeTier >= 6 ? 5.8 : safeTier === 5 ? 4.2 : 4.8) : 0,
+			index === config.melody.length - 1 && safeTier >= 4 ? (safeTier >= 6 ? 3.2 : safeTier === 5 ? 1.6 : 2.7) : 0
 		);
 	});
 
@@ -1287,34 +1288,77 @@ function playPrizeFanfare(tier = 1) {
 			ctx,
 			master,
 			now + 0.05,
-			safeTier >= 5 ? 0.72 : safeTier >= 4 ? 0.48 : 0.36,
+			safeTier >= 6 ? 1.08 : safeTier >= 5 ? 0.72 : safeTier >= 4 ? 0.48 : 0.36,
 			midiToFreq(config.baseMidi + step),
-			safeTier >= 4 ? 0.11 : 0.08,
+			safeTier >= 6 ? 0.14 : safeTier >= 4 ? 0.11 : 0.08,
 			"sine"
 		);
 	});
 
 	if (safeTier >= 2) {
-		schedulePrizeTone(ctx, master, now, 0.08, 900 + safeTier * 60, 0.08 + safeTier * 0.01, "sine");
+		schedulePrizeTone(
+			ctx,
+			master,
+			now,
+			safeTier >= 6 ? 0.12 : 0.08,
+			safeTier >= 6 ? 1380 : 900 + safeTier * 60,
+			safeTier >= 6 ? 0.16 : 0.08 + safeTier * 0.01,
+			"sine"
+		);
 	}
 
 	if (safeTier >= 3) {
-		[0.18, 0.27, 0.34, 0.42].forEach((offset, index) => {
+		(safeTier >= 6
+			? [0.16, 0.24, 0.31, 0.39, 0.48, 0.58, 0.69]
+			: [0.18, 0.27, 0.34, 0.42]
+		).forEach((offset, index) => {
 			const sparkleFreq = midiToFreq(config.baseMidi + 19 + index);
-			schedulePrizeBell(ctx, master, now + offset, 0.18, sparkleFreq, sparkleFreq * 1.6, 0.06);
+			schedulePrizeBell(
+				ctx,
+				master,
+				now + offset,
+				safeTier >= 6 ? 0.24 : 0.18,
+				sparkleFreq,
+				safeTier >= 6 ? sparkleFreq * 1.9 : sparkleFreq * 1.6,
+				safeTier >= 6 ? 0.085 : 0.06
+			);
 		});
 	}
 
 	if (safeTier >= 4) {
-		const glissStart = now + (safeTier === 5 ? 0.52 : 0.18);
-		const glissDuration = safeTier === 5 ? 0.44 : 0.4;
-		const bellCount = safeTier === 5 ? 6 : 4;
+		const glissStart = now + (safeTier >= 6 ? 0.44 : safeTier === 5 ? 0.52 : 0.18);
+		const glissDuration = safeTier >= 6 ? 0.78 : safeTier === 5 ? 0.44 : 0.4;
+		const bellCount = safeTier >= 6 ? 10 : safeTier === 5 ? 6 : 4;
 		for (let i = 0; i < bellCount; i++) {
 			const progress = i / Math.max(1, bellCount - 1);
-			const startFreq = midiToFreq(config.baseMidi + (safeTier === 5 ? 12 : 16)) * Math.pow(2, progress * 0.08);
-			const endFreq = midiToFreq(config.baseMidi + (safeTier === 5 ? 31 : 30)) * Math.pow(2, progress * 0.06);
-			schedulePrizeBell(ctx, master, glissStart + i * 0.03, glissDuration - i * 0.03, startFreq, endFreq, safeTier === 5 ? 0.09 : 0.07);
+			const startFreq = midiToFreq(config.baseMidi + (safeTier >= 6 ? 14 : safeTier === 5 ? 12 : 16)) * Math.pow(2, progress * (safeTier >= 6 ? 0.13 : 0.08));
+			const endFreq = midiToFreq(config.baseMidi + (safeTier >= 6 ? 38 : safeTier === 5 ? 31 : 30)) * Math.pow(2, progress * (safeTier >= 6 ? 0.11 : 0.06));
+			schedulePrizeBell(
+				ctx,
+				master,
+				glissStart + i * (safeTier >= 6 ? 0.022 : 0.03),
+				glissDuration - i * (safeTier >= 6 ? 0.028 : 0.03),
+				startFreq,
+				endFreq,
+				safeTier >= 6 ? 0.11 : safeTier === 5 ? 0.09 : 0.07
+			);
 		}
+	}
+
+	if (safeTier >= 6) {
+		[0.22, 0.52, 0.86].forEach((offset, index) => {
+			schedulePrizeTone(
+				ctx,
+				master,
+				now + offset,
+				0.62 + index * 0.08,
+				midiToFreq(config.baseMidi - 12 + index * 7),
+				0.09,
+				"sine",
+				3.6,
+				1.1
+			);
+		});
 	}
 }
 
