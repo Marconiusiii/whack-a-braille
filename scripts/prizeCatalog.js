@@ -1178,6 +1178,54 @@ const prizeCatalog = [
 		flavorText: "Roomy enough for flash cards, emergency candy, and one very official-looking victory kazoo."
 	},
 	{
+		id: "tier4_barrelOfMonkeys",
+		label: "A Barrel of Monkeys",
+		minTickets: 50,
+		maxTickets: 99,
+		category: "absurd",
+		flavorText: "Releasing these monkeys surely will cause havoc and shenanigans to occur only for the moles. Surely nothing unintended will happen. Surely."
+	},
+	{
+		id: "tier4_golfBalls",
+		label: "A Dozen Colorful Golf Balls",
+		minTickets: 50,
+		maxTickets: 99,
+		category: "joke",
+		flavorText: "The moles stole these from the local mini-golf course. You can now return these to their rightful owners and win a free round of putt-putt!"
+	},
+	{
+		id: "tier4_adorableCat",
+		label: "An Adorable Cat",
+		minTickets: 50,
+		maxTickets: 99,
+		category: "absurd",
+		flavorText: "Snuggly, furry, and a real purr monster. Ready to watch with offended indifference as you take on the moles."
+	},
+	{
+		id: "tier4_judgmentalParrot",
+		label: "A Slightly Judgmental Parrot",
+		minTickets: 50,
+		maxTickets: 99,
+		category: "absurd",
+		flavorText: "It repeats your best score, your worst miss, and somehow the exact sigh you made after that one escaped mole."
+	},
+	{
+		id: "tier4_trafficCone",
+		label: "A Miniature Traffic Cone",
+		minTickets: 50,
+		maxTickets: 99,
+		category: "joke",
+		flavorText: "Perfect for marking dangerous tunnel entrances, suspicious floor tiles, and any area where the moles are up to nonsense."
+	},
+	{
+		id: "tier4_dramaticYoyo",
+		label: "One Extremely Dramatic Yo-Yo",
+		minTickets: 50,
+		maxTickets: 99,
+		category: "absurd",
+		flavorText: "Returns only when it feels emotionally ready, which frankly makes it more relatable than expected."
+	},
+	{
 		id: "tier5_moleTruceDay",
 		label: "An Annual Day of Truce Between You and the Moles",
 		minTickets: 100,
@@ -1474,6 +1522,46 @@ const prizeCatalog = [
 		flavorText: "A tiny instrument with the confidence of a full orchestra and the manners of an arcade birthday party."
 	},
 	{
+		id: "tier5_moleBandCd",
+		label: "A CD from the Mole's Band",
+		minTickets: 100,
+		maxTickets: 499,
+		category: "legend",
+		flavorText: "The moles formed an underground indie folk group to produce this album, featuring songs such as Dodging is Life, Escape Tunnels, the Mole Brigade Anthem, and Won't Get Whacked Again, with the famous 14 minute hammer solo."
+	},
+	{
+		id: "tier5_extraAiTokens",
+		label: "Extra AI Tokens",
+		minTickets: 100,
+		maxTickets: 499,
+		category: "legend",
+		flavorText: "Goodness, are these ever expensive! And you can't even use them for more games in the arcade."
+	},
+	{
+		id: "tier5_moleBurrito",
+		label: "A Mole Burrito",
+		minTickets: 100,
+		maxTickets: 499,
+		category: "legend",
+		flavorText: "No, not those moles. Proper Mexican mole, with a smell that's sweet and tangy and sure to entice the moles to come out."
+	},
+	{
+		id: "tier5_emergencyJazzTape",
+		label: "The Mole's Emergency Jazz Tape",
+		minTickets: 100,
+		maxTickets: 499,
+		category: "legend",
+		flavorText: "Recorded live during a tunnel evacuation and somehow still praised for its bold use of panic."
+	},
+	{
+		id: "tier5_victoryBeanbag",
+		label: "A Deluxe Victory Beanbag Chair",
+		minTickets: 100,
+		maxTickets: 499,
+		category: "legend",
+		flavorText: "Soft enough for recovery, dignified enough for plotting, and loud enough in spirit to count as furniture with confidence."
+	},
+	{
 		id: "tier6_masterMoleTradingCard",
 		label: "Master Mole Trading Card",
 		minTickets: 500,
@@ -1528,6 +1616,38 @@ const prizeCatalog = [
 		maxTickets: null,
 		category: "legend",
 		flavorText: "Irradiated with pure 80s confidence and cheese, with Whack A Braille purple and black theming."
+	},
+	{
+		id: "tier6_moleBoxSet",
+		label: "15 CD Box set of the Mole Whacker's Greatest Hits",
+		minTickets: 500,
+		maxTickets: null,
+		category: "legend",
+		flavorText: "Contains many of their timeless classics such as the Bonker Ballad, Tunnel of Love, Moles a' Plenty, Whacking Through the Day, and Live from the 1984 MoleaPalooza, Moonlight Mole Parade!"
+	},
+	{
+		id: "tier6_secretMoleRecipe",
+		label: "The Mole's Secret Mole Recipe",
+		minTickets: 500,
+		maxTickets: null,
+		category: "legend",
+		flavorText: "Sweet, tangy, flavorful, and full of no less than 63 individual ingredients! Where do they find the time to make this Michelin-star winning sauce?"
+	},
+	{
+		id: "tier6_diamondShovel",
+		label: "A Diamond Shovel",
+		minTickets: 500,
+		maxTickets: null,
+		category: "legend",
+		flavorText: "Perfect for digging, mining, and filling in all those blasted mole tunnels! Look out, a Creeper is behind you!"
+	},
+	{
+		id: "tier6_tunnelForeclosureKit",
+		label: "The Royal Tunnel Foreclosure Kit",
+		minTickets: 500,
+		maxTickets: null,
+		category: "legend",
+		flavorText: "Contains maps, seals, and an unreasonable number of ceremonial stamps for reclaiming underground territory."
 	}
 ];
 
