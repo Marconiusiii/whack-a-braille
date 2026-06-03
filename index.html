@@ -311,19 +311,6 @@
 </div>
 </dialog>
 
-<dialog id="moleReconDialog" aria-labelledby="moleReconTitle">
-<div id="moleReconContent">
-<h2 id="moleReconTitle" tabindex="-1">Mole Recon</h2>
-<p id="moleReconBlurb"></p>
-<div id="moleReconList"></div>
-<p id="moleReconWarning" hidden>Pick at least one mole. An empty recon mission is just dramatic standing around with nothing to whack.</p>
-<div id="moleReconActions">
-<button type="button" id="moleReconBeginButton">Begin Practice</button>
-<button type="button" id="moleReconCancelButton">Cancel</button>
-</div>
-</div>
-</dialog>
-
 </section>
 
 <section id="gameArea" hidden>
@@ -413,6 +400,19 @@
 </section>
 
 </main>
+
+<dialog id="moleReconDialog" aria-labelledby="moleReconTitle">
+<div id="moleReconContent">
+<h2 id="moleReconTitle" tabindex="-1">Mole Recon</h2>
+<p id="moleReconBlurb"></p>
+<ul id="moleReconList"></ul>
+<p id="moleReconWarning" hidden>Pick at least one mole. An empty recon mission is just dramatic standing around with nothing to whack.</p>
+<div id="moleReconActions">
+<button type="button" id="moleReconBeginButton">Begin Practice</button>
+<button type="button" id="moleReconCancelButton">Cancel</button>
+</div>
+</div>
+</dialog>
 
 <footer>
 	<nav aria-label="Footer">

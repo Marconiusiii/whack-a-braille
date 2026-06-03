@@ -202,87 +202,86 @@ function playRetroHitSound(moleIndex) {
 	const now = ctx.currentTime;
 	const pan = createMolePanner(ctx, moleIndex);
 	const master = ctx.createGain();
-	master.gain.value = 1.05;
+	master.gain.value = 0.94;
 	pan.connect(master);
 	master.connect(ctx.destination);
 
 	const harmony = getCurrentBeatHarmonyMidis();
-	const chordMidis = harmony.chordMidis;
-	const leadMidiPool = [chordMidis[2] - 19, chordMidis[2] - 12, chordMidis[0], chordMidis[1]];
-	const flourishMidis = [chordMidis[0], chordMidis[1], chordMidis[1] + 4];
+	const rootMidi = harmony.rootMidi;
+	const timerPattern = [0, 4, 7, 2];
+	const chordMidis = [rootMidi, rootMidi + timerPattern[1], rootMidi + timerPattern[2]];
+	const sparkleMidis = [rootMidi, rootMidi + timerPattern[1], rootMidi + timerPattern[2], rootMidi + 12];
 
-	const bass = ctx.createOscillator();
-	const bassGain = ctx.createGain();
-	bass.type = "triangle";
-	bass.frequency.setValueAtTime(midiToFreq(harmony.rootMidi - 10), now);
-	bass.frequency.exponentialRampToValueAtTime(midiToFreq(harmony.rootMidi - 17), now + 0.18);
-	bassGain.gain.setValueAtTime(0.0001, now);
-	bassGain.gain.exponentialRampToValueAtTime(0.58, now + 0.008);
-	bassGain.gain.exponentialRampToValueAtTime(0.14, now + 0.12);
-	bassGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.28);
-	bass.connect(bassGain);
-	bassGain.connect(pan);
-	bass.start(now);
-	bass.stop(now + 0.3);
-
-	const rumble = ctx.createOscillator();
-	const rumbleGain = ctx.createGain();
-	rumble.type = "sine";
-	rumble.frequency.setValueAtTime(midiToFreq(harmony.rootMidi - 22), now);
-	rumble.frequency.exponentialRampToValueAtTime(midiToFreq(harmony.rootMidi - 29), now + 0.24);
-	rumbleGain.gain.setValueAtTime(0.0001, now);
-	rumbleGain.gain.exponentialRampToValueAtTime(0.24, now + 0.014);
-	rumbleGain.gain.exponentialRampToValueAtTime(0.07, now + 0.16);
-	rumbleGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.34);
-	rumble.connect(rumbleGain);
-	rumbleGain.connect(pan);
-	rumble.start(now);
-	rumble.stop(now + 0.36);
-
-	const leadStart = now + 0.01;
-	leadMidiPool.forEach((midi, index) => {
+	chordMidis.forEach(noteMidi => {
 		const osc = ctx.createOscillator();
 		const gain = ctx.createGain();
-		const start = leadStart + index * 0.01;
-		const freq = midiToFreq(midi + 12);
-		osc.type = index <= 1 ? "square" : "triangle";
-		osc.frequency.setValueAtTime(freq, start);
-		const vibrato = ctx.createOscillator();
-		const vibratoGain = ctx.createGain();
-		vibrato.type = "sine";
-		vibrato.frequency.value = 7.8;
-		vibratoGain.gain.setValueAtTime(10, start);
-		vibratoGain.gain.exponentialRampToValueAtTime(1.2, start + 0.38);
-		vibrato.connect(vibratoGain);
-		vibratoGain.connect(osc.frequency);
+		osc.type = "square";
+		osc.frequency.setValueAtTime(midiToFreq(noteMidi), now);
+		gain.gain.setValueAtTime(0.0001, now);
+		gain.gain.exponentialRampToValueAtTime(0.14, now + 0.003);
+		gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.16);
+		osc.connect(gain);
+		gain.connect(pan);
+		osc.start(now);
+		osc.stop(now + 0.17);
+	});
+
+	const impact = ctx.createOscillator();
+	const impactGain = ctx.createGain();
+	const impactBody = ctx.createOscillator();
+	const impactBodyGain = ctx.createGain();
+	impact.type = "square";
+	impact.frequency.setValueAtTime(midiToFreq(rootMidi - 12) * 1.8, now);
+	impact.frequency.exponentialRampToValueAtTime(midiToFreq(rootMidi - 12), now + 0.08);
+	impactGain.gain.setValueAtTime(0.0001, now);
+	impactGain.gain.exponentialRampToValueAtTime(0.34, now + 0.002);
+	impactGain.gain.exponentialRampToValueAtTime(0.08, now + 0.05);
+	impactGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.14);
+	impact.connect(impactGain);
+	impactGain.connect(pan);
+	impact.start(now);
+	impact.stop(now + 0.15);
+
+	impactBody.type = "triangle";
+	impactBody.frequency.setValueAtTime(midiToFreq(rootMidi - 24) * 1.18, now);
+	impactBody.frequency.exponentialRampToValueAtTime(midiToFreq(rootMidi - 24), now + 0.1);
+	impactBodyGain.gain.setValueAtTime(0.0001, now);
+	impactBodyGain.gain.exponentialRampToValueAtTime(0.24, now + 0.006);
+	impactBodyGain.gain.exponentialRampToValueAtTime(0.06, now + 0.08);
+	impactBodyGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
+	impactBody.connect(impactBodyGain);
+	impactBodyGain.connect(pan);
+	impactBody.start(now);
+	impactBody.stop(now + 0.2);
+
+	const stepDuration = 0.045;
+	const sparkleStart = now + 0.1;
+	sparkleMidis.forEach((noteMidi, index) => {
+		const osc = ctx.createOscillator();
+		const gain = ctx.createGain();
+		const support = ctx.createOscillator();
+		const supportGain = ctx.createGain();
+		const start = sparkleStart + index * stepDuration;
+		const stop = start + stepDuration;
+		osc.type = "square";
+		osc.frequency.setValueAtTime(midiToFreq(noteMidi), start);
 		gain.gain.setValueAtTime(0.0001, start);
-		gain.gain.exponentialRampToValueAtTime(index === 0 ? 0.13 : index === 1 ? 0.17 : 0.11, start + 0.006);
-		gain.gain.exponentialRampToValueAtTime(0.08, start + 0.1);
-		gain.gain.exponentialRampToValueAtTime(0.03, start + 0.18);
-		gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.38);
+		gain.gain.exponentialRampToValueAtTime(0.13, start + 0.003);
+		gain.gain.exponentialRampToValueAtTime(0.0001, stop);
 		osc.connect(gain);
 		gain.connect(pan);
 		osc.start(start);
-		vibrato.start(start);
-		osc.stop(start + 0.4);
-		vibrato.stop(start + 0.4);
-	});
+		osc.stop(stop);
 
-	flourishMidis.forEach((midi, index) => {
-		const flourish = ctx.createOscillator();
-		const flourishGain = ctx.createGain();
-		const flourishStart = now + 0.05 + index * 0.028;
-		const flourishFreq = midiToFreq(midi + 12);
-		flourish.type = "square";
-		flourish.frequency.setValueAtTime(flourishFreq, flourishStart);
-		flourish.frequency.exponentialRampToValueAtTime(flourishFreq * 1.02, flourishStart + 0.06);
-		flourishGain.gain.setValueAtTime(0.0001, flourishStart);
-		flourishGain.gain.exponentialRampToValueAtTime(0.05 - index * 0.008, flourishStart + 0.006);
-		flourishGain.gain.exponentialRampToValueAtTime(0.0001, flourishStart + 0.085);
-		flourish.connect(flourishGain);
-		flourishGain.connect(pan);
-		flourish.start(flourishStart);
-		flourish.stop(flourishStart + 0.09);
+		support.type = "triangle";
+		support.frequency.setValueAtTime(midiToFreq(noteMidi - 12), start);
+		supportGain.gain.setValueAtTime(0.0001, start);
+		supportGain.gain.exponentialRampToValueAtTime(0.06, start + 0.004);
+		supportGain.gain.exponentialRampToValueAtTime(0.0001, stop);
+		support.connect(supportGain);
+		supportGain.connect(pan);
+		support.start(start);
+		support.stop(stop);
 	});
 }
 

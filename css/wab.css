@@ -418,6 +418,7 @@ dialog::backdrop {
 	display: grid;
 	gap: 1rem;
 	margin-top: 1rem;
+	padding-left: 1.25rem;
 }
 
 .moleReconRow {
@@ -431,16 +432,6 @@ dialog::backdrop {
 	align-items: start;
 	gap: 0.7rem;
 	cursor: pointer;
-}
-
-.moleReconRow h3,
-.moleReconRow p {
-	margin: 0;
-}
-
-.moleReconRow p {
-	margin-top: 0.25rem;
-	color: #c9d4ff;
 }
 
 #moleReconWarning {

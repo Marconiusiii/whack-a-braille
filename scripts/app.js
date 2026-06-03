@@ -890,9 +890,10 @@ function renderMoleReconList() {
 	moleReconList.innerHTML = "";
 
 	moleReconItems.forEach(item => {
-		const row = document.createElement("div");
+		const row = document.createElement("li");
 		row.className = "moleReconRow";
 		const dotPatternText = getItemDotPatternText(item);
+		const itemText = `${item.displayLabel || item.announceText || item.id}, ${dotPatternText}`;
 
 		if (moleReconUsesAllShown) {
 			const label = document.createElement("label");
@@ -911,24 +912,13 @@ function renderMoleReconList() {
 				}
 			});
 
-			const textWrap = document.createElement("div");
-			const title = document.createElement("h3");
-			title.textContent = item.displayLabel || item.announceText || item.id;
-			const dots = document.createElement("p");
-			dots.textContent = dotPatternText;
-
-			textWrap.appendChild(title);
-			textWrap.appendChild(dots);
+			const textWrap = document.createElement("span");
+			textWrap.textContent = itemText;
 			label.appendChild(input);
 			label.appendChild(textWrap);
 			row.appendChild(label);
 		} else {
-			const title = document.createElement("h3");
-			title.textContent = item.displayLabel || item.announceText || item.id;
-			const dots = document.createElement("p");
-			dots.textContent = dotPatternText;
-			row.appendChild(title);
-			row.appendChild(dots);
+			row.textContent = itemText;
 		}
 
 		moleReconList.appendChild(row);
