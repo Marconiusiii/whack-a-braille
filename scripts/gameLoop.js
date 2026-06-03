@@ -73,6 +73,10 @@ let trainingMolesCompleted = 0;
 let speakBrailleDotsEnabled = false;
 let lastTrainingMissAtMs = 0;
 let spatialMoleMappingEnabled = true;
+let moleReconItems = [];
+let moleReconItemIDs = new Set();
+let shownMoleReconItems = [];
+let shownMoleReconItemIDs = new Set();
 let lastLaneIndex = null;
 let sameLaneRunCount = 0;
 const MAX_SAME_LANE_IN_ROW = 2;
@@ -206,6 +210,10 @@ function startRound(modeId, durationSeconds, inputMode, difficulty = "normal", o
 	spatialMoleMappingEnabled = options.spatialMoleMappingEnabled !== false;
 	trainingMolesCompleted = 0;
 	lastTrainingMissAtMs = 0;
+	moleReconItems = [];
+	moleReconItemIDs = new Set();
+	shownMoleReconItems = [];
+	shownMoleReconItemIDs = new Set();
 	lastLaneIndex = null;
 	sameLaneRunCount = 0;
 
@@ -258,6 +266,11 @@ function stopRound() {
 }
 
 function getItemsForRoundMode(modeId, inputMode) {
+	if (modeId === "moleRecon") {
+		const selectedItems = getCustomMoleItemsByIds(currentCustomMoleIDs, inputMode);
+		return selectedItems.length ? selectedItems : getCustomMoleItemsForInputMode(inputMode).slice(0, 5);
+	}
+
 	if (modeId !== "customMoles") {
 		return getBrailleItemsForMode(modeId);
 	}
@@ -328,6 +341,9 @@ function endRoundNow(canceled) {
 		speedTickets = 0;
 	}
 
+	const usesAllShownMolesForRecon = !isTrainingMode && moleReconItems.length === 0 && shownMoleReconItems.length > 0;
+	const reconItems = usesAllShownMolesForRecon ? shownMoleReconItems.slice() : moleReconItems.slice();
+
 	stopRoundBeat();
 
 	document.dispatchEvent(new CustomEvent("wabRoundEnded", {
@@ -344,6 +360,8 @@ function endRoundNow(canceled) {
 			escapes: escapesThisRound,
 			streakBonusCount,
 			canceled: !!canceled,
+			moleReconItems: reconItems,
+			usesAllShownMolesForRecon,
 			tickets: {
 				base: baseTickets,
 				streakBonus: streakBonusTickets,
@@ -548,6 +566,7 @@ async function showRandomMole() {
 	}
 
 	const thisMoleId = activeMoleId;
+	recordShownMoleReconItem(moleItem);
 
 	setCurrentMoleId(thisMoleId);
 
@@ -589,6 +608,7 @@ async function showRandomMole() {
 		if (thisMoleId !== activeMoleId) return;
 
 		escapesThisRound += 1;
+		recordMoleReconItem(moleItem);
 		hitStreak = 0;
 
 		const mole = moleElements[activeMoleIndex];
@@ -703,6 +723,18 @@ function clearActiveMole() {
 	deactivateMoleVisual(activeMoleIndex);
 	activeMoleIndex = null;
 	activeMoleItem = null;
+}
+
+function recordMoleReconItem(item) {
+	if (!item?.id || moleReconItemIDs.has(item.id)) return;
+	moleReconItemIDs.add(item.id);
+	moleReconItems.push(item);
+}
+
+function recordShownMoleReconItem(item) {
+	if (!item?.id || shownMoleReconItemIDs.has(item.id)) return;
+	shownMoleReconItemIDs.add(item.id);
+	shownMoleReconItems.push(item);
 }
 
 function activateMoleVisual(index) {
@@ -862,6 +894,7 @@ function handleTrainingMiss() {
 
 function handleMiss() {
 	missesThisRound += 1;
+	recordMoleReconItem(activeMoleItem);
 	hitStreak = 0;
 	score = Math.max(0, score - 2);
 

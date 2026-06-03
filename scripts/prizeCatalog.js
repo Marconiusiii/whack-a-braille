@@ -322,6 +322,30 @@ const prizeCatalog = [
 		flavorText: "Part dog, part snake, part accident, and somehow still trying its best."
 	},
 	{
+		id: "tier1_staleLicorice",
+		label: "Stale Red Licorice Whips",
+		minTickets: 0,
+		maxTickets: 9,
+		category: "joke",
+		flavorText: "A mistake to chew, impossible to swallow, but perfect for self-defense!"
+	},
+	{
+		id: "tier1_lastWeeksLeftovers",
+		label: "Last Week's Leftovers",
+		minTickets: 0,
+		maxTickets: 9,
+		category: "joke",
+		flavorText: "Probably still good. Probably..."
+	},
+	{
+		id: "tier1_arcadeNoiseCassette",
+		label: "A Cassette Tape of Arcade Noise",
+		minTickets: 0,
+		maxTickets: 9,
+		category: "joke",
+		flavorText: "Happily nostalgic, if you could ever find your Walkman or a way to play these tapes again."
+	},
+	{
 		id: "tier2_nearWin",
 		label: "Official Recognition of Being Very Close",
 		minTickets: 10,
@@ -618,6 +642,22 @@ const prizeCatalog = [
 		flavorText: "For the serious player who respects the power of rotational superstition."
 	},
 	{
+		id: "tier2_arcadeThemeMixTape",
+		label: "A Mix Tape of Arcade Game Themes",
+		minTickets: 10,
+		maxTickets: 24,
+		category: "joke",
+		flavorText: "Show your special someone how much you care...about going to the arcade."
+	},
+	{
+		id: "tier2_commonTradingCards",
+		label: "A Pack of Common Trading Cards",
+		minTickets: 10,
+		maxTickets: 24,
+		category: "joke",
+		flavorText: "The package may be shiny foil, but nothing but common un-tradeable cards inside. Phooey."
+	},
+	{
 		id: "tier3_moleHistorian",
 		label: "Official Mole Historian Certification",
 		minTickets: 25,
@@ -890,6 +930,54 @@ const prizeCatalog = [
 		flavorText: "A beautiful dome of airy optimism with almost no coffee hiding underneath. Foam mustache guaranteed."
 	},
 	{
+		id: "tier3_foilTradingCards",
+		label: "Foil Trading Cards",
+		minTickets: 25,
+		maxTickets: 49,
+		category: "brag",
+		flavorText: "Just as shiny as the package they came in, and just as tradable!"
+	},
+	{
+		id: "tier3_pogsTube",
+		label: "A Tube of Pogs",
+		minTickets: 25,
+		maxTickets: 49,
+		category: "joke",
+		flavorText: "The 90s called, they want their Slammer back."
+	},
+	{
+		id: "tier3_dotDecoderRing",
+		label: "Braille Dot Decoder Ring",
+		minTickets: 25,
+		maxTickets: 49,
+		category: "tactile",
+		flavorText: "Turn it three times, whisper the dot pattern, and pretend this was part of the training curriculum all along."
+	},
+	{
+		id: "tier3_arcadeSnackBelt",
+		label: "Arcade Snack Belt",
+		minTickets: 25,
+		maxTickets: 49,
+		category: "joke",
+		flavorText: "Loaded with strategic crumbs, backup sugar, and the confidence of someone prepared for a very long mole campaign."
+	},
+	{
+		id: "tier3_foilBrailleFlashCards",
+		label: "Foil Braille Flash Cards",
+		minTickets: 25,
+		maxTickets: 49,
+		category: "tactile",
+		flavorText: "So shiny they feel like studying and bragging at the same time."
+	},
+	{
+		id: "tier3_scorekeeperVisor",
+		label: "Official Mole Bonk Scorekeeper Visor",
+		minTickets: 25,
+		maxTickets: 49,
+		category: "brag",
+		flavorText: "A deeply serious visor for counting victories, missed swings, and snack breaks with professional flair."
+	},
+	{
 		id: "tier4_arcadeOracle",
 		label: "Arcade Oracle Status (Predictions Unreliable)",
 		minTickets: 50,
@@ -1058,10 +1146,42 @@ const prizeCatalog = [
 		flavorText: "What exact flavor it is has yet to be determined, but it tastes like pure victory!"
 	},
 	{
+		id: "tier4_hammerGripTape",
+		label: "Championship Hammer Grip Tape",
+		minTickets: 50,
+		maxTickets: 99,
+		category: "brag",
+		flavorText: "Wrap it around your imaginary hammer and feel your technique become at least 40 percent more dramatic."
+	},
+	{
+		id: "tier4_moleReconBriefcase",
+		label: "Deluxe Mole Recon Briefcase",
+		minTickets: 50,
+		maxTickets: 99,
+		category: "tactile",
+		flavorText: "Packed with dot charts, snack receipts, and classified notes that mostly say bonk faster."
+	},
+	{
+		id: "tier4_floorLegend",
+		label: "Arcade Floor Legend Status",
+		minTickets: 50,
+		maxTickets: 99,
+		category: "legend",
+		flavorText: "Every squeaky tile now recognizes your footwork, your timing, and your suspiciously powerful ticket economy."
+	},
+	{
+		id: "tier4_brailleBattleCape",
+		label: "Braille Battle Cape With Secret Pockets",
+		minTickets: 50,
+		maxTickets: 99,
+		category: "brag",
+		flavorText: "Roomy enough for flash cards, emergency candy, and one very official-looking victory kazoo."
+	},
+	{
 		id: "tier5_moleTruceDay",
 		label: "An Annual Day of Truce Between You and the Moles",
 		minTickets: 100,
-		maxTickets: null,
+		maxTickets: 499,
 		category: "legend",
 		flavorText: "For one sacred day each year, neither side swings first and everyone pretends this is sustainable."
 	},
@@ -1069,7 +1189,7 @@ const prizeCatalog = [
 		id: "tier5_arcadeConstellation",
 		label: "A Constellation Named After Your Whacking Technique",
 		minTickets: 100,
-		maxTickets: null,
+		maxTickets: 499,
 		category: "legend",
 		flavorText: "Somewhere overhead, a cluster of stars now captures the exact shape of your best round."
 	},
@@ -1077,7 +1197,7 @@ const prizeCatalog = [
 		id: "tier5_arcadeImmortal",
 		label: "Permanent Arcade Immortality (Locally Recognized)",
 		minTickets: 100,
-		maxTickets: null,
+		maxTickets: 499,
 		category: "legend",
 		flavorText: "Your legacy is now secured in the only way that matters: loudly, proudly, and within city limits."
 	},
@@ -1085,7 +1205,7 @@ const prizeCatalog = [
 		id: "tier5_molePeaceTreaty",
 		label: "A Historic Peace Treaty With the Moles",
 		minTickets: 100,
-		maxTickets: null,
+		maxTickets: 499,
 		category: "legend",
 		flavorText: "Signed after long negotiations and several dramatic pauses, this agreement promises almost nothing but symbolism."
 	},
@@ -1093,7 +1213,7 @@ const prizeCatalog = [
 		id: "tier5_infiniteTickets",
 		label: "Infinite Tickets That You Are Asked Not to Redeem",
 		minTickets: 100,
-		maxTickets: null,
+		maxTickets: 499,
 		category: "legend",
 		flavorText: "An alarming amount of paper wealth accompanied by one very nervous note from the prize counter."
 	},
@@ -1101,7 +1221,7 @@ const prizeCatalog = [
 		id: "tier5_pileOfMoles",
 		label: "A Considerable Pile of Invisible Stuffed Moles",
 		minTickets: 100,
-		maxTickets: null,
+		maxTickets: 499,
 		category: "legend",
 		flavorText: "Your collection has advanced from charming to structurally significant."
 	},
@@ -1109,7 +1229,7 @@ const prizeCatalog = [
 		id: "tier5_tokenBrick",
 		label: "Platinum Token Brick",
 		minTickets: 100,
-		maxTickets: null,
+		maxTickets: 499,
 		category: "legend",
 		flavorText: "Too fancy to spend, too heavy to ignore, and exactly the kind of object that should thunk when set down dramatically."
 	},
@@ -1117,7 +1237,7 @@ const prizeCatalog = [
 		id: "tier5_hallJoystick",
 		label: "Hall of Fame Joystick",
 		minTickets: 100,
-		maxTickets: null,
+		maxTickets: 499,
 		category: "legend",
 		flavorText: "Worn smooth by legends, polished by storytelling, and absolutely touched by too many arcade pizza fingers."
 	},
@@ -1125,7 +1245,7 @@ const prizeCatalog = [
 		id: "tier5_stylusSet",
 		label: "Collector Edition Louis Braille Stylus Set",
 		minTickets: 100,
-		maxTickets: null,
+		maxTickets: 499,
 		category: "legend",
 		flavorText: "A showpiece set with the kind of weight and punchy flair that makes even storage feel ceremonial."
 	},
@@ -1133,7 +1253,7 @@ const prizeCatalog = [
 		id: "tier5_platinumGlide",
 		label: "A Platinum Glide",
 		minTickets: 100,
-		maxTickets: null,
+		maxTickets: 499,
 		category: "legend",
 		flavorText: "Smooth, gleaming, and far fancier than any mobility tool has a right to be, this glide practically insists on making an entrance."
 	},
@@ -1141,7 +1261,7 @@ const prizeCatalog = [
 		id: "tier5_guideDogSnacks2",
 		label: "Premium Guide Dog Toys",
 		minTickets: 100,
-		maxTickets: null,
+		maxTickets: 499,
 		category: "legend",
 		flavorText: "Squeaky pickle parties, tug-of-war chewy ropes, all manner of plushy noisemakers for excited guide dogs to use to play the song of their people!"
 	},
@@ -1149,7 +1269,7 @@ const prizeCatalog = [
 		id: "tier5_glideTips",
 		label: "Lifetime Supply of Metal Glide Tips",
 		minTickets: 100,
-		maxTickets: null,
+		maxTickets: 499,
 		category: "legend",
 		flavorText: "Never stress about losing another cane tip under the arcade machines again! The sound of these jingling in your pockets is the sound of true mobility independence!"
 	},
@@ -1157,7 +1277,7 @@ const prizeCatalog = [
 		id: "tier5_moleskinNotebook",
 		label: "Moleskin Tactile Notebook",
 		minTickets: 100,
-		maxTickets: null,
+		maxTickets: 499,
 		category: "legend",
 		flavorText: "Ready for lists, plans, and the kind of tactile notes that deserve better paper than a receipt. Not made out of the arcade moles."
 	},
@@ -1165,7 +1285,7 @@ const prizeCatalog = [
 		id: "tier5_platinumNLS",
 		label: "A Platinum NLS e-Reader",
 		minTickets: 100,
-		maxTickets: null,
+		maxTickets: 499,
 		category: "legend",
 		flavorText: "Prestigious and ever so sparkly during smooth braille refreshes."
 	},
@@ -1173,7 +1293,7 @@ const prizeCatalog = [
 		id: "tier5_costaRicanBeans",
 		label: "Premium Costa Rican Coffee Beans",
 		minTickets: 100,
-		maxTickets: null,
+		maxTickets: 499,
 		category: "legend",
 		flavorText: "Smooth, fragrant, and suspiciously above the pay grade of any normal arcade counter."
 	},
@@ -1181,7 +1301,7 @@ const prizeCatalog = [
 		id: "tier5_perfectCoffeeCup",
 		label: "A Perfect cup of delicious coffee.",
 		minTickets: 100,
-		maxTickets: null,
+		maxTickets: 499,
 		category: "legend",
 		flavorText: "Hot, balanced, and so satisfying it feels like the prize counter accidentally got serious for a moment."
 	},
@@ -1189,7 +1309,7 @@ const prizeCatalog = [
 		id: "tier5_expressiveLightRoast",
 		label: "The Mole's Expressive Light Roast Coffee Blend",
 		minTickets: 100,
-		maxTickets: null,
+		maxTickets: 499,
 		category: "legend",
 		flavorText: "Bright, lively, and full of unnecessary personality, much like the creature who apparently endorsed it."
 	},
@@ -1197,7 +1317,7 @@ const prizeCatalog = [
 		id: "tier5_cancunBeans",
 		label: "Delicious Coffee Beans from Cancun.",
 		minTickets: 100,
-		maxTickets: null,
+		maxTickets: 499,
 		category: "legend",
 		flavorText: "Sunny, aromatic, and carrying just enough warm vacation energy to improve the shelf around them."
 	},
@@ -1205,7 +1325,7 @@ const prizeCatalog = [
 		id: "tier5_goldenPourOver",
 		label: "A Golden Pour-Over Coffee Set.",
 		minTickets: 100,
-		maxTickets: null,
+		maxTickets: 499,
 		category: "legend",
 		flavorText: "Slow, elegant, and obviously intended for a winner who enjoys turning caffeine into a ritual."
 	},
@@ -1213,7 +1333,7 @@ const prizeCatalog = [
 		id: "tier5_exoticLooseLeafTea",
 		label: "Exotic Loose-leaf Teas (infuser not included)",
 		minTickets: 100,
-		maxTickets: null,
+		maxTickets: 499,
 		category: "legend",
 		flavorText: "The leaves are refined, the aroma is mysterious, and the missing infuser is now your problem."
 	},
@@ -1221,7 +1341,7 @@ const prizeCatalog = [
 		id: "tier5_amsterdamSingleOrigin",
 		label: "Exclusive Single-Origin Coffee from Amsterdam",
 		minTickets: 100,
-		maxTickets: null,
+		maxTickets: 499,
 		category: "legend",
 		flavorText: "Straight from the canals, a prize with travel-story energy before you even open the bag."
 	},
@@ -1229,7 +1349,7 @@ const prizeCatalog = [
 		id: "tier5_eternalGlory",
 		label: "Eternal Arcade Glory",
 		minTickets: 100,
-		maxTickets: null,
+		maxTickets: 499,
 		category: "legend",
 		flavorText: "The score may fade, but the reputation has been instructed to keep going forever."
 	},
@@ -1237,7 +1357,7 @@ const prizeCatalog = [
 		id: "tier5_moleKing",
 		label: "The Mole King's Crown",
 		minTickets: 100,
-		maxTickets: null,
+		maxTickets: 499,
 		category: "legend",
 		flavorText: "Too regal for subtlety and far too important to wear casually."
 	},
@@ -1245,7 +1365,7 @@ const prizeCatalog = [
 		id: "tier5_verifiedLegend",
 		label: "A Legend Status That No One Can Verify",
 		minTickets: 100,
-		maxTickets: null,
+		maxTickets: 499,
 		category: "legend",
 		flavorText: "The lack of proof only makes the story travel faster."
 	},
@@ -1253,7 +1373,7 @@ const prizeCatalog = [
 		id: "tier5_finalWow",
 		label: "A Plaque That Just Says Wow",
 		minTickets: 100,
-		maxTickets: null,
+		maxTickets: 499,
 		category: "legend",
 		flavorText: "At a certain level of achievement, complete sentences become unnecessary."
 	},
@@ -1261,7 +1381,7 @@ const prizeCatalog = [
 		id: "tier5_brava",
 		label: "A Shiny Brava Oven filled with Chicken Fingers",
 		minTickets: 100,
-		maxTickets: null,
+		maxTickets: 499,
 		category: "legend",
 		flavorText: "Ready to be set up next to the arcade machines for crisp, lightly breaded fuel for more mole whacking!"
 	},
@@ -1269,7 +1389,7 @@ const prizeCatalog = [
 		id: "tier5_brlStylus",
 		label: "Louis Braille's Original Stylus",
 		minTickets: 100,
-		maxTickets: null,
+		maxTickets: 499,
 		category: "legend",
 		flavorText: "A faint sound of a choir seems to suddenly appear every time you pick this stylus up. Also creates perfect punched braille with no mistakes, but only in French."
 	},
@@ -1277,7 +1397,7 @@ const prizeCatalog = [
 		id: "tier5_microbraille",
 		label: "A Japanese MicroBraille Slate",
 		minTickets: 100,
-		maxTickets: null,
+		maxTickets: 499,
 		category: "legend",
 		flavorText: "Perfect for making the the biggest tactile messages with the smallest braille possible."
 	},
@@ -1285,7 +1405,7 @@ const prizeCatalog = [
 		id: "tier5_3Dpuzzle",
 		label: "A Challenging 3D Wave Puzzle",
 		minTickets: 100,
-		maxTickets: null,
+		maxTickets: 499,
 		category: "legend",
 		flavorText: "The kind of tactile brain teaser that dares your hands to be smarter than your impatience."
 	},
@@ -1293,7 +1413,7 @@ const prizeCatalog = [
 		id: "tier5_guideDogSnacks",
 		label: "Premium Guide Dog Snacks",
 		minTickets: 100,
-		maxTickets: null,
+		maxTickets: 499,
 		category: "legend",
 		flavorText: "Top-tier treats for top-tier working dogs who have very reasonably come to expect the good stuff."
 	},
@@ -1301,7 +1421,7 @@ const prizeCatalog = [
 		id: "tier5_thor",
 		label: "Thor's Hammer Mjolnir, for the moles",
 		minTickets: 100,
-		maxTickets: null,
+		maxTickets: 499,
 		category: "legend",
 		flavorText: "At last, a properly dramatic tool for settling mole-related disputes in Midgard."
 	},
@@ -1309,7 +1429,7 @@ const prizeCatalog = [
 		id: "tier5_infiniteCoffee",
 		label: "The Infinite Coffee Membership of Champions",
 		minTickets: 100,
-		maxTickets: null,
+		maxTickets: 499,
 		category: "legend",
 		flavorText: "A bottomless arrangement for players whose greatness clearly runs on caffeine and momentum."
 	},
@@ -1317,9 +1437,97 @@ const prizeCatalog = [
 		id: "tier5_tinyTrumpets",
 		label: "A Floating Parade of Tiny Trumpets",
 		minTickets: 100,
-		maxTickets: null,
+		maxTickets: 499,
 		category: "absurd",
 		flavorText: "Magical, unnecessary, and exactly what should happen when your shelf starts running out of room for normal prizes."
+	},
+	{
+		id: "tier5_platinumBattleSlate",
+		label: "Platinum Braille Battle Slate",
+		minTickets: 100,
+		maxTickets: 499,
+		category: "legend",
+		flavorText: "Heavy, shiny, and ready to emboss tactical messages with completely unnecessary grandeur."
+	},
+	{
+		id: "tier5_moleNegotiationTable",
+		label: "Executive Mole Negotiation Table",
+		minTickets: 100,
+		maxTickets: 499,
+		category: "legend",
+		flavorText: "For high-stakes meetings where everyone agrees the moles should stop escaping and you should get more tickets."
+	},
+	{
+		id: "tier5_museumToken",
+		label: "Museum-Grade Arcade Token",
+		minTickets: 100,
+		maxTickets: 499,
+		category: "legend",
+		flavorText: "Too valuable to spend, too ridiculous to insure, and absolutely perfect for tapping on a counter."
+	},
+	{
+		id: "tier5_concertVictoryKazoo",
+		label: "Concert Grand Victory Kazoo",
+		minTickets: 100,
+		maxTickets: 499,
+		category: "legend",
+		flavorText: "A tiny instrument with the confidence of a full orchestra and the manners of an arcade birthday party."
+	},
+	{
+		id: "tier6_masterMoleTradingCard",
+		label: "Master Mole Trading Card",
+		minTickets: 500,
+		maxTickets: null,
+		category: "legend",
+		flavorText: "Mint quality, dazzlingly shiny, complete with a professional bonk-proof frame."
+	},
+	{
+		id: "tier6_arcadeDeed",
+		label: "The Arcade Deed",
+		minTickets: 500,
+		maxTickets: null,
+		category: "legend",
+		flavorText: "Behold, you now own the breadth of the gaming landscape. Be fair and wise, and offer good discounts to other Supreme Mole Whackers."
+	},
+	{
+		id: "tier6_oneHammer",
+		label: "The One Hammer",
+		minTickets: 500,
+		maxTickets: null,
+		category: "legend",
+		flavorText: "One hammer to bonk them all, one hammer to find them. One hammer to bring them all, and in the arcade bind them!"
+	},
+	{
+		id: "tier6_moleMovie",
+		label: "Starring Role in the Mole Movie",
+		minTickets: 500,
+		maxTickets: null,
+		category: "legend",
+		flavorText: "Whack A Braille is coming to the big screen, starring you! Directed by Christopher Nolan, music by Danny Elfman, costumes by the Mole Director of Public Relations."
+	},
+	{
+		id: "tier6_louisBrailleCroissants",
+		label: "Louis Braille's Favorite Croissants",
+		minTickets: 500,
+		maxTickets: null,
+		category: "legend",
+		flavorText: "Ever so flaky, buttery, and warm, from the bakery right down the street where Louis made his first punched dot."
+	},
+	{
+		id: "tier6_worldTravelPlatinumCard",
+		label: "World travel Platinum Card",
+		minTickets: 500,
+		maxTickets: null,
+		category: "legend",
+		flavorText: "Travel around the world and bonk moles in all kinds of different languages! 3x points when buying Arcade food."
+	},
+	{
+		id: "tier6_eliteMoleJacket",
+		label: "Elite Members Only Mole Jacket",
+		minTickets: 500,
+		maxTickets: null,
+		category: "legend",
+		flavorText: "Irradiated with pure 80s confidence and cheese, with Whack A Braille purple and black theming."
 	}
 ];
 

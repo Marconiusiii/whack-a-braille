@@ -18,15 +18,12 @@
 <p>By Marco Salsiccia</p>
 
 <details>
-<summary>Apr 15, 2026 Update Log</summary>
+<summary>May 12, 2026 Update Log</summary>
 <ul>
-<li>Added more Grade 2 Moles in the Mole Chooser.</li>
-<li>Grade 2 Invasion now pulls from the entire set of contractions instead of just the single-character contractions!</li>
-<li>Added Goofy and Retro sound effect packs!</li>
-<li>Added Custom Moles so you can hand-pick 5 favorites or build your own Invasion Army.</li>
-<li>Added Grade 1 and Grade 2 braille reference tables at the bottom of the How to Play section. Includes Unicode references as well for a visual representation of the braille.</li>
-<li>Prize Shelf now has a prize counter badge so you know how many prizes you've won.</li>
-<li>Giving the web game parity with the iOS app.</li>
+<li>Custom Mole option is now in the Mole Chooser! Pick Custom individual moles for your own round, use it for practice and training, or just have fun whaling on particular moles you hold a grudge against.</li>
+<li>Custom Mole mode also lets you build your own Invasion Army! Pick more than 5 moles to have an all out battle on your own terms!</li>
+<li>The words "there" and "their" are now spelled out in the Invasion modes.</li>
+<li>New Goofy and Retro sound packs for gameplay.</li>
 </ul>
 </details>
 
@@ -315,6 +312,19 @@
 </div>
 </dialog>
 
+<dialog id="moleReconDialog" aria-labelledby="moleReconTitle">
+<div id="moleReconContent">
+<h2 id="moleReconTitle" tabindex="-1">Mole Recon</h2>
+<p id="moleReconBlurb"></p>
+<div id="moleReconList"></div>
+<p id="moleReconWarning" hidden>Pick at least one mole. An empty recon mission is just dramatic standing around with nothing to whack.</p>
+<div id="moleReconActions">
+<button type="button" id="moleReconBeginButton">Begin Practice</button>
+<button type="button" id="moleReconCancelButton">Cancel</button>
+</div>
+</div>
+</dialog>
+
 </section>
 
 <section id="gameArea" hidden>
@@ -367,6 +377,7 @@
 </div>
 <div id="resultsActions">
 <button id="playAgainButton" type="button">Keep Whacking!</button>
+<button id="moleReconButton" type="button" hidden>Mole Recon</button>
 <button id="cashOutButton" type="button">Cash In Tickets and Pick a Prize</button>
 <button id="saveTicketsHomeButton" type="button">Save Tickets and Return Home</button>
 
@@ -420,7 +431,7 @@
 	</nav>
 
 	<p class="footer-copy small muted">
-		&copy;2026 Marco Salsiccia - v.1.8.2</p>
+		&copy;2026 Marco Salsiccia - v.1.9.0</p>
 </footer>
 
 <script type="module" src="scripts/app.js"></script>

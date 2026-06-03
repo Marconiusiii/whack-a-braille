@@ -1255,7 +1255,7 @@ function playPrizeFanfare(tier = 1) {
 
 	const now = ctx.currentTime;
 	const master = ctx.createGain();
-	const safeTier = Math.min(Math.max(Number(tier) || 1, 1), 5);
+	const safeTier = Math.min(Math.max(Number(tier) || 1, 1), 6);
 	master.gain.value = 0.68;
 	master.connect(ctx.destination);
 
@@ -1266,7 +1266,7 @@ function playPrizeFanfare(tier = 1) {
 		4: { baseMidi: 61 + Math.floor(Math.random() * 3), melody: [0, 4, 7, 12], starts: [0.0, 0.12, 0.24, 0.37], durations: [0.22, 0.22, 0.22, 0.62], pad: [0, 4, 7, 12] },
 		5: { baseMidi: 65 + Math.floor(Math.random() * 3), melody: [0, 4, 7, 11, 16, 19], starts: [0.0, 0.11, 0.23, 0.36, 0.5, 0.68], durations: [0.22, 0.22, 0.22, 0.22, 0.22, 0.72], pad: [0, 7, 12, 16] }
 	};
-	const config = configs[safeTier];
+	const config = configs[safeTier] || configs[5];
 
 	config.melody.forEach((step, index) => {
 		schedulePrizeTone(

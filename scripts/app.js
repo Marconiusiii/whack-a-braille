@@ -97,6 +97,14 @@ const customMoleSelectAllButton = document.getElementById("customMoleSelectAllBu
 const customMoleClearAllButton = document.getElementById("customMoleClearAllButton");
 const customMoleClearGrade1Button = document.getElementById("customMoleClearGrade1Button");
 const customMoleClearGrade2Button = document.getElementById("customMoleClearGrade2Button");
+const moleReconDialog = document.getElementById("moleReconDialog");
+const moleReconTitle = document.getElementById("moleReconTitle");
+const moleReconBlurb = document.getElementById("moleReconBlurb");
+const moleReconList = document.getElementById("moleReconList");
+const moleReconWarning = document.getElementById("moleReconWarning");
+const moleReconBeginButton = document.getElementById("moleReconBeginButton");
+const moleReconCancelButton = document.getElementById("moleReconCancelButton");
+const moleReconButton = document.getElementById("moleReconButton");
 
 const grade1InputModeFieldset = document.getElementById("grade1InputModeFieldset");
 const cashOutSummaryText = document.getElementById("cashOutSummaryText");
@@ -126,6 +134,12 @@ let customMoleSections = [];
 let customMoleAllItems = [];
 let customMoleTriggerId = null;
 let customMoleSnapshot = null;
+let lastRoundResultDetail = null;
+let lastRoundStartConfig = null;
+let moleReconItems = [];
+let moleReconUsesAllShown = false;
+let moleReconSelectedItemIDs = new Set();
+let moleReconTriggerId = null;
 
 const TICKET_STORAGE_KEY = "wabTotalTickets";
 const prizeCatalogById = new Map(prizeCatalog.map(prize => [prize.id, prize]));
@@ -164,6 +178,21 @@ function formatDotSets(dotSets) {
 		})
 		.filter(Boolean)
 		.join(", ");
+}
+
+function getItemDotPatternText(item) {
+	const dotSets = Array.isArray(item?.perkinsSequenceDots) && item.perkinsSequenceDots.length
+		? item.perkinsSequenceDots
+		: [Array.isArray(item?.dots) ? item.dots : []];
+	return formatDotSets(dotSets);
+}
+
+function getMoleReconBlurb(usesAllShownMoles) {
+	if (usesAllShownMoles) {
+		return "Have a grudge against these particular moles? Show them what's what in this training session! Choose the moles you want to whack:";
+	}
+
+	return "These moles remain at large. Study their dot patterns, prepare your fingers, and begin a training round so they don't get away twice.";
 }
 
 function getReferenceLabel(item) {
@@ -852,6 +881,127 @@ function saveCustomMolesFromDialog() {
 	closeCustomMolesDialog(false);
 }
 
+function getFilteredMoleReconItems(items) {
+	return (Array.isArray(items) ? items : []).filter(item => getItemDotPatternText(item));
+}
+
+function renderMoleReconList() {
+	if (!moleReconList) return;
+	moleReconList.innerHTML = "";
+
+	moleReconItems.forEach(item => {
+		const row = document.createElement("div");
+		row.className = "moleReconRow";
+		const dotPatternText = getItemDotPatternText(item);
+
+		if (moleReconUsesAllShown) {
+			const label = document.createElement("label");
+			const input = document.createElement("input");
+			input.type = "checkbox";
+			input.value = item.id;
+			input.checked = moleReconSelectedItemIDs.has(item.id);
+			input.addEventListener("change", () => {
+				if (input.checked) {
+					moleReconSelectedItemIDs.add(item.id);
+				} else {
+					moleReconSelectedItemIDs.delete(item.id);
+				}
+				if (moleReconWarning) {
+					moleReconWarning.hidden = true;
+				}
+			});
+
+			const textWrap = document.createElement("div");
+			const title = document.createElement("h3");
+			title.textContent = item.displayLabel || item.announceText || item.id;
+			const dots = document.createElement("p");
+			dots.textContent = dotPatternText;
+
+			textWrap.appendChild(title);
+			textWrap.appendChild(dots);
+			label.appendChild(input);
+			label.appendChild(textWrap);
+			row.appendChild(label);
+		} else {
+			const title = document.createElement("h3");
+			title.textContent = item.displayLabel || item.announceText || item.id;
+			const dots = document.createElement("p");
+			dots.textContent = dotPatternText;
+			row.appendChild(title);
+			row.appendChild(dots);
+		}
+
+		moleReconList.appendChild(row);
+	});
+}
+
+function openMoleReconDialog(triggerId = "moleReconButton") {
+	if (!moleReconDialog || !moleReconItems.length) return;
+	moleReconTriggerId = triggerId;
+	moleReconSelectedItemIDs = new Set(moleReconItems.map(item => item.id));
+	if (moleReconBlurb) {
+		moleReconBlurb.textContent = getMoleReconBlurb(moleReconUsesAllShown);
+	}
+	if (moleReconWarning) {
+		moleReconWarning.hidden = true;
+	}
+	renderMoleReconList();
+	moleReconDialog.showModal();
+	requestAnimationFrame(() => {
+		safeFocus(moleReconTitle);
+	});
+}
+
+function closeMoleReconDialog(returnFocus = true) {
+	if (!moleReconDialog?.open) return;
+	moleReconDialog.close();
+	if (returnFocus) {
+		const trigger = moleReconTriggerId ? document.getElementById(moleReconTriggerId) : moleReconButton;
+		if (trigger) {
+			requestAnimationFrame(() => {
+				safeFocus(trigger);
+			});
+		}
+	}
+}
+
+function beginMoleReconRound(items) {
+	const selectedItems = getFilteredMoleReconItems(items);
+	if (!selectedItems.length) return;
+
+	const roundConfig = {
+		modeId: "moleRecon",
+		durationSeconds: 30,
+		inputMode: getSelectedInputMode(),
+		difficulty: "training",
+		speakBrailleDots: true,
+		characterEcho: !!characterEchoCheckbox?.checked,
+		timerMusicEnabled: false,
+		spatialMoleMappingEnabled: false,
+		customMolePlayMode: "individual",
+		customMoleIDs: selectedItems.map(item => item.id),
+		openingAnnouncement: null
+	};
+
+	beginRound(roundConfig);
+}
+
+function beginMoleReconFromDialog() {
+	const selectedItems = moleReconUsesAllShown
+		? moleReconItems.filter(item => moleReconSelectedItemIDs.has(item.id))
+		: moleReconItems.slice();
+
+	if (!selectedItems.length) {
+		if (moleReconWarning) {
+			moleReconWarning.hidden = false;
+		}
+		return;
+	}
+
+	closeMoleReconDialog(false);
+	beginMoleReconRound(selectedItems);
+}
+
 function getMoleChooserOptionsForInputMode(inputMode) {
 	if (inputMode === "qwerty") {
 		return moleChooserOptions.filter(option => option.group !== "grade2");
@@ -1193,13 +1343,15 @@ function getSelectedSettings() {
 	};
 }
 
-function startGameFromSettings() {
+function beginRound(config) {
 	unlockAudio();
 	unlockSpeech();
+	lastRoundStartConfig = {
+		...config,
+		customMoleIDs: Array.isArray(config.customMoleIDs) ? config.customMoleIDs.slice() : []
+	};
 
-	const settings = getSelectedSettings();
-
-	const isTraining = settings.difficulty === "training";
+	const isTraining = config.difficulty === "training";
 	if (scoreText) {
 		scoreText.hidden = isTraining;
 		if (!isTraining) {
@@ -1207,51 +1359,72 @@ function startGameFromSettings() {
 		}
 	}
 
-	setInputMode(settings.inputMode);
+	setInputMode(config.inputMode);
 	setCurrentMoleId(0);
-
 
 	const audioMode = getSelectedAudioMode();
 	setGameAudioMode(audioMode);
 
 	setGameState("playing");
 
-	if (isInvasionMode(settings.brailleMode)) {
+	if (isInvasionMode(config.modeId)) {
 		playEverythingStinger();
 	} else {
 		playStartFlourish();
 	}
 
+	const launchRound = () => {
+		startRound(
+			config.modeId,
+			config.durationSeconds,
+			config.inputMode,
+			config.difficulty,
+			{
+				speakBrailleDots: config.speakBrailleDots,
+				characterEcho: config.characterEcho,
+				timerMusicEnabled: config.timerMusicEnabled,
+				spatialMoleMappingEnabled: config.spatialMoleMappingEnabled,
+				customMolePlayMode: config.customMolePlayMode,
+				customMoleIDs: config.customMoleIDs
+			}
+		);
+	};
 
+	if (!config.openingAnnouncement) {
+		launchRound();
+		return;
+	}
+
+	const speechResult = speak(config.openingAnnouncement, {
+		cancelPrevious: true,
+		dedupe: false
+	});
+	const startDelayMs = computeOpeningStartDelayMs(speechResult, isInvasionMode(config.modeId));
+	setTimeout(launchRound, startDelayMs);
+}
+
+function startGameFromSettings() {
+	const settings = getSelectedSettings();
 	const invasionModeActive = isInvasionMode(settings.brailleMode);
 	const openingAnnouncement = invasionModeActive
 		? pickInvasionIntroPhrase()
 		: "Ready?";
 
-	const speechResult = speak(openingAnnouncement, {
-		cancelPrevious: true,
-		dedupe: false
+	beginRound({
+		modeId: settings.brailleMode,
+		durationSeconds: settings.roundTime,
+		inputMode: settings.inputMode,
+		difficulty: settings.difficulty,
+		speakBrailleDots: settings.speakBrailleDots,
+		characterEcho: settings.characterEcho,
+		timerMusicEnabled: settings.timerMusicEnabled,
+		spatialMoleMappingEnabled: settings.spatialMoleMappingEnabled,
+		customMolePlayMode: settings.customMolePlayMode,
+		customMoleIDs: settings.customMolePlayMode === "invasion"
+			? settings.customInvasionMoleIDs
+			: settings.customIndividualMoleIDs,
+		openingAnnouncement
 	});
-	const startDelayMs = computeOpeningStartDelayMs(speechResult, invasionModeActive);
-
-	setTimeout(() => {
-	startRound(
-		settings.brailleMode,
-		settings.roundTime,
-		settings.inputMode,
-		settings.difficulty,
-		{
-			speakBrailleDots: settings.speakBrailleDots,
-			characterEcho: settings.characterEcho,
-			timerMusicEnabled: settings.timerMusicEnabled,
-			spatialMoleMappingEnabled: settings.spatialMoleMappingEnabled,
-			customMolePlayMode: settings.customMolePlayMode,
-			customMoleIDs: settings.customMolePlayMode === "invasion"
-				? settings.customInvasionMoleIDs
-				: settings.customIndividualMoleIDs
-		}
-	);
-	}, startDelayMs);
 }
 
 function setupEventListeners() {
@@ -1427,7 +1600,17 @@ if (clearPrizeShelfButton) {
 
 	if (playAgainButton) {
 		playAgainButton.addEventListener("click", () => {
+			if (lastRoundResultDetail?.modeId === "moleRecon" && lastRoundResultDetail?.isTraining && lastRoundStartConfig) {
+				beginRound(lastRoundStartConfig);
+				return;
+			}
 			startGameFromSettings();
+		});
+	}
+
+	if (moleReconButton) {
+		moleReconButton.addEventListener("click", () => {
+			openMoleReconDialog("moleReconButton");
 		});
 	}
 
@@ -1514,6 +1697,30 @@ if (cancelCashOutButton) {
 		});
 	}
 
+	if (moleReconBeginButton) {
+		moleReconBeginButton.addEventListener("click", () => {
+			beginMoleReconFromDialog();
+		});
+	}
+
+	if (moleReconCancelButton) {
+		moleReconCancelButton.addEventListener("click", () => {
+			closeMoleReconDialog();
+		});
+	}
+
+	if (moleReconDialog) {
+		moleReconDialog.addEventListener("cancel", event => {
+			event.preventDefault();
+			closeMoleReconDialog();
+		});
+		moleReconDialog.addEventListener("close", () => {
+			if (moleReconWarning) {
+				moleReconWarning.hidden = true;
+			}
+		});
+	}
+
 	if (cashOutHomeButton) {
 		cashOutHomeButton.addEventListener("click", () => {
 			setGameState("home");
@@ -1547,6 +1754,7 @@ if (cancelCashOutButton) {
 	resetDesktopBrailleDisplayInput();
 
 	const detail = e.detail || {};
+	lastRoundResultDetail = detail;
 	const isTraining = !!detail.isTraining;
 
 	const score = Number.isFinite(detail.score) ? detail.score : 0;
@@ -1555,6 +1763,9 @@ if (cancelCashOutButton) {
 	const escapes = Number.isFinite(detail.escapes) ? detail.escapes : 0;
 
 	const ticketBreakdown = detail.tickets || null;
+	moleReconUsesAllShown = detail.usesAllShownMolesForRecon === true;
+	moleReconItems = getFilteredMoleReconItems(detail.moleReconItems);
+	moleReconSelectedItemIDs = new Set(moleReconItems.map(item => item.id));
 
 	const ticketsThisRound = ticketBreakdown
 		? (Number(ticketBreakdown.total) || 0)
@@ -1582,6 +1793,10 @@ if (cancelCashOutButton) {
 
 	if (playAgainButton) {
 		playAgainButton.textContent = isTraining ? "Keep Training!" : "Keep Whacking!";
+	}
+
+	if (moleReconButton) {
+		moleReconButton.hidden = isTraining || moleReconItems.length === 0;
 	}
 
 	if (cashOutButton) {
@@ -1751,7 +1966,7 @@ function getPrizeTicketCost(prize) {
 function getPrizeTierNumber(prize) {
 	const match = /^tier(\d+)_/i.exec(prize?.id || "");
 	const tier = Number(match?.[1]);
-	return Number.isFinite(tier) && tier >= 1 && tier <= 5 ? tier : 1;
+	return Number.isFinite(tier) && tier >= 1 && tier <= 6 ? tier : 1;
 }
 
 function renderCashOut(source = "results") {

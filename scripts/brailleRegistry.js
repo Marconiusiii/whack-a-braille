@@ -209,7 +209,7 @@ const grade2Dot5Initials = [
 	makeSequenceItem("right", "Right", [[5], [1,2,3,5]], ["grade2Dot5Initials"]),
 	makeSequenceItem("some", "Some", [[5], [2,3,4]], ["grade2Dot5Initials"]),
 	makeSequenceItem("time", "Time", [[5], [2,3,4,5]], ["grade2Dot5Initials"]),
-	makeSequenceItem("there", "There", [[5], [2,3,4,6]], ["grade2Dot5Initials"]),
+	makeSequenceItem("there", "T H E R E", [[5], [2,3,4,6]], ["grade2Dot5Initials"]),
 	makeSequenceItem("through", "Through", [[5], [1,4,5,6]], ["grade2Dot5Initials"]),
 	makeSequenceItem("under", "Under", [[5], [1,3,6]], ["grade2Dot5Initials"]),
 	makeSequenceItem("where", "Where", [[5], [1,5,6]], ["grade2Dot5Initials"]),
@@ -247,7 +247,7 @@ const grade2Dot456Initials = [
 	makeSequenceItem("had", "Had", [[4,5,6], [1,2,5]], ["grade2Dot456Initials"]),
 	makeSequenceItem("many", "Many", [[4,5,6], [1,3,4]], ["grade2Dot456Initials"]),
 	makeSequenceItem("spirit", "Spirit", [[4,5,6], [2,3,4]], ["grade2Dot456Initials"]),
-	makeSequenceItem("their", "Their", [[4,5,6], [2,3,4,6]], ["grade2Dot456Initials"]),
+	makeSequenceItem("their", "T H E I R", [[4,5,6], [2,3,4,6]], ["grade2Dot456Initials"]),
 	makeSequenceItem("world", "World", [[4,5,6], [2,4,5,6]], ["grade2Dot456Initials"])
 ];
 
