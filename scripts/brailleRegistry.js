@@ -235,7 +235,7 @@ const grade2Suffixes = [
 	makeSequenceItem("ount", "O U N T", [[4,6], [2,3,4,5]], ["grade2Suffixes"], ["-ount"]),
 	makeSequenceItem("ence", "E N C E", [[5,6], [1,5]], ["grade2Suffixes"], ["-ence"]),
 	makeSequenceItem("ong", "O N G", [[5,6], [1,2,4,5]], ["grade2Suffixes"], ["-ong"]),
-	makeSequenceItem("ful", "F U L", [[5,6], [1,2,4]], ["grade2Suffixes"], ["-ful"]),
+	makeSequenceItem("ful", "F U L", [[5,6], [1,2,3]], ["grade2Suffixes"], ["-ful", "l"]),
 	makeSequenceItem("tion", "T I O N", [[5,6], [2,3,4,5]], ["grade2Suffixes"], ["-tion"]),
 	makeSequenceItem("ness", "N E S S", [[5,6], [1,3,4,5]], ["grade2Suffixes"], ["-ness"]),
 	makeSequenceItem("ment", "M E N T", [[5,6], [1,3,4]], ["grade2Suffixes"], ["-ment"]),
