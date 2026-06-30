@@ -110,6 +110,7 @@ const grade1InputModeFieldset = document.getElementById("grade1InputModeFieldset
 const cashOutSummaryText = document.getElementById("cashOutSummaryText");
 
 const resultsHeading = document.getElementById("resultsHeading");
+const resultsFlavorText = document.getElementById("resultsFlavorText");
 const resultsScoreValue = document.getElementById("resultsScoreValue");
 const resultsTicketsRoundValue = document.getElementById("resultsTicketsRoundValue");
 const resultsTicketsTotalValue = document.getElementById("resultsTicketsTotalValue");
@@ -333,6 +334,179 @@ function computeOpeningStartDelayMs(speechResult, isTraining) {
 	}
 	const postSpeechBeatMs = isTraining ? 1200 : 300;
 	return Math.min(3000, speechDurationMs + postSpeechBeatMs);
+}
+
+const excellentFlavorLines = [
+	"Clean round! The moles popped up and immediately regretted the schedule.",
+	"Every dot got read, every mole got the message.",
+	"That was pure arcade bonk poetry.",
+	"The hammer was singing, the dots were clicking, and the moles were doomed.",
+	"Beautiful round. The moles barely had time to blink.",
+	"That was a dazzling display of braille-powered whackery.",
+	"The prize counter just got nervous.",
+	"You read the dots and brought the bonks. Simple. Elegant. Loud.",
+	"Dots read, moles bonked, arcade delighted.",
+	"Fast hands. Suspiciously fast.",
+	"Braille literacy: now with extra bonk velocity.",
+	"That round had Grade A dot-to-hammer translation."
+];
+
+const strongFlavorLines = [
+	"Solid bonking! The moles are pretending they planned it that way.",
+	"Nice work. The dots lined up and the moles got thumped.",
+	"You kept the rhythm and the arcade kept cheering.",
+	"Good round. Several moles are now reconsidering their pop-up choices.",
+	"Your hammer and your braille brain were clearly in sync.",
+	"That was a tasty little serving of arcade thwack.",
+	"The moles brought nonsense. You brought dot knowledge.",
+	"Strong whacks, sharp reads, excellent mole confusion.",
+	"Sharp reading, clean bonking, nervous moles.",
+	"Your dot game had excellent thwap timing.",
+	"The dots clicked and the bonks landed.",
+	"Braille focus strong. Mole confidence weak."
+];
+
+const mixedFlavorLines = [
+	"Some moles got away, but plenty got bonked with style.",
+	"A little chaos, a little triumph, a lot of arcade noise.",
+	"Not bad! The moles had tricks, but your hammer had opinions.",
+	"The dots got spicy, but you stayed in the game.",
+	"Some bonks landed, some moles escaped, and the arcade remains entertained.",
+	"That round had wobble, but it also had whacks.",
+	"A respectable rumble with a few slippery moles.",
+	"The moles caused trouble, but they did not leave unbothered.",
+	"Braille practice happened, moles were bonked, and the arcade survived.",
+	"The dots had meaning, and the moles had problems.",
+	"You turned braille cells into bonk instructions.",
+	"Dot by dot, thwack by thwack, the moles learned."
+];
+
+const roughFlavorLines = [
+	"Tough round. The moles are getting smug, which is always a mistake.",
+	"The moles slipped away today, but revenge has excellent rhythm.",
+	"That one got messy. The next bonk is already warming up.",
+	"The arcade says shake it off and whack again.",
+	"The moles had a good run. Suspiciously temporary.",
+	"Rough one, but the hammer is still hungry.",
+	"The dots got rowdy and the moles took advantage.",
+	"Some rounds are training. Some rounds are mole propaganda. This was both.",
+	"The moles got slippery, but the dots are still on your side.",
+	"Tough round. The next cell is a fresh whack opportunity.",
+	"The hammer missed a few, but your braille brain is still charging.",
+	"The dots got rowdy, but you are still in the bonk zone."
+];
+
+const veryRoughFlavorLines = [
+	"The moles got away with absolute foolishness.",
+	"That round was mostly moles doing crimes with dots attached.",
+	"The hammer demands a rematch.",
+	"The arcade is chanting your comeback music.",
+	"The moles are feeling brave. Terrible idea.",
+	"Not your finest bonk parade, but the comeback is loading.",
+	"A suspicious number of moles remain unbonked.",
+	"The moles won this skirmish. The next round has other plans.",
+	"The moles won this round. Rude, but temporary.",
+	"Rough bonks happen. The arcade believes in the comeback."
+];
+
+const excellentTrainingFlavorLines = [
+	"Beautiful training round. The moles barely got to participate.",
+	"Those dots got recognized with authority.",
+	"Clean practice. The hammer and braille brain are syncing nicely.",
+	"That was excellent dot-to-bonk translation.",
+	"Sharp dots, clean thwacks, nervous moles.",
+	"You practiced so well the moles are requesting easier homework.",
+	"That training round had premium whack energy.",
+	"Your braille skills just made the moles flinch.",
+	"Training complete. The next real round should be interesting.",
+	"That was a polished little festival of practice bonks."
+];
+
+const strongTrainingFlavorLines = [
+	"Training complete. The moles are pretending they were not worried.",
+	"Practice bonks logged. Mole confidence reduced.",
+	"Nice training round. The dots got clearer and the moles got quieter.",
+	"You practiced the pattern, then introduced it to the hammer.",
+	"Training works. The moles hate that.",
+	"Your braille brain just got another arcade upgrade.",
+	"Good practice. The dots are starting to behave.",
+	"You turned practice into a tiny mole crisis.",
+	"Training round complete. The hammer learned things.",
+	"The moles came for practice and found consequences.",
+	"That is how dot knowledge becomes bonk power.",
+	"Every practice round makes the next mole sweat a little more.",
+	"Those dots are getting less mysterious and more whackable.",
+	"Practice today, mole panic tomorrow.",
+	"The hammer is improving because the reader is improving.",
+	"Your future rounds just got a little scarier for the moles.",
+	"Excellent training energy. Deeply inconvenient for mole-kind.",
+	"Training complete. The bonk strategy is getting sharper.",
+	"This was a fine session of pre-bonk science.",
+	"The arcade has detected improved thwack readiness."
+];
+
+const roughTrainingFlavorLines = [
+	"Tough practice still counts. The moles do not get to vote on that.",
+	"Training is where messy bonks become mighty bonks.",
+	"A few patterns fought back, but you stayed in the arcade.",
+	"Practice rounds are allowed to wobble. That is why they are practice.",
+	"The dots got spicy, but you kept showing up.",
+	"Even missed training moles are teaching you where to swing next.",
+	"That round had chaos, but also progress. The arcade accepts this.",
+	"The moles got slippery, but your next attempt has more data.",
+	"Training complete. The comeback is now warming up.",
+	"A rough practice round is just future accuracy stretching first."
+];
+
+function accuracyPercentForResult(detail) {
+	const hits = Number(detail?.hits) || 0;
+	const misses = Number(detail?.misses) || 0;
+	const escapes = Number(detail?.escapes) || 0;
+	const total = hits + misses + escapes;
+	if (!total) return 0;
+	return Math.round((hits / total) * 100);
+}
+
+function selectFlavorLine(lines, detail) {
+	if (!Array.isArray(lines) || !lines.length) return "";
+	const seed =
+		(Number(detail?.score) || 0) +
+		(Number(detail?.hits) || 0) * 31 +
+		(Number(detail?.misses) || 0) * 17 +
+		(Number(detail?.escapes) || 0) * 13 +
+		(Number(detail?.streakBonusCount) || 0) * 7 +
+		(Number(detail?.tickets?.speedBonus) || 0) * 5 +
+		(Number(detail?.tickets?.total) || 0);
+	return lines[Math.abs(seed) % lines.length];
+}
+
+function getResultsFlavorLine(detail) {
+	const accuracy = accuracyPercentForResult(detail);
+	const isTraining = !!detail?.isTraining;
+
+	if (isTraining) {
+		if ((Number(detail?.hits) || 0) === 0 || accuracy < 45) {
+			return selectFlavorLine(roughTrainingFlavorLines, detail);
+		}
+		if (accuracy >= 90 && (Number(detail?.escapes) || 0) === 0) {
+			return selectFlavorLine(excellentTrainingFlavorLines, detail);
+		}
+		return selectFlavorLine(strongTrainingFlavorLines, detail);
+	}
+
+	if ((Number(detail?.hits) || 0) === 0) {
+		return selectFlavorLine(veryRoughFlavorLines, detail);
+	}
+	if (accuracy >= 90 && (Number(detail?.escapes) || 0) === 0) {
+		return selectFlavorLine(excellentFlavorLines, detail);
+	}
+	if (accuracy >= 75) {
+		return selectFlavorLine(strongFlavorLines, detail);
+	}
+	if (accuracy >= 45) {
+		return selectFlavorLine(mixedFlavorLines, detail);
+	}
+	return selectFlavorLine(roughFlavorLines, detail);
 }
 
 function loadStorageObject(key, fallback = {}) {
@@ -1862,6 +2036,9 @@ if (cancelCashOutButton) {
 
 	if (resultsHeading) {
 		resultsHeading.textContent = isTraining ? "Training Complete! Great Work!" : "Results";
+	}
+	if (resultsFlavorText) {
+		resultsFlavorText.textContent = getResultsFlavorLine(detail);
 	}
 
 	setGameState("results");
