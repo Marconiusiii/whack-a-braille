@@ -215,15 +215,28 @@ function playRetroHitSound(moleIndex) {
 	chordMidis.forEach(noteMidi => {
 		const osc = ctx.createOscillator();
 		const gain = ctx.createGain();
+		const body = ctx.createOscillator();
+		const bodyGain = ctx.createGain();
 		osc.type = "square";
+		body.type = "triangle";
 		osc.frequency.setValueAtTime(midiToFreq(noteMidi), now);
+		body.frequency.setValueAtTime(midiToFreq(noteMidi), now);
 		gain.gain.setValueAtTime(0.0001, now);
-		gain.gain.exponentialRampToValueAtTime(0.14, now + 0.003);
-		gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.16);
+		gain.gain.exponentialRampToValueAtTime(0.09, now + 0.004);
+		gain.gain.exponentialRampToValueAtTime(0.018, now + 0.08);
+		gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
+		bodyGain.gain.setValueAtTime(0.0001, now);
+		bodyGain.gain.exponentialRampToValueAtTime(0.05, now + 0.005);
+		bodyGain.gain.exponentialRampToValueAtTime(0.012, now + 0.09);
+		bodyGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
 		osc.connect(gain);
+		body.connect(bodyGain);
 		gain.connect(pan);
+		bodyGain.connect(pan);
 		osc.start(now);
-		osc.stop(now + 0.17);
+		body.start(now);
+		osc.stop(now + 0.19);
+		body.stop(now + 0.19);
 	});
 
 	const impact = ctx.createOscillator();
@@ -234,8 +247,9 @@ function playRetroHitSound(moleIndex) {
 	impact.frequency.setValueAtTime(midiToFreq(rootMidi - 12) * 1.8, now);
 	impact.frequency.exponentialRampToValueAtTime(midiToFreq(rootMidi - 12), now + 0.08);
 	impactGain.gain.setValueAtTime(0.0001, now);
-	impactGain.gain.exponentialRampToValueAtTime(0.18, now + 0.002);
-	impactGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.12);
+	impactGain.gain.exponentialRampToValueAtTime(0.14, now + 0.003);
+	impactGain.gain.exponentialRampToValueAtTime(0.045, now + 0.06);
+	impactGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.14);
 	impact.connect(impactGain);
 	impactGain.connect(pan);
 	impact.start(now);
@@ -244,8 +258,9 @@ function playRetroHitSound(moleIndex) {
 	impactBody.type = "triangle";
 	impactBody.frequency.setValueAtTime(midiToFreq(rootMidi - 12) * 0.5, now);
 	impactBodyGain.gain.setValueAtTime(0.0001, now);
-	impactBodyGain.gain.exponentialRampToValueAtTime(0.045, now + 0.004);
-	impactBodyGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.12);
+	impactBodyGain.gain.exponentialRampToValueAtTime(0.06, now + 0.006);
+	impactBodyGain.gain.exponentialRampToValueAtTime(0.018, now + 0.08);
+	impactBodyGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.15);
 	impactBody.connect(impactBodyGain);
 	impactBodyGain.connect(pan);
 	impactBody.start(now);
@@ -256,17 +271,30 @@ function playRetroHitSound(moleIndex) {
 	sparkleMidis.forEach((noteMidi, index) => {
 		const osc = ctx.createOscillator();
 		const gain = ctx.createGain();
+		const support = ctx.createOscillator();
+		const supportGain = ctx.createGain();
 		const start = sparkleStart + index * stepDuration;
-		const stop = start + stepDuration;
+		const stop = start + stepDuration + 0.02;
 		osc.type = "square";
+		support.type = "triangle";
 		osc.frequency.setValueAtTime(midiToFreq(noteMidi), start);
+		support.frequency.setValueAtTime(midiToFreq(noteMidi), start);
 		gain.gain.setValueAtTime(0.0001, start);
-		gain.gain.exponentialRampToValueAtTime(0.12, start + 0.003);
+		gain.gain.exponentialRampToValueAtTime(0.08, start + 0.004);
+		gain.gain.exponentialRampToValueAtTime(0.024, start + 0.028);
 		gain.gain.exponentialRampToValueAtTime(0.0001, stop);
+		supportGain.gain.setValueAtTime(0.0001, start);
+		supportGain.gain.exponentialRampToValueAtTime(0.055, start + 0.006);
+		supportGain.gain.exponentialRampToValueAtTime(0.016, start + 0.03);
+		supportGain.gain.exponentialRampToValueAtTime(0.0001, stop);
 		osc.connect(gain);
+		support.connect(supportGain);
 		gain.connect(pan);
+		supportGain.connect(pan);
 		osc.start(start);
+		support.start(start);
 		osc.stop(stop);
+		support.stop(stop);
 	});
 }
 
@@ -1313,6 +1341,29 @@ function schedulePrizeBell(ctx, master, start, duration, startFreq, endFreq, pea
 	bell.stop(start + duration);
 }
 
+let prizeReverbBuffer = null;
+
+function getPrizeReverbBuffer(ctx) {
+	if (prizeReverbBuffer) {
+		return prizeReverbBuffer;
+	}
+
+	const durationSeconds = 1.9;
+	const length = Math.floor(ctx.sampleRate * durationSeconds);
+	const impulse = ctx.createBuffer(2, length, ctx.sampleRate);
+
+	for (let channel = 0; channel < impulse.numberOfChannels; channel++) {
+		const data = impulse.getChannelData(channel);
+		for (let i = 0; i < length; i++) {
+			const decay = Math.pow(1 - i / length, 2.8);
+			data[i] = (Math.random() * 2 - 1) * decay;
+		}
+	}
+
+	prizeReverbBuffer = impulse;
+	return prizeReverbBuffer;
+}
+
 function playPrizeFanfare(tier = 1) {
 	if (!isUnlocked) return;
 
@@ -1320,10 +1371,21 @@ function playPrizeFanfare(tier = 1) {
 	ensureRunning(ctx);
 
 	const now = ctx.currentTime;
-	const master = ctx.createGain();
 	const safeTier = Math.min(Math.max(Number(tier) || 1, 1), 6);
-	master.gain.value = 0.68;
-	master.connect(ctx.destination);
+	const dryMaster = ctx.createGain();
+	const wetSend = ctx.createGain();
+	const wetMaster = ctx.createGain();
+	const convolver = ctx.createConvolver();
+
+	dryMaster.gain.value = safeTier >= 6 ? 0.92 : safeTier >= 5 ? 0.88 : safeTier >= 3 ? 0.82 : 0.76;
+	wetSend.gain.value = safeTier >= 6 ? 0.28 : safeTier >= 5 ? 0.22 : safeTier >= 4 ? 0.17 : safeTier >= 3 ? 0.12 : 0.08;
+	wetMaster.gain.value = safeTier >= 6 ? 0.42 : safeTier >= 5 ? 0.34 : safeTier >= 4 ? 0.26 : safeTier >= 3 ? 0.2 : 0.14;
+	convolver.buffer = getPrizeReverbBuffer(ctx);
+
+	dryMaster.connect(ctx.destination);
+	wetSend.connect(convolver);
+	convolver.connect(wetMaster);
+	wetMaster.connect(ctx.destination);
 
 	const configs = {
 		1: { baseMidi: 63 + Math.floor(Math.random() * 3), melody: [0, 4], starts: [0.0, 0.16], durations: [0.2, 0.28], pad: [0, 4] },
@@ -1338,25 +1400,43 @@ function playPrizeFanfare(tier = 1) {
 	config.melody.forEach((step, index) => {
 		schedulePrizeTone(
 			ctx,
-			master,
+			dryMaster,
 			now + config.starts[index],
 			config.durations[index],
 			midiToFreq(config.baseMidi + step),
-			safeTier >= 6 ? 0.36 : safeTier >= 4 ? 0.32 : safeTier === 3 ? 0.26 : safeTier === 2 ? 0.21 : 0.18,
+			safeTier >= 6 ? 0.4 : safeTier >= 4 ? 0.35 : safeTier === 3 ? 0.29 : safeTier === 2 ? 0.24 : 0.2,
 			"triangle",
 			index === config.melody.length - 1 && safeTier >= 4 ? (safeTier >= 6 ? 5.8 : safeTier === 5 ? 4.2 : 4.8) : 0,
 			index === config.melody.length - 1 && safeTier >= 4 ? (safeTier >= 6 ? 3.2 : safeTier === 5 ? 1.6 : 2.7) : 0
+		);
+		schedulePrizeTone(
+			ctx,
+			wetSend,
+			now + config.starts[index],
+			config.durations[index] + (safeTier >= 4 ? 0.12 : 0.06),
+			midiToFreq(config.baseMidi + step),
+			safeTier >= 6 ? 0.18 : safeTier >= 4 ? 0.14 : 0.1,
+			"triangle"
 		);
 	});
 
 	config.pad.forEach(step => {
 		schedulePrizeTone(
 			ctx,
-			master,
+			dryMaster,
 			now + 0.05,
 			safeTier >= 6 ? 1.08 : safeTier >= 5 ? 0.72 : safeTier >= 4 ? 0.48 : 0.36,
 			midiToFreq(config.baseMidi + step),
-			safeTier >= 6 ? 0.14 : safeTier >= 4 ? 0.11 : 0.08,
+			safeTier >= 6 ? 0.18 : safeTier >= 4 ? 0.14 : 0.1,
+			"sine"
+		);
+		schedulePrizeTone(
+			ctx,
+			wetSend,
+			now + 0.05,
+			safeTier >= 6 ? 1.22 : safeTier >= 5 ? 0.88 : safeTier >= 4 ? 0.6 : 0.42,
+			midiToFreq(config.baseMidi + step),
+			safeTier >= 6 ? 0.12 : safeTier >= 4 ? 0.09 : 0.06,
 			"sine"
 		);
 	});
@@ -1364,12 +1444,21 @@ function playPrizeFanfare(tier = 1) {
 	if (safeTier >= 2) {
 		schedulePrizeTone(
 			ctx,
-			master,
+			dryMaster,
 			now,
 			safeTier >= 6 ? 0.12 : 0.08,
 			safeTier >= 6 ? 1380 : 900 + safeTier * 60,
-			safeTier >= 6 ? 0.16 : 0.08 + safeTier * 0.01,
+			safeTier >= 6 ? 0.18 : 0.1 + safeTier * 0.012,
 			"sine"
+		);
+		schedulePrizeTone(
+			ctx,
+			dryMaster,
+			now + 0.01,
+			safeTier >= 6 ? 0.4 : safeTier >= 4 ? 0.28 : 0.22,
+			midiToFreq(config.baseMidi - 12),
+			safeTier >= 6 ? 0.14 : safeTier >= 4 ? 0.11 : 0.08,
+			"triangle"
 		);
 	}
 
@@ -1381,12 +1470,21 @@ function playPrizeFanfare(tier = 1) {
 			const sparkleFreq = midiToFreq(config.baseMidi + 19 + index);
 			schedulePrizeBell(
 				ctx,
-				master,
+				dryMaster,
 				now + offset,
 				safeTier >= 6 ? 0.24 : 0.18,
 				sparkleFreq,
 				safeTier >= 6 ? sparkleFreq * 1.9 : sparkleFreq * 1.6,
-				safeTier >= 6 ? 0.085 : 0.06
+				safeTier >= 6 ? 0.1 : 0.07
+			);
+			schedulePrizeBell(
+				ctx,
+				wetSend,
+				now + offset + 0.01,
+				safeTier >= 6 ? 0.36 : 0.26,
+				sparkleFreq,
+				safeTier >= 6 ? sparkleFreq * 1.9 : sparkleFreq * 1.6,
+				safeTier >= 6 ? 0.055 : 0.04
 			);
 		});
 	}
@@ -1401,7 +1499,7 @@ function playPrizeFanfare(tier = 1) {
 			const endFreq = midiToFreq(config.baseMidi + (safeTier >= 6 ? 38 : safeTier === 5 ? 31 : 30)) * Math.pow(2, progress * (safeTier >= 6 ? 0.11 : 0.06));
 			schedulePrizeBell(
 				ctx,
-				master,
+				dryMaster,
 				glissStart + i * (safeTier >= 6 ? 0.022 : 0.03),
 				glissDuration - i * (safeTier >= 6 ? 0.028 : 0.03),
 				startFreq,
@@ -1415,11 +1513,22 @@ function playPrizeFanfare(tier = 1) {
 		[0.22, 0.52, 0.86].forEach((offset, index) => {
 			schedulePrizeTone(
 				ctx,
-				master,
+				dryMaster,
 				now + offset,
 				0.62 + index * 0.08,
 				midiToFreq(config.baseMidi - 12 + index * 7),
-				0.09,
+				0.11,
+				"sine",
+				3.6,
+				1.1
+			);
+			schedulePrizeTone(
+				ctx,
+				wetSend,
+				now + offset,
+				0.82 + index * 0.1,
+				midiToFreq(config.baseMidi - 12 + index * 7),
+				0.08,
 				"sine",
 				3.6,
 				1.1
