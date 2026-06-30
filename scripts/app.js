@@ -1851,12 +1851,16 @@ if (clearPrizeShelfButton) {
 			const ticketCost = getPrizeTicketCost(prize);
 			if (totalTickets < ticketCost) return;
 
-			playPrizeFanfare(getPrizeTierNumber(prize));
-			addPrizeToShelf(prize);
-			totalTickets = Math.max(0, totalTickets - ticketCost);
-			saveTotalTickets();
-			updateHomeCashInButton();
-			setGameState("home");
+			const fanfareDurationMs = playPrizeFanfare(getPrizeTierNumber(prize)) || 0;
+			const transitionDelayMs = Math.min(900, Math.max(550, Math.floor(fanfareDurationMs * 0.55)));
+
+			window.setTimeout(() => {
+				addPrizeToShelf(prize);
+				totalTickets = Math.max(0, totalTickets - ticketCost);
+				saveTotalTickets();
+				updateHomeCashInButton();
+				setGameState("home");
+			}, transitionDelayMs);
 		});
 	}
 
