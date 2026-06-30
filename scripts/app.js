@@ -1401,7 +1401,7 @@ function beginRound(config) {
 
 	const focusHandoffDelayMs = getFocusHandoffDelayMs(config.inputMode);
 	const focusSettleDelayMs = getFocusSettleDelayMs(config.inputMode);
-	const openingDelayMs = isTraining ? Math.min(250, focusHandoffDelayMs) : focusHandoffDelayMs + focusSettleDelayMs;
+	const openingDelayMs = isTraining ? Math.min(250, focusHandoffDelayMs) : focusHandoffDelayMs;
 
 	setTimeout(() => {
 		if (isTraining) {
@@ -1417,18 +1417,21 @@ function beginRound(config) {
 			return;
 		}
 
+		let openingCueDurationMs = 0;
 		if (isInvasionMode(config.modeId)) {
-			playEverythingStinger();
+			openingCueDurationMs = playEverythingStinger() || 0;
 		} else {
-			playStartFlourish();
+			openingCueDurationMs = playStartFlourish() || 0;
 		}
 
-		const speechResult = speak(config.openingAnnouncement, {
-			cancelPrevious: true,
-			dedupe: false
-		});
-		const startDelayMs = computeOpeningStartDelayMs(speechResult, config.difficulty === "training");
-		setTimeout(launchRound, startDelayMs);
+		setTimeout(() => {
+			const speechResult = speak(config.openingAnnouncement, {
+				cancelPrevious: true,
+				dedupe: false
+			});
+			const startDelayMs = computeOpeningStartDelayMs(speechResult, false);
+			setTimeout(launchRound, startDelayMs);
+		}, openingCueDurationMs + focusSettleDelayMs);
 	}, openingDelayMs);
 }
 

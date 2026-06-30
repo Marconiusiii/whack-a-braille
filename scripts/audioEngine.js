@@ -777,7 +777,7 @@ function playCartoonRetreatSound(moleIndex) {
 
 
 function playStartFlourish() {
-	if (!isUnlocked) return;
+	if (!isUnlocked) return 0;
 
 	const ctx = getAudioContext();
 	ensureRunning(ctx);
@@ -885,6 +885,8 @@ function playStartFlourish() {
 		osc.start(sustainStart);
 		osc.stop(sustainStart + sustainDur);
 	});
+
+	return Math.round((beat * 6) * 1000);
 }
 
 function playTrainingFlourish() {
@@ -966,7 +968,7 @@ function playTrainingFlourish() {
 }
 
 function playEverythingStinger() {
-	if (!isUnlocked) return;
+	if (!isUnlocked) return 0;
 
 	const ctx = getAudioContext();
 	ensureRunning(ctx);
@@ -1076,6 +1078,8 @@ function playEverythingStinger() {
 		osc.start(sustainStart);
 		osc.stop(sustainStart + sustainDur);
 	});
+
+	return Math.round((sustainStart + sustainDur - now) * 1000);
 }
 
 /* ---------- HIT SOUND ---------- */

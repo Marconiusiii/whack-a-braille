@@ -412,7 +412,8 @@ function getCurrentInterval() {
 	let interval = Math.floor(lerp(startIntervalMs, endIntervalMs, getProgress()));
 
 	if (getProgress() > 0.7) {
-		interval = Math.floor(interval * 0.45);
+		const endgameCompression = difficultyMultiplier > 1 ? 0.55 : 0.45;
+		interval = Math.floor(interval * endgameCompression);
 	}
 
 	return Math.max(Math.floor(interval * difficultyMultiplier), 180);
