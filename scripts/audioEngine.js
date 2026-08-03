@@ -1650,16 +1650,28 @@ function playOriginalBlitzImpact(ctx, start, panValue, letterIndex, impactDurati
 
 	const thunk = ctx.createOscillator();
 	const thunkGain = ctx.createGain();
+	const thunkEdge = ctx.createOscillator();
+	const thunkEdgeGain = ctx.createGain();
 	thunk.type = "sine";
+	thunkEdge.type = "triangle";
 	thunk.frequency.setValueAtTime(thunkFreq * 1.18, start);
 	thunk.frequency.exponentialRampToValueAtTime(thunkFreq, start + 0.075);
+	thunkEdge.frequency.setValueAtTime(thunkFreq * 1.9, start);
+	thunkEdge.frequency.exponentialRampToValueAtTime(thunkFreq * 1.15, start + 0.05);
 	thunkGain.gain.setValueAtTime(0.0001, start);
-	thunkGain.gain.exponentialRampToValueAtTime(0.22, start + 0.004);
-	thunkGain.gain.exponentialRampToValueAtTime(0.0001, start + 0.12);
+	thunkGain.gain.exponentialRampToValueAtTime(0.34, start + 0.0035);
+	thunkGain.gain.exponentialRampToValueAtTime(0.0001, start + 0.14);
+	thunkEdgeGain.gain.setValueAtTime(0.0001, start);
+	thunkEdgeGain.gain.exponentialRampToValueAtTime(0.18, start + 0.002);
+	thunkEdgeGain.gain.exponentialRampToValueAtTime(0.0001, start + 0.055);
 	thunk.connect(thunkGain);
+	thunkEdge.connect(thunkEdgeGain);
 	thunkGain.connect(pan);
+	thunkEdgeGain.connect(pan);
 	thunk.start(start);
-	thunk.stop(start + 0.13);
+	thunkEdge.start(start);
+	thunk.stop(start + 0.145);
+	thunkEdge.stop(start + 0.06);
 
 	const body = ctx.createOscillator();
 	const bodyGain = ctx.createGain();
@@ -1784,16 +1796,28 @@ function playGoofyBlitzImpact(ctx, start, panValue, letterIndex, impactDuration,
 
 	const bass = ctx.createOscillator();
 	const bassGain = ctx.createGain();
+	const bassPunch = ctx.createOscillator();
+	const bassPunchGain = ctx.createGain();
 	bass.type = "triangle";
+	bassPunch.type = "sine";
 	bass.frequency.setValueAtTime(bassFreq * 1.1, start);
 	bass.frequency.exponentialRampToValueAtTime(bassFreq, start + 0.14);
+	bassPunch.frequency.setValueAtTime(bassFreq * 1.55, start);
+	bassPunch.frequency.exponentialRampToValueAtTime(bassFreq * 0.92, start + 0.075);
 	bassGain.gain.setValueAtTime(0.0001, start);
-	bassGain.gain.exponentialRampToValueAtTime(0.22, start + 0.004);
-	bassGain.gain.exponentialRampToValueAtTime(0.0001, start + 0.2);
+	bassGain.gain.exponentialRampToValueAtTime(0.28, start + 0.003);
+	bassGain.gain.exponentialRampToValueAtTime(0.0001, start + 0.22);
+	bassPunchGain.gain.setValueAtTime(0.0001, start);
+	bassPunchGain.gain.exponentialRampToValueAtTime(0.26, start + 0.0025);
+	bassPunchGain.gain.exponentialRampToValueAtTime(0.0001, start + 0.08);
 	bass.connect(bassGain);
+	bassPunch.connect(bassPunchGain);
 	bassGain.connect(pan);
+	bassPunchGain.connect(pan);
 	bass.start(start);
-	bass.stop(start + 0.22);
+	bassPunch.start(start);
+	bass.stop(start + 0.24);
+	bassPunch.stop(start + 0.085);
 
 	const oof = ctx.createOscillator();
 	const oofGain = ctx.createGain();
