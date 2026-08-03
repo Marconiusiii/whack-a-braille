@@ -297,6 +297,14 @@ const moleChooserOptions = [
 	{ value: "customMoles", label: "Custom Moles", group: "custom" }
 ];
 
+const moleChooserGroupLabels = {
+	typing: "QWERTY Typing",
+	word: "Mole Battle and Wordy Modes",
+	grade1: "Grade 1 Braille",
+	grade2: "Grade 2 Braille",
+	custom: "Custom"
+};
+
 function announceToSr(message) {
 	if (!srLiveRegion) return;
 	if (srAnnounceTimer) {
@@ -1417,13 +1425,26 @@ function syncMoleChooserForInputMode() {
 	const allowedOptions = getMoleChooserOptionsForInputMode(selectedInputMode);
 
 	moleChooserSelect.innerHTML = "";
+	const groups = new Map();
 
 	allowedOptions.forEach(option => {
-		const optionEl = document.createElement("option");
-		optionEl.value = option.value;
-		optionEl.textContent = option.label;
-		moleChooserSelect.appendChild(optionEl);
+		if (!groups.has(option.group)) {
+			groups.set(option.group, []);
+		}
+		groups.get(option.group).push(option);
 	});
+
+	for (const [groupId, options] of groups) {
+		const groupEl = document.createElement("optgroup");
+		groupEl.label = moleChooserGroupLabels[groupId] || "Moles";
+		options.forEach(option => {
+			const optionEl = document.createElement("option");
+			optionEl.value = option.value;
+			optionEl.textContent = option.label;
+			groupEl.appendChild(optionEl);
+		});
+		moleChooserSelect.appendChild(groupEl);
+	}
 
 	if (allowedOptions.some(option => option.value === previousValue)) {
 		moleChooserSelect.value = previousValue;

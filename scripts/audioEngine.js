@@ -1568,6 +1568,328 @@ function playHitSound(score, moleIndex) {
 	playOriginalHitSound(moleIndex);
 }
 
+function playBlitzWordHit(wordLength, scoreBeforeHit = 0, scoreAfterHit = 0) {
+	if (!isUnlocked) return;
+
+	const safeWordLength = Math.min(Math.max(Number(wordLength) || 3, 3), 5);
+	const ctx = getAudioContext();
+	ensureRunning(ctx);
+
+	const now = ctx.currentTime;
+	const pansByLength = {
+		3: [-0.5, 0, 0.5],
+		4: [-0.75, -0.25, 0.25, 0.75],
+		5: [-1.0, -0.5, 0, 0.5, 1.0]
+	};
+	const revealOrderByLength = {
+		3: [1, 0, 2],
+		4: [1, 2, 0, 3],
+		5: [2, 1, 3, 0, 4]
+	};
+	const pans = pansByLength[safeWordLength] || pansByLength[3];
+	const revealOrder = revealOrderByLength[safeWordLength] || revealOrderByLength[3];
+
+	if (gameAudioMode === "retro") {
+		playRetroBlitzWordHit(ctx, now, safeWordLength, pans, revealOrder);
+		return;
+	}
+
+	const impactDurationByMode = {
+		original: 0.3,
+		silly: 0.28,
+		goofy: 0.38
+	};
+	const offsetStepByMode = {
+		original: 0.021,
+		silly: 0.024,
+		goofy: 0.026
+	};
+	const mode = gameAudioMode === "silly" || gameAudioMode === "goofy" ? gameAudioMode : "original";
+	const impactDuration = impactDurationByMode[mode];
+	const offsetStep = offsetStepByMode[mode];
+	const normalization = 0.38 / Math.sqrt(safeWordLength);
+
+	pans.forEach((panValue, letterIndex) => {
+		const revealIndex = revealOrder.indexOf(letterIndex);
+		if (revealIndex === -1) return;
+		const start = now + (revealIndex * offsetStep);
+		if (mode === "original") {
+			playOriginalBlitzImpact(ctx, start, panValue, letterIndex, impactDuration, normalization);
+			return;
+		}
+		if (mode === "silly") {
+			playSillyBlitzImpact(ctx, start, panValue, letterIndex, impactDuration, normalization);
+			return;
+		}
+		playGoofyBlitzImpact(ctx, start, panValue, letterIndex, impactDuration, normalization);
+	});
+
+	if (gameAudioMode === "silly" && scoreBeforeHit < 50 && scoreAfterHit >= 50) {
+		playFiftyPointSound();
+		lastScoreAnnounced = scoreAfterHit;
+	}
+}
+
+function playOriginalBlitzImpact(ctx, start, panValue, letterIndex, impactDuration, normalization) {
+	const pan = ctx.createStereoPanner();
+	pan.pan.value = panValue;
+	const master = ctx.createGain();
+	master.gain.value = normalization * 1.35;
+	pan.connect(master);
+	master.connect(ctx.destination);
+
+	const pitchJitter = 1 + (((Math.random() * 8) - 4) * 0.012);
+	const bodyPitch = (138 + (letterIndex * 5)) * pitchJitter;
+
+	const body = ctx.createOscillator();
+	const bodyGain = ctx.createGain();
+	body.type = "sine";
+	body.frequency.setValueAtTime(bodyPitch, start);
+	bodyGain.gain.setValueAtTime(0.0001, start);
+	bodyGain.gain.exponentialRampToValueAtTime(0.72, start + 0.004);
+	bodyGain.gain.exponentialRampToValueAtTime(0.0001, start + 0.24);
+	body.connect(bodyGain);
+	bodyGain.connect(pan);
+	body.start(start);
+	body.stop(start + impactDuration);
+
+	const resonance = ctx.createOscillator();
+	const resonanceGain = ctx.createGain();
+	resonance.type = "triangle";
+	resonance.frequency.setValueAtTime(bodyPitch * 2.18, start);
+	resonanceGain.gain.setValueAtTime(0.0001, start);
+	resonanceGain.gain.exponentialRampToValueAtTime(0.34, start + 0.003);
+	resonanceGain.gain.exponentialRampToValueAtTime(0.0001, start + 0.17);
+	resonance.connect(resonanceGain);
+	resonanceGain.connect(pan);
+	resonance.start(start);
+	resonance.stop(start + 0.18);
+
+	const knock = ctx.createOscillator();
+	const knockGain = ctx.createGain();
+	knock.type = "triangle";
+	knock.frequency.setValueAtTime((860 + (letterIndex * 28)) * pitchJitter, start);
+	knock.frequency.exponentialRampToValueAtTime(310 * pitchJitter, start + 0.045);
+	knockGain.gain.setValueAtTime(0.0001, start);
+	knockGain.gain.exponentialRampToValueAtTime(0.88, start + 0.0015);
+	knockGain.gain.exponentialRampToValueAtTime(0.0001, start + 0.06);
+	knock.connect(knockGain);
+	knockGain.connect(pan);
+	knock.start(start);
+	knock.stop(start + 0.07);
+
+	const noiseBuffer = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.035), ctx.sampleRate);
+	const noiseData = noiseBuffer.getChannelData(0);
+	for (let i = 0; i < noiseData.length; i += 1) {
+		noiseData[i] = (Math.random() * 2 - 1) * (1 - (i / noiseData.length));
+	}
+	const grain = ctx.createBufferSource();
+	grain.buffer = noiseBuffer;
+	const grainFilter = ctx.createBiquadFilter();
+	grainFilter.type = "bandpass";
+	grainFilter.frequency.value = 720;
+	grainFilter.Q.value = 0.9;
+	const grainGain = ctx.createGain();
+	grainGain.gain.setValueAtTime(0.0001, start);
+	grainGain.gain.exponentialRampToValueAtTime(0.2, start + 0.001);
+	grainGain.gain.exponentialRampToValueAtTime(0.0001, start + 0.035);
+	grain.connect(grainFilter);
+	grainFilter.connect(grainGain);
+	grainGain.connect(pan);
+	grain.start(start);
+	grain.stop(start + 0.04);
+}
+
+function playSillyBlitzImpact(ctx, start, panValue, letterIndex, impactDuration, normalization) {
+	const pan = ctx.createStereoPanner();
+	pan.pan.value = panValue;
+	const master = ctx.createGain();
+	master.gain.value = normalization * 1.2;
+	pan.connect(master);
+	master.connect(ctx.destination);
+
+	const bubble = ctx.createOscillator();
+	const bubbleGain = ctx.createGain();
+	const squeak = ctx.createOscillator();
+	const squeakGain = ctx.createGain();
+	const wobble = ctx.createOscillator();
+	const wobbleGain = ctx.createGain();
+
+	const bouncePitchStart = 210 + (letterIndex * 18);
+	const bouncePitchEnd = 560 + (letterIndex * 24);
+
+	bubble.type = "sine";
+	bubble.frequency.setValueAtTime(bouncePitchStart, start);
+	bubble.frequency.exponentialRampToValueAtTime(bouncePitchEnd, start + impactDuration);
+	bubbleGain.gain.setValueAtTime(0.0001, start);
+	bubbleGain.gain.exponentialRampToValueAtTime(0.7, start + 0.007);
+	bubbleGain.gain.exponentialRampToValueAtTime(0.0001, start + impactDuration);
+
+	squeak.type = "sine";
+	squeak.frequency.setValueAtTime(bouncePitchStart * 1.65, start);
+	squeak.frequency.exponentialRampToValueAtTime(bouncePitchEnd * 1.18, start + impactDuration);
+	squeakGain.gain.setValueAtTime(0.0001, start);
+	squeakGain.gain.exponentialRampToValueAtTime(0.18, start + 0.008);
+	squeakGain.gain.exponentialRampToValueAtTime(0.0001, start + impactDuration);
+
+	wobble.type = "sine";
+	wobble.frequency.value = 12 + Math.random() * 2;
+	wobbleGain.gain.value = 48;
+
+	wobble.connect(wobbleGain);
+	wobbleGain.connect(bubble.frequency);
+	wobbleGain.connect(squeak.frequency);
+	bubble.connect(bubbleGain);
+	squeak.connect(squeakGain);
+	bubbleGain.connect(pan);
+	squeakGain.connect(pan);
+	wobble.start(start);
+	wobble.stop(start + impactDuration);
+	bubble.start(start);
+	bubble.stop(start + impactDuration);
+	squeak.start(start);
+	squeak.stop(start + impactDuration);
+}
+
+function playGoofyBlitzImpact(ctx, start, panValue, letterIndex, impactDuration, normalization) {
+	const pan = ctx.createStereoPanner();
+	pan.pan.value = panValue;
+	const master = ctx.createGain();
+	master.gain.value = normalization * 1.3;
+	pan.connect(master);
+	master.connect(ctx.destination);
+
+	const rubber = ctx.createOscillator();
+	const rubberGain = ctx.createGain();
+	const wobble = ctx.createOscillator();
+	const wobbleGain = ctx.createGain();
+	const boing = ctx.createOscillator();
+	const boingGain = ctx.createGain();
+	const squeak = ctx.createOscillator();
+	const squeakGain = ctx.createGain();
+
+	rubber.type = "triangle";
+	rubber.frequency.setValueAtTime(128 + (letterIndex * 6), start);
+	rubber.frequency.exponentialRampToValueAtTime(58 + (letterIndex * 2), start + impactDuration);
+	rubberGain.gain.setValueAtTime(0.0001, start);
+	rubberGain.gain.exponentialRampToValueAtTime(0.72, start + 0.007);
+	rubberGain.gain.exponentialRampToValueAtTime(0.0001, start + impactDuration);
+
+	wobble.type = "sine";
+	wobble.frequency.value = 14 + Math.random() * 2;
+	wobbleGain.gain.setValueAtTime(52, start);
+	wobbleGain.gain.exponentialRampToValueAtTime(6, start + impactDuration);
+	wobble.connect(wobbleGain);
+	wobbleGain.connect(rubber.frequency);
+
+	const reboundStart = start + 0.065;
+	boing.type = "sine";
+	boing.frequency.setValueAtTime(310 + (letterIndex * 22), reboundStart);
+	boing.frequency.exponentialRampToValueAtTime(760 + (Math.random() * 30), reboundStart + 0.24);
+	boingGain.gain.setValueAtTime(0.0001, reboundStart);
+	boingGain.gain.exponentialRampToValueAtTime(0.46, reboundStart + 0.006);
+	boingGain.gain.exponentialRampToValueAtTime(0.0001, reboundStart + 0.25);
+
+	const squeakStart = start + 0.13;
+	squeak.type = "triangle";
+	squeak.frequency.setValueAtTime(1080 + (Math.random() * 45), squeakStart);
+	squeak.frequency.exponentialRampToValueAtTime(530, squeakStart + 0.16);
+	squeakGain.gain.setValueAtTime(0.0001, squeakStart);
+	squeakGain.gain.exponentialRampToValueAtTime(0.22, squeakStart + 0.003);
+	squeakGain.gain.exponentialRampToValueAtTime(0.0001, squeakStart + 0.17);
+
+	rubber.connect(rubberGain);
+	boing.connect(boingGain);
+	squeak.connect(squeakGain);
+	rubberGain.connect(pan);
+	boingGain.connect(pan);
+	squeakGain.connect(pan);
+	wobble.start(start);
+	wobble.stop(start + impactDuration);
+	rubber.start(start);
+	rubber.stop(start + impactDuration);
+	boing.start(reboundStart);
+	boing.stop(reboundStart + 0.26);
+	squeak.start(squeakStart);
+	squeak.stop(squeakStart + 0.18);
+}
+
+function playRetroBlitzWordHit(ctx, now, wordLength, pans, revealOrder) {
+	const rootMidi = beatRootMidi;
+	const eventsByLength = {
+		3: [
+			{ noteOffset: 0, pan: pans[0], step: 0 },
+			{ noteOffset: 4, pan: pans[1], step: 1 },
+			{ noteOffset: 7, pan: pans[2], step: 2 }
+		],
+		4: [
+			{ noteOffset: 0, pan: pans[1], step: 0 },
+			{ noteOffset: 4, pan: pans[0], step: 1 },
+			{ noteOffset: 7, pan: pans[2], step: 2 },
+			{ noteOffset: 12, pan: pans[3], step: 3 }
+		],
+		5: [
+			{ noteOffset: 0, pan: pans[2], step: 0 },
+			{ noteOffset: 4, pan: pans[1], step: 1 },
+			{ noteOffset: 7, pan: pans[3], step: 2 },
+			{ noteOffset: 12, pan: pans[0], step: 3 },
+			{ noteOffset: 16, pan: pans[4], step: 4 }
+		]
+	};
+	const events = eventsByLength[wordLength] || eventsByLength[3];
+
+	const centerPan = ctx.createStereoPanner();
+	centerPan.pan.value = 0;
+	const master = ctx.createGain();
+	master.gain.value = 1.15;
+	centerPan.connect(master);
+	master.connect(ctx.destination);
+
+	const bass = ctx.createOscillator();
+	const bassGain = ctx.createGain();
+	bass.type = "triangle";
+	bass.frequency.setValueAtTime(midiToFreq(rootMidi - 12) * 1.35, now);
+	bass.frequency.exponentialRampToValueAtTime(midiToFreq(rootMidi - 12), now + 0.1);
+	bassGain.gain.setValueAtTime(0.0001, now);
+	bassGain.gain.exponentialRampToValueAtTime(0.2, now + 0.004);
+	bassGain.gain.exponentialRampToValueAtTime(0.05, now + 0.08);
+	bassGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.16);
+	bass.connect(bassGain);
+	bassGain.connect(centerPan);
+	bass.start(now);
+	bass.stop(now + 0.18);
+
+	events.forEach(event => {
+		const start = now + (event.step * 0.022);
+		const pan = ctx.createStereoPanner();
+		pan.pan.value = event.pan;
+		const osc = ctx.createOscillator();
+		const support = ctx.createOscillator();
+		const gain = ctx.createGain();
+		const supportGain = ctx.createGain();
+		osc.type = "square";
+		support.type = "triangle";
+		const freq = midiToFreq(rootMidi + event.noteOffset);
+		osc.frequency.setValueAtTime(freq, start);
+		support.frequency.setValueAtTime(freq, start);
+		gain.gain.setValueAtTime(0.0001, start);
+		gain.gain.exponentialRampToValueAtTime(0.15, start + 0.003);
+		gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.085);
+		supportGain.gain.setValueAtTime(0.0001, start);
+		supportGain.gain.exponentialRampToValueAtTime(0.095, start + 0.004);
+		supportGain.gain.exponentialRampToValueAtTime(0.0001, start + 0.09);
+		osc.connect(gain);
+		support.connect(supportGain);
+		gain.connect(pan);
+		supportGain.connect(pan);
+		pan.connect(master);
+		osc.start(start);
+		support.start(start);
+		osc.stop(start + 0.09);
+		support.stop(start + 0.095);
+	});
+}
+
 
 function playMissSound(moleIndex) {
 	if (gameAudioMode === "retro") {
@@ -1979,6 +2301,7 @@ export {
 	playTrainingFlourish,
 	playEverythingStinger,
 	playPrizeFanfare,
+	playBlitzWordHit,
 	playHitSound,
 	playMissSound,
 	playRetreatSound,

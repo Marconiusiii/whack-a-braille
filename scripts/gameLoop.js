@@ -3,6 +3,7 @@
 import { getBrailleItemsForMode, getCustomMoleItemsByIds, getCustomMoleItemsForInputMode } from "./brailleRegistry.js";
 import { setAttemptCallback, setCurrentMoleId } from "./inputEngine.js";
 import {
+	playBlitzWordHit,
 	playHitSound,
 	playMissSound,
 	playMolePopSound,
@@ -90,6 +91,8 @@ const TRAINING_MOLE_CAP = 15;
 const TRAINING_FIRST_MOLE_DELAY_MS = 1000;
 const TRAINING_POST_HIT_DELAY_MS = 750;
 const STARTUP_FIRST_MOLE_DELAY_MS = 300;
+const BLITZ_COMPLETION_SOUND_DELAY_MS = 80;
+const BLITZ_COMPLETION_MINIMUM_TRANSITION_DELAY_MS = 650;
 
 let isTrainingMode = false;
 let trainingMolesCompleted = 0;
@@ -1214,15 +1217,23 @@ function handleBlitzAttempt(attempt) {
 	}
 
 	const groupedSound = submittedLetters.length > 1;
+	const scoreBeforeSubmission = score;
 	for (let i = 0; i < submittedLetters.length; i++) {
-		handleBlitzLetterHit(!groupedSound);
-	}
-	if (groupedSound) {
-		playHitSound(score, currentBlitzLaneIndex());
+		handleBlitzLetterHit(
+			!groupedSound,
+			groupedSound
+				? {
+					playCompletionSound: true,
+					scoreBeforeCompletion: scoreBeforeSubmission,
+					delayMs: BLITZ_COMPLETION_SOUND_DELAY_MS
+				}
+				: null
+		);
 	}
 }
 
-function handleBlitzLetterHit(playSound) {
+function handleBlitzLetterHit(playSound, completionContext = null) {
+	const scoreBeforeLetter = score;
 	const laneIndex = activeWordLaneIndices[activeWordLetterIndex] ?? currentWordAudioLane();
 	const mole = moleElements[laneIndex];
 	if (mole) {
@@ -1240,19 +1251,37 @@ function handleBlitzLetterHit(playSound) {
 	deactivateMoleVisual(laneIndex);
 
 	if (activeWordLetterIndex >= activeWordItem.letters.length) {
-		handleBlitzWordCompleted();
+		handleBlitzWordCompleted(
+			completionContext || {
+				playCompletionSound: true,
+				scoreBeforeCompletion: isTrainingMode ? 0 : scoreBeforeLetter,
+				delayMs: BLITZ_COMPLETION_SOUND_DELAY_MS
+			}
+		);
 	}
 }
 
-function handleBlitzWordCompleted() {
+function handleBlitzWordCompleted(completionContext = {}) {
 	clearTimeout(moleUpTimer);
 	moleUpTimer = null;
 	missRegisteredForMole = true;
 	setCurrentMoleId(0);
+	const wordLength = activeWordItem?.letters?.length || 3;
+	const scoreAfterCompletion = score;
+	const scoreBeforeCompletion = Number.isFinite(completionContext.scoreBeforeCompletion)
+		? completionContext.scoreBeforeCompletion
+		: (isTrainingMode ? 0 : Math.max(0, scoreAfterCompletion - 10));
+	const soundDelayMs = Number.isFinite(completionContext.delayMs)
+		? completionContext.delayMs
+		: BLITZ_COMPLETION_SOUND_DELAY_MS;
+	const shouldPlayCompletionSound = completionContext.playCompletionSound !== false;
 
 	if (isTrainingMode) {
 		hitsThisRound += 1;
 		trainingMolesCompleted += 1;
+		if (shouldPlayCompletionSound) {
+			playBlitzCompletionSound(wordLength, scoreBeforeCompletion, scoreAfterCompletion, soundDelayMs);
+		}
 		clearActivePresentation();
 		scheduleNextTrainingMole(TRAINING_POST_HIT_DELAY_MS);
 		return;
@@ -1261,8 +1290,11 @@ function handleBlitzWordCompleted() {
 	hitsThisRound += 1;
 	hitStreak += 1;
 	applyStreakAndSpeedBonuses();
+	if (shouldPlayCompletionSound) {
+		playBlitzCompletionSound(wordLength, scoreBeforeCompletion, scoreAfterCompletion, soundDelayMs);
+	}
 	clearActivePresentation();
-	scheduleNextMole(0);
+	scheduleNextMole(Math.max(0, BLITZ_COMPLETION_MINIMUM_TRANSITION_DELAY_MS - getCurrentInterval()));
 }
 
 function handleBlitzMiss() {
@@ -1355,6 +1387,17 @@ function handleWordyCompleted() {
 	dispatchScoreUpdated();
 	clearActivePresentation();
 	scheduleNextMole(0);
+}
+
+function playBlitzCompletionSound(wordLength, scoreBeforeHit, scoreAfterHit, delayMs) {
+	const playSound = () => {
+		playBlitzWordHit(wordLength, scoreBeforeHit, scoreAfterHit);
+	};
+	if (delayMs > 0) {
+		setTimeout(playSound, delayMs);
+		return;
+	}
+	playSound();
 }
 
 function applyStreakAndSpeedBonuses() {
