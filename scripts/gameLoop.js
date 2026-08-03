@@ -1367,14 +1367,15 @@ function handleWordyCompleted() {
 	clearTimeout(moleUpTimer);
 	moleUpTimer = null;
 	missRegisteredForMole = true;
-	const laneIndex = currentWordAudioLane();
-	playHitSound(score, laneIndex);
+	const wordLength = Array.isArray(activeWordItem?.letters) ? activeWordItem.letters.length : 3;
+	const scoreBeforeCompletion = score;
 	lettersWhackedThisRound += activeWordItem.letters.length;
 	setCurrentMoleId(0);
 
 	if (isTrainingMode) {
 		hitsThisRound += 1;
 		trainingMolesCompleted += 1;
+		playBlitzCompletionSound(wordLength, scoreBeforeCompletion, scoreBeforeCompletion, 0);
 		clearActivePresentation();
 		scheduleNextTrainingMole(TRAINING_POST_HIT_DELAY_MS);
 		return;
@@ -1385,6 +1386,7 @@ function handleWordyCompleted() {
 	score += 10 + (activeWordItem.letters.length * 2);
 	applyStreakAndSpeedBonuses();
 	dispatchScoreUpdated();
+	playBlitzCompletionSound(wordLength, scoreBeforeCompletion, score, 0);
 	clearActivePresentation();
 	scheduleNextMole(0);
 }

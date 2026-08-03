@@ -44,6 +44,7 @@
 <li>Custom Moles lets you hand-pick 5 favorite targets or assemble your own Invasion Army when certain moles have simply had it too good for too long.</li>
 <li>Mole Battle sends short words across the board. Spell them in order before the whole word ducks away.</li>
 <li>Wordy Mole Mayhem drops one full word right in the middle. Type the whole thing correctly before it escapes.</li>
+<li>Spell Word can be turned on for the word modes if you want the game to say the word and then spell it out for a little extra backup.</li>
 <li>Training Mode Difficulty: practice your typing or braille entry by whacking 15 moles without a timer. You don't get a score nor any tickets, but it's a great way to work on your skills before going into the main game. Training mode also has a Speak Braille Dots toggle in Game Settings, further helping you learn along the way. Training mode works with any Braille and Typing mode.</li>
 <li>For Jaws and NVDA users on Windows: be sure to enter Forms or Focus mode when the game starts.</li>
 <li>This game can be played with any standard or Bluetooth keyboard for both desktop and mobile.  External braille displays will require you to hit dot 8 or the space bar to whack the current mole after entering the chord.</li>
@@ -115,6 +116,14 @@
 <select id="moleChooserSelect" name="brailleMode"></select>
 <button type="button" id="pickCustomMolesButton" disabled>Pick Custom Moles...</button>
 
+</fieldset>
+
+<fieldset id="wordModeOptionsFieldset" hidden disabled>
+<legend>Word Mode Options</legend>
+<div>
+	<input type="checkbox" id="spellWordEnabled" name="spellWordEnabled">
+	<label for="spellWordEnabled">Spell Word</label>
+</div>
 </fieldset>
 
 <fieldset>

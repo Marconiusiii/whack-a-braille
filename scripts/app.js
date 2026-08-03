@@ -46,7 +46,9 @@ const cashOutPrizeFieldset = document.getElementById("cashOutPrizeFieldset");
 const PRIZE_SHELF_KEY = "whackABraillePrizeShelf";
 const roundLengthFieldset = document.getElementById("roundLengthFieldset");
 const trainingOptionsFieldset = document.getElementById("trainingOptionsFieldset");
+const wordModeOptionsFieldset = document.getElementById("wordModeOptionsFieldset");
 const speakBrailleDots = document.getElementById("speakBrailleDots");
+const spellWordCheckbox = document.getElementById("spellWordEnabled");
 const scoreText = document.getElementById("scoreText");
 const characterEchoCheckbox = document.getElementById("characterEcho");
 const timerMusicCheckbox = document.getElementById("timerMusicEnabled");
@@ -277,10 +279,10 @@ const moleChooserOptions = [
 	{ value: "typingHomeRow", label: "QWERTY Home Row", group: "typing" },
 	{ value: "typingHomeTopRow", label: "QWERTY Home Row + Top Row", group: "typing" },
 	{ value: "typingHomeBottomRow", label: "QWERTY Home Row + Bottom Row", group: "typing" },
-	{ value: "grade1ThreeLetterBlitz", label: "3-Letter Words", group: "word" },
-	{ value: "grade1FourLetterBlitz", label: "4-Letter Words", group: "word" },
+	{ value: "grade1ThreeLetterBlitz", label: "Grade 1 3-Letter Words", group: "word" },
+	{ value: "grade1FourLetterBlitz", label: "Grade 1 4-Letter Words", group: "word" },
 	{ value: "grade1MoleBlitz", label: "Grade 1 Mole Battle", group: "word" },
-	{ value: "wordyMoleMayhem", label: "Wordy Mole Mayhem", group: "word" },
+	{ value: "wordyMoleMayhem", label: "Grade 2 Wordy Mole Mayhem", group: "word" },
 	{ value: "letters-aj", label: "Grade 1 Letters A-J", group: "grade1" },
 	{ value: "letters-at", label: "Grade 1 Letters A-T", group: "grade1" },
 	{ value: "grade1Letters", label: "Letters only (Grade 1)", group: "grade1" },
@@ -626,7 +628,7 @@ function updateHomeCashInButton() {
 	homeCashInButton.textContent = `Cash In Tickets: ${totalTickets} Available`;
 }
 
-	function syncTrainingUI() {
+function syncTrainingUI() {
 	const difficulty = getSelectedDifficulty();
 	const isTraining = difficulty === "training";
 
@@ -640,6 +642,20 @@ function updateHomeCashInButton() {
 
 	if (!isTraining && speakBrailleDots) {
 		speakBrailleDots.checked = false;
+	}
+}
+
+function syncWordModeUI() {
+	const modeId = moleChooserSelect?.value || "grade1Letters";
+	const isWordSelection = isWordModeSelection(modeId);
+
+	if (wordModeOptionsFieldset) {
+		wordModeOptionsFieldset.hidden = !isWordSelection;
+		wordModeOptionsFieldset.disabled = !isWordSelection;
+	}
+
+	if (!isWordSelection && spellWordCheckbox) {
+		spellWordCheckbox.checked = false;
 	}
 }
 function percentToSpeechRate(percent) {
@@ -882,6 +898,10 @@ function isInvasionMode(modeId) {
 
 function isTypingOnlyMode(modeId) {
 	return modeId === "typingSimpleHomeRow" || modeId === "typingHomeRow" || modeId === "typingHomeTopRow" || modeId === "typingHomeBottomRow";
+}
+
+function isWordModeSelection(modeId) {
+	return isWordMode(modeId);
 }
 
 function getSelectedInputMode() {
@@ -1455,6 +1475,7 @@ function syncMoleChooserForInputMode() {
 	}
 
 	updateCustomMoleButtonState();
+	syncWordModeUI();
 }
 function applySettingsToUI(settings) {
 	if (!settings) return;
@@ -1522,6 +1543,10 @@ function applySettingsToUI(settings) {
 		speakBrailleDots.checked = settings.speakBrailleDots;
 	}
 
+	if (typeof settings.spellWordEnabled === "boolean" && spellWordCheckbox) {
+		spellWordCheckbox.checked = settings.spellWordEnabled;
+	}
+
 	if (typeof settings.timerMusicEnabled === "boolean" && timerMusicCheckbox) {
 		timerMusicCheckbox.checked = settings.timerMusicEnabled;
 	}
@@ -1561,6 +1586,7 @@ function getSelectedSettings() {
 		speechVolumePercent: Number(speechVolumePercentInput?.value) || 85,
 		difficulty: getSelectedDifficulty(),
 		speakBrailleDots: !!speakBrailleDots?.checked,
+		spellWordEnabled: !!spellWordCheckbox?.checked,
 		timerMusicEnabled: !!timerMusicCheckbox?.checked,
 		characterEcho: !!characterEchoCheckbox?.checked,
 		spatialMoleMappingEnabled: spatialMoleMappingCheckbox ? !!spatialMoleMappingCheckbox.checked : true
@@ -1600,6 +1626,7 @@ function beginRound(config) {
 			config.difficulty,
 			{
 				speakBrailleDots: config.speakBrailleDots,
+				spellWordEnabled: config.spellWordEnabled,
 				characterEcho: config.characterEcho,
 				timerMusicEnabled: config.timerMusicEnabled,
 				spatialMoleMappingEnabled: config.spatialMoleMappingEnabled,
@@ -1673,6 +1700,7 @@ function startGameFromSettings() {
 		characterEcho: settings.characterEcho,
 		timerMusicEnabled: settings.timerMusicEnabled,
 		spatialMoleMappingEnabled: settings.spatialMoleMappingEnabled,
+		spellWordEnabled: settings.spellWordEnabled,
 		customMolePlayMode: settings.customMolePlayMode,
 		customMoleIDs: settings.customMolePlayMode === "invasion"
 			? settings.customInvasionMoleIDs
@@ -1836,7 +1864,7 @@ document.addEventListener("keydown", e => {
 	});
 
 	document.querySelectorAll(
-		"input[name='difficulty'], input[name='roundTime'], input[name='inputMode'], input[name='gameAudio'], #speakBrailleDots, #timerMusicEnabled, #spatialMoleMappingEnabled, #moleChooserSelect"
+		"input[name='difficulty'], input[name='roundTime'], input[name='inputMode'], input[name='gameAudio'], #speakBrailleDots, #spellWordEnabled, #timerMusicEnabled, #spatialMoleMappingEnabled, #moleChooserSelect"
 ).forEach(el => {
 		el.addEventListener("change", () => {
 			saveGameSettings(getSelectedSettings());
@@ -1992,6 +2020,7 @@ if (cancelCashOutButton) {
 	if (moleChooserSelect) {
 		moleChooserSelect.addEventListener("change", () => {
 			syncInputModeUI();
+			syncWordModeUI();
 			updateCustomMoleButtonState();
 			saveGameSettings(getSelectedSettings());
 		});
@@ -2003,6 +2032,7 @@ if (cancelCashOutButton) {
 			syncInputModeUI();
 			syncDesktopBrailleDisplayUI();
 			normalizeCustomSelections(getSelectedInputMode());
+			syncWordModeUI();
 			saveGameSettings(getSelectedSettings());
 		});
 	});
