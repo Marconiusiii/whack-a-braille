@@ -18,13 +18,10 @@
 <p>By Marco Salsiccia</p>
 
 <details>
-<summary>Jun 29, 2026 Update Log</summary>
+<summary>Aug 2, 2026 Update Log</summary>
 <ul>
-<li>Made the end of Beginner mode much less frantic.</li>
-<li>Spaced out the round start timing so it matches the IOS experience. The starting music, announcement, and round will all start in sequence rather than all at once.</li>
-<li>Added in fun flavor text at the end of game or training rounds.</li>
-<li>Retuned the Retro sound hit noise.</li>
-<li>Made the prize fanfare more robust and silly at all prize tiers.</li>
+<li>Mole Battles and Wordy Mole Mayhem have been added! Choose these modes to type words and bonk multiple moles at once.</li>
+<li>Mole Recon and Training modes now work with the new word modes.</li>
 </ul>
 </details>
 
@@ -45,6 +42,8 @@
 <li>Mole Recon appears after a round when certain moles have been getting away with entirely too much. Use it to practice the troublemakers, or start a grudge match if they somehow all escaped justice.</li>
 <li>Enjoy your prizes on your Prize Shelf, which will persist every time you come back to the game until you clear the shelf.</li>
 <li>Custom Moles lets you hand-pick 5 favorite targets or assemble your own Invasion Army when certain moles have simply had it too good for too long.</li>
+<li>Mole Battle sends short words across the board. Spell them in order before the whole word ducks away.</li>
+<li>Wordy Mole Mayhem drops one full word right in the middle. Type the whole thing correctly before it escapes.</li>
 <li>Training Mode Difficulty: practice your typing or braille entry by whacking 15 moles without a timer. You don't get a score nor any tickets, but it's a great way to work on your skills before going into the main game. Training mode also has a Speak Braille Dots toggle in Game Settings, further helping you learn along the way. Training mode works with any Braille and Typing mode.</li>
 <li>For Jaws and NVDA users on Windows: be sure to enter Forms or Focus mode when the game starts.</li>
 <li>This game can be played with any standard or Bluetooth keyboard for both desktop and mobile.  External braille displays will require you to hit dot 8 or the space bar to whack the current mole after entering the chord.</li>
@@ -363,7 +362,9 @@
 <div role="text">
 <p>Total tickets: <span id="resultsTicketsTotalValue">0</span></p></div>
 <div role="text">
-<p>Hits: <span id="resultsHitsValue">0</span><span>, Misses: </span><span id="resultsMissesValue">0</span><span>, Escapes: </span><span id="resultsEscapesValue">0</span></p></div>
+<p><span id="resultsPrimaryCountLabel">Hits</span>: <span id="resultsHitsValue">0</span><span>, </span><span id="resultsSecondaryCountLabel">Misses</span><span>: </span><span id="resultsMissesValue">0</span><span>, </span><span id="resultsTertiaryCountLabel">Escapes</span><span>: </span><span id="resultsEscapesValue">0</span></p></div>
+<div role="text" id="resultsWordInputLine" hidden>
+<p><span id="resultsWordInputLabel">Letters typed</span>: <span id="resultsWordInputValue">0</span></p></div>
 </div>
 <div id="resultsActions">
 <button id="playAgainButton" type="button">Keep Whacking!</button>
@@ -434,7 +435,7 @@
 	</nav>
 
 	<p class="footer-copy small muted">
-		&copy;2026 Marco Salsiccia - v.1.10.5</p>
+		&copy;2026 Marco Salsiccia - v.1.11.0</p>
 </footer>
 
 <script type="module" src="scripts/app.js"></script>

@@ -13,6 +13,16 @@ import {
 import { speak, cancelSpeech } from "./speechEngine.js";
 import { computeMoleWindowMs, computeRoundEndGraceMs } from "./speechTuning.js";
 import { scoreToTickets } from "./ticketRules.js";
+import {
+	compactDotPatternText,
+	getBlitzItemsForMode,
+	getBlitzWordPan,
+	getWordLaneIndices,
+	getWordyMoleMayhemItems,
+	isGrade1BattleMode,
+	isWordMode,
+	isWordyMoleMayhemMode
+} from "./wordCatalogs.js";
 
 let moleElements = [];
 let characterEchoEnabled = false;
@@ -21,6 +31,11 @@ let availableItems = [];
 let roundItems = [];
 let roundLaneItems = [];
 let activeMoleItem = null;
+let activeWordItem = null;
+let activeWordLaneIndices = [];
+let activeWordLetterIndex = 0;
+let pendingWordyTextTokens = [];
+let pendingWordyPerkinsMasks = [];
 
 let activeMoleIndex = null;
 let activeMoleId = 0;
@@ -41,6 +56,7 @@ let escapesThisRound = 0;
 let streakBonusCount = 0;
 let speedHitCount = 0;
 let speedBonusTickets = 0;
+let lettersWhackedThisRound = 0;
 
 let roundTimer = null;
 let moleTimer = null;
@@ -59,6 +75,10 @@ let currentInputMode = "qwerty";
 let currentDurationSeconds = 30;
 let currentCustomMolePlayMode = "individual";
 let currentCustomMoleIDs = [];
+let currentCustomItems = [];
+let currentReconSourceModeId = "";
+let lastWordItemId = "";
+let spellWordEnabled = false;
 
 const startIntervalMs = 900;
 const endIntervalMs = 300;
@@ -101,10 +121,33 @@ function initGameLoop(options) {
 	moleElements = options.moleElements || [];
 }
 
+function getEffectiveModeId() {
+	if (currentModeId === "moleRecon" && currentReconSourceModeId) {
+		return currentReconSourceModeId;
+	}
+	return currentModeId;
+}
+
 function isInvasionMode(modeId) {
 	return modeId === "grade1Invasion" ||
 		modeId === "grade2Invasion" ||
 		(modeId === "customMoles" && currentCustomMolePlayMode === "invasion");
+}
+
+function isCurrentWordMode() {
+	return isWordMode(getEffectiveModeId()) || currentCustomItems.some(item => item?.kind === "blitzWord" || item?.kind === "wordyWord");
+}
+
+function isCurrentBlitzMode() {
+	const effectiveModeId = getEffectiveModeId();
+	if (isGrade1BattleMode(effectiveModeId)) return true;
+	return currentModeId === "moleRecon" && currentCustomItems.some(item => item?.kind === "blitzWord");
+}
+
+function isCurrentWordyMode() {
+	const effectiveModeId = getEffectiveModeId();
+	if (isWordyMoleMayhemMode(effectiveModeId)) return true;
+	return currentModeId === "moleRecon" && currentCustomItems.some(item => item?.kind === "wordyWord");
 }
 
 function isSpatialMappingEligibleMode(modeId) {
@@ -201,12 +244,16 @@ function startRound(modeId, durationSeconds, inputMode, difficulty = "normal", o
 	streakBonusCount = 0;
 	speedHitCount = 0;
 	speedBonusTickets = 0;
+	lettersWhackedThisRound = 0;
 
 	currentModeId = modeId;
 	currentDurationSeconds = durationSeconds;
 	currentInputMode = inputMode;
 	currentCustomMolePlayMode = options.customMolePlayMode === "invasion" ? "invasion" : "individual";
 	currentCustomMoleIDs = Array.isArray(options.customMoleIDs) ? options.customMoleIDs.slice() : [];
+	currentCustomItems = Array.isArray(options.customItems) ? options.customItems.slice() : [];
+	currentReconSourceModeId = typeof options.reconSourceModeId === "string" ? options.reconSourceModeId : "";
+	spellWordEnabled = !!options.spellWordEnabled;
 
 	isTrainingMode = difficulty === "training";
 	speakBrailleDotsEnabled = !!options.speakBrailleDots && isTrainingMode;
@@ -219,13 +266,15 @@ function startRound(modeId, durationSeconds, inputMode, difficulty = "normal", o
 	shownMoleReconItemIDs = new Set();
 	lastLaneIndex = null;
 	sameLaneRunCount = 0;
+	lastWordItemId = "";
+	clearWordState();
 
 	difficultyMultiplier = DIFFICULTY_MULTIPLIERS[difficulty] ?? 1.0;
 
 	roundDurationMs = durationSeconds * 1000;
 	availableItems = getItemsForRoundMode(modeId, inputMode);
-	roundItems = pickRoundItems(modeId, availableItems, spatialMoleMappingEnabled);
-	roundLaneItems = buildRoundLaneItems(modeId, roundItems, spatialMoleMappingEnabled);
+	roundItems = isCurrentWordMode() ? [] : pickRoundItems(modeId, availableItems, spatialMoleMappingEnabled);
+	roundLaneItems = isCurrentWordMode() ? Array.from({ length: 5 }, () => null) : buildRoundLaneItems(modeId, roundItems, spatialMoleMappingEnabled);
 
 	isRunning = true;
 	roundEnding = false;
@@ -269,6 +318,22 @@ function stopRound() {
 }
 
 function getItemsForRoundMode(modeId, inputMode) {
+	const effectiveModeId = modeId === "moleRecon" && currentReconSourceModeId
+		? currentReconSourceModeId
+		: modeId;
+
+	if (modeId === "moleRecon" && currentCustomItems.length) {
+		return currentCustomItems.slice();
+	}
+
+	if (isGrade1BattleMode(effectiveModeId)) {
+		return getBlitzItemsForMode(effectiveModeId);
+	}
+
+	if (isWordyMoleMayhemMode(effectiveModeId)) {
+		return getWordyMoleMayhemItems();
+	}
+
 	if (modeId === "moleRecon") {
 		const selectedItems = getCustomMoleItemsByIds(currentCustomMoleIDs, inputMode);
 		return selectedItems.length ? selectedItems : getCustomMoleItemsForInputMode(inputMode).slice(0, 5);
@@ -309,6 +374,23 @@ function requestRoundEnd() {
 	}, graceMs);
 }
 
+function getTicketMultiplierForMode(modeId) {
+	switch (modeId) {
+		case "grade1ThreeLetterBlitz":
+			return 1.2;
+		case "grade1FourLetterBlitz":
+			return 1.3;
+		case "grade1MoleBlitz":
+			return 1.4;
+		case "grade2Invasion":
+			return 1.5;
+		case "wordyMoleMayhem":
+			return 1.8;
+		default:
+			return 1;
+	}
+}
+
 function endRoundNow(canceled) {
 	if (!isRunning) return;
 
@@ -323,19 +405,20 @@ function endRoundNow(canceled) {
 	moleTimer = null;
 	moleUpTimer = null;
 
-	clearActiveMole();
+	clearActivePresentation();
 	setCurrentMoleId(0);
 
 	setAttemptCallback(null);
 
 	if (canceled) cancelSpeech();
 
+	const effectiveModeId = getEffectiveModeId();
 	let baseTickets = scoreToTickets(score);
 	let streakBonusTickets = streakBonusCount;
 	let speedTickets = speedBonusTickets;
-
-	if (currentModeId === "grade2Invasion") {
-		baseTickets = Math.round(baseTickets * 1.5);
+	const ticketMultiplier = getTicketMultiplierForMode(effectiveModeId);
+	if (ticketMultiplier !== 1) {
+		baseTickets = Math.round(baseTickets * ticketMultiplier);
 	}
 
 	if (isTrainingMode) {
@@ -352,6 +435,8 @@ function endRoundNow(canceled) {
 	document.dispatchEvent(new CustomEvent("wabRoundEnded", {
 		detail: {
 			modeId: currentModeId,
+			resultsModeId: effectiveModeId,
+			reconSourceModeId: currentReconSourceModeId,
 			inputMode: currentInputMode,
 			durationSeconds: currentDurationSeconds,
 			isTraining: isTrainingMode,
@@ -361,6 +446,7 @@ function endRoundNow(canceled) {
 			hits: hitsThisRound,
 			misses: missesThisRound,
 			escapes: escapesThisRound,
+			lettersWhacked: lettersWhackedThisRound,
 			streakBonusCount,
 			canceled: !!canceled,
 			moleReconItems: reconItems,
@@ -435,6 +521,10 @@ function scheduleNextMole(extraDelayMs = 0) {
 
 	clearTimeout(moleTimer);
 	moleTimer = setTimeout(() => {
+		if (isCurrentWordMode()) {
+			void showWordTarget(false);
+			return;
+		}
 		void showRandomMole();
 	}, delay);
 }
@@ -451,6 +541,10 @@ function scheduleNextTrainingMole(extraDelayMs = 0) {
 
 	clearTimeout(moleTimer);
 	moleTimer = setTimeout(() => {
+		if (isCurrentWordMode()) {
+			void showWordTarget(true);
+			return;
+		}
 		void showTrainingMole();
 	}, delay);
 }
@@ -497,12 +591,30 @@ function buildAnnounceText(item) {
 	return text;
 }
 
+function buildWordAnnounceText(item) {
+	if (!item) return "";
+	const parts = [item.announceText];
+
+	if (spellWordEnabled && Array.isArray(item.letters) && item.letters.length) {
+		parts.push(item.letters.map(letter => letter.toUpperCase()).join(" "));
+	}
+
+	if (isTrainingMode && speakBrailleDotsEnabled) {
+		const dotsText = compactDotPatternText(item.perkinsSequenceDots);
+		if (dotsText) {
+			parts.push(dotsText);
+		}
+	}
+
+	return parts.filter(Boolean).join(", ");
+}
+
 async function showTrainingMole() {
 	if (!isRunning || roundEnding) return;
 
-	clearActiveMole();
+	clearActivePresentation();
 
-	activeMoleId++;
+	activeMoleId += 1;
 	missRegisteredForMole = false;
 	activePerkinsSequenceIndex = 0;
 
@@ -511,7 +623,7 @@ async function showTrainingMole() {
 	activeMoleItem = nextMole.item;
 	const moleItem = activeMoleItem;
 	if (!moleItem) {
-		clearActiveMole();
+		clearActivePresentation();
 		setCurrentMoleId(0);
 		scheduleNextTrainingMole(0);
 		return;
@@ -552,9 +664,9 @@ async function showTrainingMole() {
 async function showRandomMole() {
 	if (!isRunning || roundEnding) return;
 
-	clearActiveMole();
+	clearActivePresentation();
 
-	activeMoleId++;
+	activeMoleId += 1;
 	missRegisteredForMole = false;
 	activePerkinsSequenceIndex = 0;
 
@@ -563,7 +675,7 @@ async function showRandomMole() {
 	activeMoleItem = nextMole.item;
 	const moleItem = activeMoleItem;
 	if (!moleItem) {
-		clearActiveMole();
+		clearActivePresentation();
 		setCurrentMoleId(0);
 		scheduleNextMole(0);
 		return;
@@ -622,7 +734,7 @@ async function showRandomMole() {
 
 		playRetreatSound(activeMoleIndex);
 
-		clearActiveMole();
+		clearActivePresentation();
 		setCurrentMoleId(0);
 		scheduleNextMole(0);
 	}, upTime);
@@ -721,12 +833,38 @@ function pickNextMole() {
 	return { index, item: roundLaneItems[index] };
 }
 
+function clearWordState() {
+	activeWordItem = null;
+	activeWordLaneIndices = [];
+	activeWordLetterIndex = 0;
+	pendingWordyTextTokens = [];
+	pendingWordyPerkinsMasks = [];
+}
+
+function clearActiveWord() {
+	for (const laneIndex of activeWordLaneIndices) {
+		deactivateMoleVisual(laneIndex);
+	}
+	clearWordState();
+	activeMoleIndex = null;
+	activeMoleItem = null;
+	activePerkinsSequenceIndex = 0;
+}
+
 function clearActiveMole() {
 	activePerkinsSequenceIndex = 0;
 	if (activeMoleIndex === null) return;
 	deactivateMoleVisual(activeMoleIndex);
 	activeMoleIndex = null;
 	activeMoleItem = null;
+}
+
+function clearActivePresentation() {
+	if (activeWordItem) {
+		clearActiveWord();
+		return;
+	}
+	clearActiveMole();
 }
 
 function recordMoleReconItem(item) {
@@ -741,13 +879,12 @@ function recordShownMoleReconItem(item) {
 	shownMoleReconItems.push(item);
 }
 
-function activateMoleVisual(index) {
+function activateMoleVisual(index, label = null) {
 	const mole = moleElements[index];
 	if (!mole) return;
 
 	const item = activeMoleIndex === index ? activeMoleItem : roundLaneItems[index];
-
-	mole.dataset.label = item?.id || "";
+	mole.dataset.label = label ?? (item?.id || "");
 	mole.classList.add("isUp");
 }
 
@@ -759,13 +896,229 @@ function deactivateMoleVisual(index) {
 	delete mole.dataset.label;
 }
 
+function pickNextWordItem() {
+	if (!Array.isArray(availableItems) || !availableItems.length) {
+		return null;
+	}
+
+	if (availableItems.length === 1) {
+		lastWordItemId = availableItems[0].id || "";
+		return availableItems[0];
+	}
+
+	let candidates = availableItems;
+	if (lastWordItemId) {
+		const filtered = availableItems.filter(item => item?.id !== lastWordItemId);
+		if (filtered.length) {
+			candidates = filtered;
+		}
+	}
+
+	const item = candidates[Math.floor(Math.random() * candidates.length)] || null;
+	if (item?.id) {
+		lastWordItemId = item.id;
+	}
+	return item;
+}
+
+function showBlitzWordVisual(wordItem) {
+	const laneIndices = getWordLaneIndices(wordItem.letters.length);
+	activeWordLaneIndices = laneIndices;
+	activeMoleIndex = laneIndices[0] ?? 2;
+	for (let i = 0; i < laneIndices.length; i++) {
+		activateMoleVisual(laneIndices[i], wordItem.letters[i] || "");
+		playMolePopSound(laneIndices[i]);
+	}
+}
+
+function showWordyVisual(wordItem) {
+	const laneIndex = 2;
+	activeWordLaneIndices = [laneIndex];
+	activeMoleIndex = laneIndex;
+	activateMoleVisual(laneIndex, wordItem.displayLabel || wordItem.text || "");
+	playMolePopSound(laneIndex);
+}
+
+function currentBlitzLaneIndex() {
+	return activeWordLaneIndices[activeWordLetterIndex] ?? activeWordLaneIndices[activeWordLaneIndices.length - 1] ?? 2;
+}
+
+function currentWordAudioLane() {
+	if (isCurrentBlitzMode()) {
+		return currentBlitzLaneIndex();
+	}
+	return activeWordLaneIndices[0] ?? 2;
+}
+
+function computeBlitzWindowMs(wordItem, speechResult) {
+	const perLetterMsByInputMode = {
+		qwerty: 540,
+		perkins: 760,
+		brailleDisplay: 860
+	};
+	const perLetterMs = perLetterMsByInputMode[currentInputMode] ?? 760;
+	const speechDurationMs = getSpeechDurationMs(speechResult);
+	const entryTimeMs = perLetterMs * wordItem.letters.length * difficultyMultiplier;
+	const minimumMs = 2400;
+	const maximumMs = 8000;
+	return Math.min(Math.max(speechDurationMs + entryTimeMs + 450, minimumMs), maximumMs);
+}
+
+function computeWordyWindowMs(wordItem, speechResult) {
+	const perLetterMsByInputMode = {
+		qwerty: 520,
+		perkins: 720,
+		brailleDisplay: 780
+	};
+	const perLetterMs = perLetterMsByInputMode[currentInputMode] ?? 720;
+	const speechDurationMs = getSpeechDurationMs(speechResult);
+	const entryTimeMs = perLetterMs * wordItem.letters.length * difficultyMultiplier;
+	const minimumMs = 4000;
+	const maximumMs = 14000;
+	return Math.min(Math.max(speechDurationMs + entryTimeMs + 600, minimumMs), maximumMs);
+}
+
+function getSpeechDurationMs(speechResult) {
+	const startedAt = Number(speechResult?.onstartAtMs ?? speechResult?.startedAtMs ?? speechResult?.startedAt);
+	const endedAt = Number(speechResult?.endedAtMs ?? speechResult?.endedAt);
+	if (Number.isFinite(startedAt) && Number.isFinite(endedAt) && endedAt > startedAt) {
+		return endedAt - startedAt;
+	}
+	return 400;
+}
+
+async function showWordTarget(trainingOnly) {
+	if (!isRunning || roundEnding) return;
+
+	clearActivePresentation();
+
+	activeMoleId += 1;
+	missRegisteredForMole = false;
+	activePerkinsSequenceIndex = 0;
+	clearWordState();
+
+	const wordItem = pickNextWordItem();
+	activeWordItem = wordItem;
+	activeMoleItem = wordItem;
+	if (!wordItem) {
+		setCurrentMoleId(0);
+		if (trainingOnly) {
+			scheduleNextTrainingMole(0);
+		} else {
+			scheduleNextMole(0);
+		}
+		return;
+	}
+
+	if (!trainingOnly) {
+		recordShownMoleReconItem(wordItem);
+	}
+
+	const thisMoleId = activeMoleId;
+	setCurrentMoleId(thisMoleId);
+
+	const announceText = buildWordAnnounceText(wordItem);
+	const speechPromise = speak(announceText, {
+		timeoutMs: 600,
+		cancelPrevious: true,
+		dedupe: false
+	});
+
+	activeMoleUpTimeMs = trainingOnly ? 0 : getCurrentUpTime();
+
+	setTimeout(() => {
+		if (!isRunning || roundEnding) return;
+		if (thisMoleId !== activeMoleId) return;
+		activeMoleShownAtMs = performance.now();
+		if (isCurrentBlitzMode()) {
+			showBlitzWordVisual(wordItem);
+		} else {
+			showWordyVisual(wordItem);
+		}
+	}, 80);
+
+	const speechResult = await speechPromise;
+
+	if (!isRunning || roundEnding) return;
+	if (thisMoleId !== activeMoleId) return;
+	if (trainingOnly) {
+		clearTimeout(moleUpTimer);
+		moleUpTimer = null;
+		return;
+	}
+
+	const upTime = isCurrentBlitzMode()
+		? computeBlitzWindowMs(wordItem, speechResult)
+		: computeWordyWindowMs(wordItem, speechResult);
+	activeMoleUpTimeMs = upTime;
+
+	clearTimeout(moleUpTimer);
+	moleUpTimer = setTimeout(() => {
+		if (!isRunning || roundEnding) return;
+		if (thisMoleId !== activeMoleId) return;
+		handleWordEscape();
+	}, upTime);
+}
+
+function handleWordEscape() {
+	escapesThisRound += 1;
+	recordMoleReconItem(activeWordItem);
+	hitStreak = 0;
+
+	if (isCurrentBlitzMode()) {
+		const remainingLanes = activeWordLaneIndices.slice(activeWordLetterIndex);
+		for (let i = 0; i < remainingLanes.length; i++) {
+			const laneIndex = remainingLanes[i];
+			const mole = moleElements[laneIndex];
+			if (mole) {
+				mole.classList.add("isMiss");
+			}
+			playRetreatSound(laneIndex);
+		}
+	} else {
+		const laneIndex = currentWordAudioLane();
+		const mole = moleElements[laneIndex];
+		if (mole) {
+			mole.classList.add("isMiss");
+		}
+		playRetreatSound(laneIndex);
+	}
+
+	clearActivePresentation();
+	setCurrentMoleId(0);
+	scheduleNextMole(0);
+}
+
+function normalizeAttemptLetters(text) {
+	return String(text || "")
+		.toLowerCase()
+		.replace(/[^a-z]/g, "");
+}
+
+function sequenceStartsWith(sequence, prefix) {
+	if (!Array.isArray(sequence) || !Array.isArray(prefix) || prefix.length > sequence.length) {
+		return false;
+	}
+	for (let i = 0; i < prefix.length; i++) {
+		if (sequence[i] !== prefix[i]) {
+			return false;
+		}
+	}
+	return true;
+}
+
 function handleAttempt(attempt) {
 	if (!isRunning || roundEnding) return;
 	if (attempt?.key === "`") return;
-	if (activeMoleIndex === null) return;
 	if (attempt.moleId !== activeMoleId) return;
-
 	if (currentInputMode === "perkins" && attempt.type === "standard") return;
+
+	if (isCurrentWordMode()) {
+		handleWordAttempt(attempt);
+		return;
+	}
+
+	if (activeMoleIndex === null) return;
 
 	const currentItem = activeMoleItem;
 	if (!currentItem) return;
@@ -818,6 +1171,225 @@ function handleAttempt(attempt) {
 	handleMiss();
 }
 
+function handleWordAttempt(attempt) {
+	if (!activeWordItem) return;
+	if (isCurrentBlitzMode()) {
+		handleBlitzAttempt(attempt);
+		return;
+	}
+	if (isCurrentWordyMode()) {
+		handleWordyAttempt(attempt);
+	}
+}
+
+function handleBlitzAttempt(attempt) {
+	if (!activeWordItem) return;
+
+	if (attempt.type === "perkins") {
+		const expectedMask = activeWordItem.perkinsSequenceMasks[activeWordLetterIndex];
+		if (attempt.dotMask === expectedMask) {
+			handleBlitzLetterHit(true);
+			return;
+		}
+		handleBlitzMiss();
+		return;
+	}
+
+	let submittedLetters = "";
+	if (attempt.type === "standard") {
+		submittedLetters = normalizeAttemptLetters(attempt.key);
+	} else if (attempt.type === "brailleText") {
+		submittedLetters = normalizeAttemptLetters(attempt.char);
+	}
+
+	if (!submittedLetters) {
+		handleBlitzMiss();
+		return;
+	}
+
+	const remaining = activeWordItem.letters.slice(activeWordLetterIndex, activeWordLetterIndex + submittedLetters.length).join("");
+	if (submittedLetters !== remaining) {
+		handleBlitzMiss();
+		return;
+	}
+
+	const groupedSound = submittedLetters.length > 1;
+	for (let i = 0; i < submittedLetters.length; i++) {
+		handleBlitzLetterHit(!groupedSound);
+	}
+	if (groupedSound) {
+		playHitSound(score, currentBlitzLaneIndex());
+	}
+}
+
+function handleBlitzLetterHit(playSound) {
+	const laneIndex = activeWordLaneIndices[activeWordLetterIndex] ?? currentWordAudioLane();
+	const mole = moleElements[laneIndex];
+	if (mole) {
+		mole.classList.add("isHit");
+	}
+	if (playSound) {
+		playHitSound(score, laneIndex);
+	}
+	lettersWhackedThisRound += 1;
+	if (!isTrainingMode) {
+		score += 10;
+		dispatchScoreUpdated();
+	}
+	activeWordLetterIndex += 1;
+	deactivateMoleVisual(laneIndex);
+
+	if (activeWordLetterIndex >= activeWordItem.letters.length) {
+		handleBlitzWordCompleted();
+	}
+}
+
+function handleBlitzWordCompleted() {
+	clearTimeout(moleUpTimer);
+	moleUpTimer = null;
+	missRegisteredForMole = true;
+	setCurrentMoleId(0);
+
+	if (isTrainingMode) {
+		hitsThisRound += 1;
+		trainingMolesCompleted += 1;
+		clearActivePresentation();
+		scheduleNextTrainingMole(TRAINING_POST_HIT_DELAY_MS);
+		return;
+	}
+
+	hitsThisRound += 1;
+	hitStreak += 1;
+	applyStreakAndSpeedBonuses();
+	clearActivePresentation();
+	scheduleNextMole(0);
+}
+
+function handleBlitzMiss() {
+	if (isTrainingMode) {
+		handleTrainingMiss(currentWordAudioLane());
+		return;
+	}
+	if (missRegisteredForMole) return;
+	missRegisteredForMole = true;
+	missesThisRound += 1;
+	recordMoleReconItem(activeWordItem);
+	hitStreak = 0;
+	score = Math.max(0, score - 2);
+	playMissSound(currentWordAudioLane());
+	dispatchScoreUpdated();
+}
+
+function handleWordyAttempt(attempt) {
+	if (!activeWordItem) return;
+
+	if (attempt.type === "perkins") {
+		const updated = pendingWordyPerkinsMasks.concat(attempt.dotMask);
+		const acceptedSequences = Array.isArray(activeWordItem.acceptedPerkinsSequences)
+			? activeWordItem.acceptedPerkinsSequences
+			: [activeWordItem.perkinsSequenceMasks || []];
+		const isComplete = acceptedSequences.some(sequence => sequence.length === updated.length && sequenceStartsWith(sequence, updated));
+		const isPrefix = acceptedSequences.some(sequence => sequenceStartsWith(sequence, updated));
+		if (isComplete) {
+			pendingWordyPerkinsMasks = [];
+			handleWordyCompleted();
+			return;
+		}
+		if (isPrefix) {
+			pendingWordyPerkinsMasks = updated;
+			return;
+		}
+		pendingWordyPerkinsMasks = [];
+		handleWordyMiss();
+		return;
+	}
+
+	let submittedLetters = "";
+	if (attempt.type === "standard") {
+		submittedLetters = normalizeAttemptLetters(attempt.key);
+	} else if (attempt.type === "brailleText") {
+		submittedLetters = normalizeAttemptLetters(attempt.char);
+	}
+	if (!submittedLetters) {
+		handleWordyMiss();
+		return;
+	}
+
+	const updatedTokens = pendingWordyTextTokens.concat(submittedLetters.split(""));
+	const expectedPrefix = activeWordItem.letters.slice(0, updatedTokens.length).join("");
+	const submittedPrefix = updatedTokens.join("");
+	if (submittedPrefix === expectedPrefix && updatedTokens.length === activeWordItem.letters.length) {
+		pendingWordyTextTokens = [];
+		handleWordyCompleted();
+		return;
+	}
+	if (submittedPrefix === expectedPrefix) {
+		pendingWordyTextTokens = updatedTokens;
+		return;
+	}
+	pendingWordyTextTokens = [];
+	handleWordyMiss();
+}
+
+function handleWordyCompleted() {
+	clearTimeout(moleUpTimer);
+	moleUpTimer = null;
+	missRegisteredForMole = true;
+	const laneIndex = currentWordAudioLane();
+	playHitSound(score, laneIndex);
+	lettersWhackedThisRound += activeWordItem.letters.length;
+	setCurrentMoleId(0);
+
+	if (isTrainingMode) {
+		hitsThisRound += 1;
+		trainingMolesCompleted += 1;
+		clearActivePresentation();
+		scheduleNextTrainingMole(TRAINING_POST_HIT_DELAY_MS);
+		return;
+	}
+
+	hitsThisRound += 1;
+	hitStreak += 1;
+	score += 10 + (activeWordItem.letters.length * 2);
+	applyStreakAndSpeedBonuses();
+	dispatchScoreUpdated();
+	clearActivePresentation();
+	scheduleNextMole(0);
+}
+
+function applyStreakAndSpeedBonuses() {
+	if (hitStreak % 5 === 0) {
+		score += 10;
+		streakBonusCount += 1;
+	}
+	const nowMs = performance.now();
+	const reactionMs = nowMs - activeMoleShownAtMs;
+	const speedThresholdMs = activeMoleUpTimeMs * 0.55;
+	if (reactionMs <= speedThresholdMs) {
+		speedHitCount += 1;
+		if (speedHitCount % 3 === 0 && speedBonusTickets < 5) {
+			speedBonusTickets += 1;
+		}
+	}
+}
+
+function handleWordyMiss() {
+	pendingWordyTextTokens = [];
+	pendingWordyPerkinsMasks = [];
+	if (isTrainingMode) {
+		handleTrainingMiss(currentWordAudioLane());
+		return;
+	}
+	if (missRegisteredForMole) return;
+	missRegisteredForMole = true;
+	missesThisRound += 1;
+	recordMoleReconItem(activeWordItem);
+	hitStreak = 0;
+	score = Math.max(0, score - 2);
+	playMissSound(currentWordAudioLane());
+	dispatchScoreUpdated();
+}
+
 function handleHit() {
 	if (isTrainingMode) {
 		playHitSound(0, activeMoleIndex);
@@ -835,7 +1407,7 @@ function handleHit() {
 
 		missRegisteredForMole = true;
 
-		clearActiveMole();
+		clearActivePresentation();
 		setCurrentMoleId(0);
 
 		scheduleNextTrainingMole(TRAINING_POST_HIT_DELAY_MS);
@@ -876,24 +1448,17 @@ function handleHit() {
 
 	missRegisteredForMole = true;
 
-	clearActiveMole();
+	clearActivePresentation();
 	setCurrentMoleId(0);
 	scheduleNextMole(0);
-
-	document.dispatchEvent(new CustomEvent("wabScoreUpdated", {
-		detail: {
-			score,
-			hitStreak
-		}
-	}));
+	dispatchScoreUpdated();
 }
 
-function handleTrainingMiss() {
+function handleTrainingMiss(laneIndex = activeMoleIndex) {
 	const now = performance.now();
 	if (now - lastTrainingMissAtMs < 200) return;
 	lastTrainingMissAtMs = now;
-
-	playMissSound(activeMoleIndex);
+	playMissSound(laneIndex ?? 2);
 }
 
 function handleMiss() {
@@ -903,57 +1468,30 @@ function handleMiss() {
 	score = Math.max(0, score - 2);
 
 	playMissSound(activeMoleIndex);
+	dispatchScoreUpdated();
+}
 
+function dispatchScoreUpdated() {
 	document.dispatchEvent(new CustomEvent("wabScoreUpdated", {
 		detail: {
 			score,
-			hitStreak
+			hitStreak,
+			lettersWhacked: lettersWhackedThisRound
 		}
 	}));
 }
+
 function getCurrentSpeechPayload() {
+	if (activeWordItem) {
+		return { text: buildWordAnnounceText(activeWordItem) };
+	}
+
 	if (activeMoleIndex === null) return null;
 
 	const item = activeMoleItem;
 	if (!item) return null;
 
-	let text = item.announceText;
-
-	const isGrade1 =
-		item.modeTags &&
-		item.modeTags.includes("grade1Letters");
-
-	if (isGrade1 && characterEchoEnabled && item.nato) {
-		text += ", " + item.nato;
-	}
-
-	if (isTrainingMode && speakBrailleDotsEnabled) {
-		const perkinsSequenceDots = Array.isArray(item.perkinsSequenceDots) && item.perkinsSequenceDots.length
-			? item.perkinsSequenceDots
-			: [Array.isArray(item.dots) ? item.dots : []];
-
-		if (perkinsSequenceDots.length === 1) {
-			const dots = perkinsSequenceDots[0];
-			if (dots.length === 1) {
-				text += ", Dot " + dots[0];
-			} else if (dots.length > 1) {
-				text += ", Dots " + dots.join(" ");
-			}
-		} else {
-			const parts = perkinsSequenceDots
-				.map(dots => {
-					if (dots.length === 1) return "Dot " + dots[0];
-					if (dots.length > 1) return "Dots " + dots.join(" ");
-					return "";
-				})
-				.filter(Boolean);
-			if (parts.length) {
-				text += ", " + parts.join(", then ");
-			}
-		}
-	}
-
-	return { text };
+	return { text: buildAnnounceText(item) };
 }
 
 function getPerkinsSequenceMasks(item) {

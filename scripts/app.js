@@ -23,6 +23,12 @@ import {
 	grade2Dot456Initials,
 	getCustomMoleSectionsForInputMode
 } from "./brailleRegistry.js";
+import {
+	isGrade1BattleMode,
+	isWordMode,
+	isWordyMoleMayhemMode,
+	pickWordModeIntroPhrase
+} from "./wordCatalogs.js";
 import { prizeCatalog } from "./prizeCatalog.js";
 import { scoreToTickets } from "./ticketRules.js";
 
@@ -115,6 +121,12 @@ const resultsScoreValue = document.getElementById("resultsScoreValue");
 const resultsTicketsRoundValue = document.getElementById("resultsTicketsRoundValue");
 const resultsTicketsTotalValue = document.getElementById("resultsTicketsTotalValue");
 const resultsHitsValue = document.getElementById("resultsHitsValue");
+const resultsPrimaryCountLabel = document.getElementById("resultsPrimaryCountLabel");
+const resultsSecondaryCountLabel = document.getElementById("resultsSecondaryCountLabel");
+const resultsTertiaryCountLabel = document.getElementById("resultsTertiaryCountLabel");
+const resultsWordInputLine = document.getElementById("resultsWordInputLine");
+const resultsWordInputLabel = document.getElementById("resultsWordInputLabel");
+const resultsWordInputValue = document.getElementById("resultsWordInputValue");
 const resultsMissesValue = document.getElementById("resultsMissesValue");
 const resultsEscapesValue = document.getElementById("resultsEscapesValue");
 const resultsStreakBonusValue = document.getElementById('resultsStreakBonusValue');
@@ -265,6 +277,10 @@ const moleChooserOptions = [
 	{ value: "typingHomeRow", label: "QWERTY Home Row", group: "typing" },
 	{ value: "typingHomeTopRow", label: "QWERTY Home Row + Top Row", group: "typing" },
 	{ value: "typingHomeBottomRow", label: "QWERTY Home Row + Bottom Row", group: "typing" },
+	{ value: "grade1ThreeLetterBlitz", label: "3-Letter Words", group: "word" },
+	{ value: "grade1FourLetterBlitz", label: "4-Letter Words", group: "word" },
+	{ value: "grade1MoleBlitz", label: "Grade 1 Mole Battle", group: "word" },
+	{ value: "wordyMoleMayhem", label: "Wordy Mole Mayhem", group: "word" },
 	{ value: "letters-aj", label: "Grade 1 Letters A-J", group: "grade1" },
 	{ value: "letters-at", label: "Grade 1 Letters A-T", group: "grade1" },
 	{ value: "grade1Letters", label: "Letters only (Grade 1)", group: "grade1" },
@@ -1152,6 +1168,7 @@ function closeMoleReconDialog(returnFocus = true) {
 function beginMoleReconRound(items) {
 	const selectedItems = getFilteredMoleReconItems(items);
 	if (!selectedItems.length) return;
+	const reconSourceModeId = selectedItems[0]?.sourceModeId || "";
 
 	const roundConfig = {
 		modeId: "moleRecon",
@@ -1164,6 +1181,8 @@ function beginMoleReconRound(items) {
 		spatialMoleMappingEnabled: false,
 		customMolePlayMode: "individual",
 		customMoleIDs: selectedItems.map(item => item.id),
+		customItems: selectedItems,
+		reconSourceModeId,
 		openingAnnouncement: "Training round."
 	};
 
@@ -1532,7 +1551,8 @@ function beginRound(config) {
 	unlockSpeech();
 	lastRoundStartConfig = {
 		...config,
-		customMoleIDs: Array.isArray(config.customMoleIDs) ? config.customMoleIDs.slice() : []
+		customMoleIDs: Array.isArray(config.customMoleIDs) ? config.customMoleIDs.slice() : [],
+		customItems: Array.isArray(config.customItems) ? config.customItems.slice() : []
 	};
 
 	const isTraining = config.difficulty === "training";
@@ -1563,7 +1583,9 @@ function beginRound(config) {
 				timerMusicEnabled: config.timerMusicEnabled,
 				spatialMoleMappingEnabled: config.spatialMoleMappingEnabled,
 				customMolePlayMode: config.customMolePlayMode,
-				customMoleIDs: config.customMoleIDs
+				customMoleIDs: config.customMoleIDs,
+				customItems: config.customItems,
+				reconSourceModeId: config.reconSourceModeId
 			}
 		);
 	};
@@ -1612,8 +1634,11 @@ function beginRound(config) {
 function startGameFromSettings() {
 	const settings = getSelectedSettings();
 	const invasionModeActive = isInvasionMode(settings.brailleMode);
+	const wordModeActive = isWordMode(settings.brailleMode);
 	const openingAnnouncement = settings.difficulty === "training"
 		? "Training round."
+		: wordModeActive
+			? pickWordModeIntroPhrase(settings.brailleMode)
 		: invasionModeActive
 			? pickInvasionIntroPhrase()
 			: "Ready?";
@@ -1968,11 +1993,13 @@ if (cancelCashOutButton) {
 	const detail = e.detail || {};
 	lastRoundResultDetail = detail;
 	const isTraining = !!detail.isTraining;
+	const resultsModeId = detail.resultsModeId || detail.reconSourceModeId || detail.modeId || "";
 
 	const score = Number.isFinite(detail.score) ? detail.score : 0;
 	const hits = Number.isFinite(detail.hits) ? detail.hits : 0;
 	const misses = Number.isFinite(detail.misses) ? detail.misses : 0;
 	const escapes = Number.isFinite(detail.escapes) ? detail.escapes : 0;
+	const lettersWhacked = Number.isFinite(detail.lettersWhacked) ? detail.lettersWhacked : 0;
 
 	const ticketBreakdown = detail.tickets || null;
 	moleReconUsesAllShown = detail.usesAllShownMolesForRecon === true;
@@ -2002,6 +2029,24 @@ if (cancelCashOutButton) {
 	if (resultsHitsValue) resultsHitsValue.textContent = String(hits);
 	if (resultsMissesValue) resultsMissesValue.textContent = String(misses);
 	if (resultsEscapesValue) resultsEscapesValue.textContent = String(escapes);
+	if (resultsWordInputValue) resultsWordInputValue.textContent = String(lettersWhacked);
+
+	const isBattleMode = isGrade1BattleMode(resultsModeId);
+	const isMayhemMode = isWordyMoleMayhemMode(resultsModeId);
+	const isAnyWordMode = isBattleMode || isMayhemMode;
+
+	if (resultsPrimaryCountLabel) {
+		resultsPrimaryCountLabel.textContent = isAnyWordMode ? "Words completed" : "Hits";
+	}
+	if (resultsSecondaryCountLabel) {
+		resultsSecondaryCountLabel.textContent = "Misses";
+	}
+	if (resultsTertiaryCountLabel) {
+		resultsTertiaryCountLabel.textContent = "Escapes";
+	}
+	if (resultsWordInputLabel) {
+		resultsWordInputLabel.textContent = isBattleMode ? "Letters whacked" : "Letters typed";
+	}
 
 	if (playAgainButton) {
 		playAgainButton.textContent = isTraining ? "Keep Training!" : "Keep Whacking!";
@@ -2037,6 +2082,7 @@ if (cancelCashOutButton) {
 	setLineHidden(resultsHitsValue, isTraining);
 	setLineHidden(resultsMissesValue, isTraining);
 	setLineHidden(resultsEscapesValue, isTraining);
+	setLineHidden(resultsWordInputValue, isTraining || !isAnyWordMode);
 
 	if (resultsHeading) {
 		resultsHeading.textContent = isTraining ? "Training Complete! Great Work!" : "Results";
