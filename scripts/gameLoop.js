@@ -1234,12 +1234,14 @@ function handleBlitzAttempt(attempt) {
 
 function handleBlitzLetterHit(playSound, completionContext = null) {
 	const scoreBeforeLetter = score;
+	const isFinalLetter = activeWordLetterIndex === (activeWordItem.letters.length - 1);
+	const shouldPlayLetterSound = playSound && !isFinalLetter;
 	const laneIndex = activeWordLaneIndices[activeWordLetterIndex] ?? currentWordAudioLane();
 	const mole = moleElements[laneIndex];
 	if (mole) {
 		mole.classList.add("isHit");
 	}
-	if (playSound) {
+	if (shouldPlayLetterSound) {
 		playHitSound(score, laneIndex);
 	}
 	lettersWhackedThisRound += 1;

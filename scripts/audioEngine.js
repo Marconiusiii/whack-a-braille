@@ -1576,7 +1576,6 @@ function playBlitzWordHit(wordLength, scoreBeforeHit = 0, scoreAfterHit = 0) {
 	ensureRunning(ctx);
 
 	const now = ctx.currentTime;
-	const variant = Math.floor(Math.random() * 8);
 	const pansByLength = {
 		3: [-0.5, 0, 0.5],
 		4: [-0.75, -0.25, 0.25, 0.75],
@@ -1613,17 +1612,16 @@ function playBlitzWordHit(wordLength, scoreBeforeHit = 0, scoreAfterHit = 0) {
 	pans.forEach((panValue, letterIndex) => {
 		const revealIndex = revealOrder.indexOf(letterIndex);
 		if (revealIndex === -1) return;
-		const timingJitter = ((((variant * 7) + (letterIndex * 5)) % 5) - 2) * 0.0015;
-		const start = now + Math.max(0, (revealIndex * offsetStep) + timingJitter);
+		const start = now + (revealIndex * offsetStep);
 		if (mode === "original") {
-			playOriginalBlitzImpact(ctx, start, panValue, letterIndex, impactDuration, normalization, variant);
+			playOriginalBlitzImpact(ctx, start, panValue, letterIndex, impactDuration, normalization, safeWordLength);
 			return;
 		}
 		if (mode === "silly") {
 			playSillyBlitzImpact(ctx, start, panValue, letterIndex, impactDuration, normalization);
 			return;
 		}
-		playGoofyBlitzImpact(ctx, start, panValue, letterIndex, impactDuration, normalization, variant);
+		playGoofyBlitzImpact(ctx, start, panValue, letterIndex, impactDuration, normalization, safeWordLength);
 	});
 
 	if (gameAudioMode === "silly" && scoreBeforeHit < 50 && scoreAfterHit >= 50) {
@@ -1632,27 +1630,31 @@ function playBlitzWordHit(wordLength, scoreBeforeHit = 0, scoreAfterHit = 0) {
 	}
 }
 
-function playOriginalBlitzImpact(ctx, start, panValue, letterIndex, impactDuration, normalization, variant = 0) {
+function playOriginalBlitzImpact(ctx, start, panValue, letterIndex, impactDuration, normalization, wordLength = 3) {
 	const pan = ctx.createStereoPanner();
 	pan.pan.value = panValue;
 	const master = ctx.createGain();
-	master.gain.value = normalization * 1.12;
+	master.gain.value = normalization * 1.26;
 	pan.connect(master);
 	master.connect(ctx.destination);
 
-	const gainJitter = 0.94 + ((((variant * 13) + (letterIndex * 7)) % 5) * 0.025);
-	const pitchJitter = 1 + (((((variant * 11) + (letterIndex * 3)) % 7) - 3) * 0.01);
-	const completionMidis = [64, 67, 71, 74, 79];
-	const noteFreq = midiToFreq((completionMidis[letterIndex] || completionMidis[completionMidis.length - 1]) + (((variant + letterIndex) % 2) ? 0 : -12)) * pitchJitter;
-	const thunkFreq = (92 + (letterIndex * 8)) * pitchJitter;
+	const voicedRootMidi = beatRootMidi + 12;
+	const offsetsByLength = {
+		3: [0, 4, 7],
+		4: [0, 4, 7, 12],
+		5: [0, 4, 7, 12, 16]
+	};
+	const noteOffsets = offsetsByLength[wordLength] || offsetsByLength[3];
+	const noteFreq = midiToFreq(voicedRootMidi + (noteOffsets[letterIndex] ?? noteOffsets[noteOffsets.length - 1]));
+	const thunkFreq = midiToFreq(beatRootMidi - 14 + Math.min(letterIndex, 2));
 
 	const thunk = ctx.createOscillator();
 	const thunkGain = ctx.createGain();
 	thunk.type = "sine";
-	thunk.frequency.setValueAtTime(thunkFreq * 1.25, start);
+	thunk.frequency.setValueAtTime(thunkFreq * 1.18, start);
 	thunk.frequency.exponentialRampToValueAtTime(thunkFreq, start + 0.075);
 	thunkGain.gain.setValueAtTime(0.0001, start);
-	thunkGain.gain.exponentialRampToValueAtTime(0.28 * gainJitter, start + 0.004);
+	thunkGain.gain.exponentialRampToValueAtTime(0.22, start + 0.004);
 	thunkGain.gain.exponentialRampToValueAtTime(0.0001, start + 0.12);
 	thunk.connect(thunkGain);
 	thunkGain.connect(pan);
@@ -1664,8 +1666,8 @@ function playOriginalBlitzImpact(ctx, start, panValue, letterIndex, impactDurati
 	body.type = "triangle";
 	body.frequency.setValueAtTime(noteFreq, start);
 	bodyGain.gain.setValueAtTime(0.0001, start);
-	bodyGain.gain.exponentialRampToValueAtTime(0.52 * gainJitter, start + 0.004);
-	bodyGain.gain.exponentialRampToValueAtTime(0.0001, start + 0.18);
+	bodyGain.gain.exponentialRampToValueAtTime(0.42, start + 0.004);
+	bodyGain.gain.exponentialRampToValueAtTime(0.0001, start + 0.16);
 	body.connect(bodyGain);
 	bodyGain.connect(pan);
 	body.start(start);
@@ -1676,20 +1678,20 @@ function playOriginalBlitzImpact(ctx, start, panValue, letterIndex, impactDurati
 	bloom.type = "sine";
 	bloom.frequency.setValueAtTime(noteFreq * 2, start);
 	bloomGain.gain.setValueAtTime(0.0001, start);
-	bloomGain.gain.exponentialRampToValueAtTime(0.18 * gainJitter, start + 0.006);
-	bloomGain.gain.exponentialRampToValueAtTime(0.0001, start + 0.14);
+	bloomGain.gain.exponentialRampToValueAtTime(0.14, start + 0.006);
+	bloomGain.gain.exponentialRampToValueAtTime(0.0001, start + 0.12);
 	bloom.connect(bloomGain);
 	bloomGain.connect(pan);
 	bloom.start(start);
-	bloom.stop(start + 0.15);
+	bloom.stop(start + 0.13);
 
 	const click = ctx.createOscillator();
 	const clickGain = ctx.createGain();
 	click.type = "square";
-	click.frequency.setValueAtTime((780 + (letterIndex * 45)) * pitchJitter, start);
-	click.frequency.exponentialRampToValueAtTime((420 + (letterIndex * 15)) * pitchJitter, start + 0.028);
+	click.frequency.setValueAtTime(noteFreq * 2.4, start);
+	click.frequency.exponentialRampToValueAtTime(noteFreq * 1.45, start + 0.028);
 	clickGain.gain.setValueAtTime(0.0001, start);
-	clickGain.gain.exponentialRampToValueAtTime(0.14 * gainJitter, start + 0.0015);
+	clickGain.gain.exponentialRampToValueAtTime(0.1, start + 0.0015);
 	clickGain.gain.exponentialRampToValueAtTime(0.0001, start + 0.04);
 	click.connect(clickGain);
 	clickGain.connect(pan);
@@ -1748,26 +1750,30 @@ function playSillyBlitzImpact(ctx, start, panValue, letterIndex, impactDuration,
 	squeak.stop(start + impactDuration);
 }
 
-function playGoofyBlitzImpact(ctx, start, panValue, letterIndex, impactDuration, normalization, variant = 0) {
+function playGoofyBlitzImpact(ctx, start, panValue, letterIndex, impactDuration, normalization, wordLength = 3) {
 	const pan = ctx.createStereoPanner();
 	pan.pan.value = panValue;
 	const master = ctx.createGain();
-	master.gain.value = normalization * 1.18;
+	master.gain.value = normalization * 1.42;
 	pan.connect(master);
 	master.connect(ctx.destination);
 
-	const gainJitter = 0.95 + ((((variant * 9) + (letterIndex * 5)) % 5) * 0.03);
-	const pitchJitter = 1 + (((((variant * 7) + (letterIndex * 4)) % 7) - 3) * 0.012);
-	const springMidis = [57, 60, 64, 67, 72];
-	const springFreq = midiToFreq(springMidis[letterIndex] || springMidis[springMidis.length - 1]) * pitchJitter;
+	const voicedRootMidi = beatRootMidi + 7;
+	const offsetsByLength = {
+		3: [0, 4, 7],
+		4: [0, 4, 7, 12],
+		5: [0, 4, 7, 12, 16]
+	};
+	const noteOffsets = offsetsByLength[wordLength] || offsetsByLength[3];
+	const springFreq = midiToFreq(voicedRootMidi + (noteOffsets[letterIndex] ?? noteOffsets[noteOffsets.length - 1]));
 
 	const oof = ctx.createOscillator();
 	const oofGain = ctx.createGain();
 	oof.type = "sine";
-	oof.frequency.setValueAtTime(105 * pitchJitter, start);
-	oof.frequency.exponentialRampToValueAtTime(78 * pitchJitter, start + 0.09);
+	oof.frequency.setValueAtTime(midiToFreq(beatRootMidi - 12), start);
+	oof.frequency.exponentialRampToValueAtTime(midiToFreq(beatRootMidi - 16), start + 0.09);
 	oofGain.gain.setValueAtTime(0.0001, start);
-	oofGain.gain.exponentialRampToValueAtTime(0.24 * gainJitter, start + 0.003);
+	oofGain.gain.exponentialRampToValueAtTime(0.34, start + 0.003);
 	oofGain.gain.exponentialRampToValueAtTime(0.0001, start + 0.12);
 	oof.connect(oofGain);
 	oofGain.connect(pan);
@@ -1783,11 +1789,11 @@ function playGoofyBlitzImpact(ctx, start, panValue, letterIndex, impactDuration,
 	boing.frequency.exponentialRampToValueAtTime(springFreq * 1.18, start + 0.11);
 	boing.frequency.exponentialRampToValueAtTime(springFreq * 0.92, start + 0.22);
 	boingGain.gain.setValueAtTime(0.0001, start);
-	boingGain.gain.exponentialRampToValueAtTime(0.34 * gainJitter, start + 0.005);
+	boingGain.gain.exponentialRampToValueAtTime(0.46, start + 0.005);
 	boingGain.gain.exponentialRampToValueAtTime(0.0001, start + 0.22);
 	wobble.type = "sine";
-	wobble.frequency.value = 9 + (variant * 0.4);
-	wobbleGain.gain.value = 18;
+	wobble.frequency.value = 9.5;
+	wobbleGain.gain.value = 14;
 	wobble.connect(wobbleGain);
 	wobbleGain.connect(boing.frequency);
 	boing.connect(boingGain);
@@ -1801,10 +1807,10 @@ function playGoofyBlitzImpact(ctx, start, panValue, letterIndex, impactDuration,
 	const chirp = ctx.createOscillator();
 	const chirpGain = ctx.createGain();
 	chirp.type = "square";
-	chirp.frequency.setValueAtTime((springFreq * 1.55), chirpStart);
-	chirp.frequency.exponentialRampToValueAtTime((springFreq * 1.12), chirpStart + 0.06);
+	chirp.frequency.setValueAtTime(springFreq * 1.55, chirpStart);
+	chirp.frequency.exponentialRampToValueAtTime(springFreq * 1.12, chirpStart + 0.06);
 	chirpGain.gain.setValueAtTime(0.0001, chirpStart);
-	chirpGain.gain.exponentialRampToValueAtTime(0.11 * gainJitter, chirpStart + 0.002);
+	chirpGain.gain.exponentialRampToValueAtTime(0.18, chirpStart + 0.002);
 	chirpGain.gain.exponentialRampToValueAtTime(0.0001, chirpStart + 0.065);
 	chirp.connect(chirpGain);
 	chirpGain.connect(pan);
@@ -1815,10 +1821,10 @@ function playGoofyBlitzImpact(ctx, start, panValue, letterIndex, impactDuration,
 	const sparkle = ctx.createOscillator();
 	const sparkleGain = ctx.createGain();
 	sparkle.type = "triangle";
-	sparkle.frequency.setValueAtTime((springFreq * 2.6), sparkleStart);
-	sparkle.frequency.exponentialRampToValueAtTime((springFreq * 1.8), sparkleStart + 0.09);
+	sparkle.frequency.setValueAtTime(springFreq * 2.6, sparkleStart);
+	sparkle.frequency.exponentialRampToValueAtTime(springFreq * 1.8, sparkleStart + 0.09);
 	sparkleGain.gain.setValueAtTime(0.0001, sparkleStart);
-	sparkleGain.gain.exponentialRampToValueAtTime(0.08 * gainJitter, sparkleStart + 0.002);
+	sparkleGain.gain.exponentialRampToValueAtTime(0.12, sparkleStart + 0.002);
 	sparkleGain.gain.exponentialRampToValueAtTime(0.0001, sparkleStart + 0.1);
 	sparkle.connect(sparkleGain);
 	sparkleGain.connect(pan);
