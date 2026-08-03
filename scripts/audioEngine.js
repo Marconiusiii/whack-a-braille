@@ -433,6 +433,21 @@ function playRetroRetreatSound(moleIndex) {
 	dirt.stop(dirtStart + 0.28);
 }
 
+function scheduleGoofyBassHit(ctx, start, destination) {
+	const lowThunk = ctx.createOscillator();
+	const lowThunkGain = ctx.createGain();
+	lowThunk.type = "sine";
+	lowThunk.frequency.setValueAtTime(88 + Math.random() * 10, start);
+	lowThunk.frequency.exponentialRampToValueAtTime(42 + Math.random() * 5, start + 0.18);
+	lowThunkGain.gain.setValueAtTime(0.0001, start);
+	lowThunkGain.gain.linearRampToValueAtTime(1.25, start + 0.014);
+	lowThunkGain.gain.exponentialRampToValueAtTime(0.0001, start + 0.22);
+	lowThunk.connect(lowThunkGain);
+	lowThunkGain.connect(destination);
+	lowThunk.start(start);
+	lowThunk.stop(start + 0.24);
+}
+
 function playCartoonWhackHit(moleIndex) {
 	if (!isUnlocked) return;
 
@@ -446,18 +461,7 @@ function playCartoonWhackHit(moleIndex) {
 	pan.connect(master);
 	master.connect(ctx.destination);
 
-	const lowThunk = ctx.createOscillator();
-	const lowThunkGain = ctx.createGain();
-	lowThunk.type = "sine";
-	lowThunk.frequency.setValueAtTime(88 + Math.random() * 10, now);
-	lowThunk.frequency.exponentialRampToValueAtTime(42 + Math.random() * 5, now + 0.18);
-	lowThunkGain.gain.setValueAtTime(0.0001, now);
-	lowThunkGain.gain.linearRampToValueAtTime(1.25, now + 0.014);
-	lowThunkGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.22);
-	lowThunk.connect(lowThunkGain);
-	lowThunkGain.connect(pan);
-	lowThunk.start(now);
-	lowThunk.stop(now + 0.24);
+	scheduleGoofyBassHit(ctx, now, pan);
 
 	const bodyNoiseBuffer = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.14), ctx.sampleRate);
 	const bodyNoiseData = bodyNoiseBuffer.getChannelData(0);
@@ -1097,6 +1101,68 @@ function playEverythingStinger() {
 
 /* ---------- HIT SOUND ---------- */
 
+function scheduleOriginalBassHit(ctx, start, destination) {
+	// sub thud
+	const subOsc = ctx.createOscillator();
+	const subGain = ctx.createGain();
+
+	subOsc.type = "sine";
+	subOsc.frequency.setValueAtTime(75, start);
+	subOsc.frequency.exponentialRampToValueAtTime(45, start + 0.09);
+
+	subGain.gain.setValueAtTime(0.0001, start);
+	subGain.gain.exponentialRampToValueAtTime(1.15, start + 0.015);
+	subGain.gain.exponentialRampToValueAtTime(0.0001, start + 0.14);
+
+	subOsc.connect(subGain);
+	subGain.connect(destination);
+
+	subOsc.start(start);
+	subOsc.stop(start + 0.15);
+
+	// sub harmonic reinforcement
+
+	const subHarm = ctx.createOscillator();
+	const subHarmGain = ctx.createGain();
+
+	subHarm.type = "triangle";
+	subHarm.frequency.setValueAtTime(110, start);
+	subHarm.frequency.exponentialRampToValueAtTime(80, start + 0.1);
+
+	subHarmGain.gain.setValueAtTime(0.0001, start);
+	subHarmGain.gain.exponentialRampToValueAtTime(0.28, start + 0.02);
+	subHarmGain.gain.exponentialRampToValueAtTime(0.0001, start + 0.16);
+
+	subHarm.connect(subHarmGain);
+	subHarmGain.connect(destination);
+
+	subHarm.start(start);
+	subHarm.stop(start + 0.18);
+
+	// body thud
+
+	const bodyOsc = ctx.createOscillator();
+	const bodyGain = ctx.createGain();
+
+	bodyOsc.type = "triangle";
+
+	const bodyStart = 135 + Math.random() * 15;
+	const bodyEnd = 90 + Math.random() * 10;
+
+	bodyOsc.frequency.setValueAtTime(bodyStart, start);
+	bodyOsc.frequency.exponentialRampToValueAtTime(bodyEnd, start + 0.11);
+
+	bodyGain.gain.setValueAtTime(0.0001, start);
+	bodyGain.gain.exponentialRampToValueAtTime(0.7, start + 0.02);
+	bodyGain.gain.exponentialRampToValueAtTime(0.0001, start + 0.19);
+
+	bodyOsc.connect(bodyGain);
+	bodyGain.connect(destination);
+
+	bodyOsc.start(start);
+	bodyOsc.stop(start + 0.22);
+}
+
 function playOriginalHitSound(moleIndex) {
 	if (!isUnlocked) return;
 
@@ -1126,66 +1192,7 @@ function playOriginalHitSound(moleIndex) {
 
 	const springPeakGain = 0.4;
 
-	// sub thud
-
-	const subOsc = ctx.createOscillator();
-	const subGain = ctx.createGain();
-
-	subOsc.type = "sine";
-	subOsc.frequency.setValueAtTime(75, now);
-	subOsc.frequency.exponentialRampToValueAtTime(45, now + 0.09);
-
-	subGain.gain.setValueAtTime(0.0001, now);
-	subGain.gain.exponentialRampToValueAtTime(1.15, now + 0.015);
-	subGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.14);
-
-	subOsc.connect(subGain);
-	subGain.connect(pan);
-
-	subOsc.start(now);
-	subOsc.stop(now + 0.15);
-
-	// sub harmonic reinforcement
-
-	const subHarm = ctx.createOscillator();
-	const subHarmGain = ctx.createGain();
-
-	subHarm.type = "triangle";
-	subHarm.frequency.setValueAtTime(110, now);
-	subHarm.frequency.exponentialRampToValueAtTime(80, now + 0.1);
-
-	subHarmGain.gain.setValueAtTime(0.0001, now);
-	subHarmGain.gain.exponentialRampToValueAtTime(0.28, now + 0.02);
-	subHarmGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.16);
-
-	subHarm.connect(subHarmGain);
-	subHarmGain.connect(pan);
-
-	subHarm.start(now);
-	subHarm.stop(now + 0.18);
-
-	// body thud
-
-	const bodyOsc = ctx.createOscillator();
-	const bodyGain = ctx.createGain();
-
-	bodyOsc.type = "triangle";
-
-	const bodyStart = 135 + Math.random() * 15;
-	const bodyEnd = 90 + Math.random() * 10;
-
-	bodyOsc.frequency.setValueAtTime(bodyStart, now);
-	bodyOsc.frequency.exponentialRampToValueAtTime(bodyEnd, now + 0.11);
-
-	bodyGain.gain.setValueAtTime(0.0001, now);
-	bodyGain.gain.exponentialRampToValueAtTime(0.7, now + 0.02);
-	bodyGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.19);
-
-	bodyOsc.connect(bodyGain);
-	bodyGain.connect(pan);
-
-	bodyOsc.start(now);
-	bodyOsc.stop(now + 0.22);
+	scheduleOriginalBassHit(ctx, now, pan);
 
 	// impact noise
 
@@ -1609,6 +1616,20 @@ function playBlitzWordHit(wordLength, scoreBeforeHit = 0, scoreAfterHit = 0) {
 	const offsetStep = offsetStepByMode[mode];
 	const normalization = 0.38 / Math.sqrt(safeWordLength);
 
+	if (mode === "original" || mode === "goofy") {
+		const bassPan = ctx.createStereoPanner();
+		const bassMaster = ctx.createGain();
+		bassPan.pan.value = 0;
+		bassMaster.gain.value = mode === "goofy" ? 0.92 : 1.0;
+		bassPan.connect(bassMaster);
+		bassMaster.connect(ctx.destination);
+		if (mode === "original") {
+			scheduleOriginalBassHit(ctx, now, bassPan);
+		} else {
+			scheduleGoofyBassHit(ctx, now, bassPan);
+		}
+	}
+
 	pans.forEach((panValue, letterIndex) => {
 		const revealIndex = revealOrder.indexOf(letterIndex);
 		if (revealIndex === -1) return;
@@ -1646,32 +1667,6 @@ function playOriginalBlitzImpact(ctx, start, panValue, letterIndex, impactDurati
 	};
 	const noteOffsets = offsetsByLength[wordLength] || offsetsByLength[3];
 	const noteFreq = midiToFreq(voicedRootMidi + (noteOffsets[letterIndex] ?? noteOffsets[noteOffsets.length - 1]));
-	const thunkFreq = midiToFreq(beatRootMidi - 14 + Math.min(letterIndex, 2));
-
-	const thunk = ctx.createOscillator();
-	const thunkGain = ctx.createGain();
-	const thunkEdge = ctx.createOscillator();
-	const thunkEdgeGain = ctx.createGain();
-	thunk.type = "sine";
-	thunkEdge.type = "triangle";
-	thunk.frequency.setValueAtTime(thunkFreq * 1.18, start);
-	thunk.frequency.exponentialRampToValueAtTime(thunkFreq, start + 0.075);
-	thunkEdge.frequency.setValueAtTime(thunkFreq * 1.9, start);
-	thunkEdge.frequency.exponentialRampToValueAtTime(thunkFreq * 1.15, start + 0.05);
-	thunkGain.gain.setValueAtTime(0.0001, start);
-	thunkGain.gain.exponentialRampToValueAtTime(0.34, start + 0.0035);
-	thunkGain.gain.exponentialRampToValueAtTime(0.0001, start + 0.14);
-	thunkEdgeGain.gain.setValueAtTime(0.0001, start);
-	thunkEdgeGain.gain.exponentialRampToValueAtTime(0.18, start + 0.002);
-	thunkEdgeGain.gain.exponentialRampToValueAtTime(0.0001, start + 0.055);
-	thunk.connect(thunkGain);
-	thunkEdge.connect(thunkEdgeGain);
-	thunkGain.connect(pan);
-	thunkEdgeGain.connect(pan);
-	thunk.start(start);
-	thunkEdge.start(start);
-	thunk.stop(start + 0.145);
-	thunkEdge.stop(start + 0.06);
 
 	const body = ctx.createOscillator();
 	const bodyGain = ctx.createGain();
@@ -1792,45 +1787,6 @@ function playGoofyBlitzImpact(ctx, start, panValue, letterIndex, impactDuration,
 	};
 	const noteOffsets = offsetsByLength[wordLength] || offsetsByLength[3];
 	const springFreq = midiToFreq(voicedRootMidi + (noteOffsets[letterIndex] ?? noteOffsets[noteOffsets.length - 1]));
-	const bassFreq = midiToFreq(beatRootMidi - 10);
-
-	const bass = ctx.createOscillator();
-	const bassGain = ctx.createGain();
-	const bassPunch = ctx.createOscillator();
-	const bassPunchGain = ctx.createGain();
-	bass.type = "triangle";
-	bassPunch.type = "sine";
-	bass.frequency.setValueAtTime(bassFreq * 1.1, start);
-	bass.frequency.exponentialRampToValueAtTime(bassFreq, start + 0.14);
-	bassPunch.frequency.setValueAtTime(bassFreq * 1.55, start);
-	bassPunch.frequency.exponentialRampToValueAtTime(bassFreq * 0.92, start + 0.075);
-	bassGain.gain.setValueAtTime(0.0001, start);
-	bassGain.gain.exponentialRampToValueAtTime(0.28, start + 0.003);
-	bassGain.gain.exponentialRampToValueAtTime(0.0001, start + 0.22);
-	bassPunchGain.gain.setValueAtTime(0.0001, start);
-	bassPunchGain.gain.exponentialRampToValueAtTime(0.26, start + 0.0025);
-	bassPunchGain.gain.exponentialRampToValueAtTime(0.0001, start + 0.08);
-	bass.connect(bassGain);
-	bassPunch.connect(bassPunchGain);
-	bassGain.connect(pan);
-	bassPunchGain.connect(pan);
-	bass.start(start);
-	bassPunch.start(start);
-	bass.stop(start + 0.24);
-	bassPunch.stop(start + 0.085);
-
-	const oof = ctx.createOscillator();
-	const oofGain = ctx.createGain();
-	oof.type = "sine";
-	oof.frequency.setValueAtTime(midiToFreq(beatRootMidi - 12), start);
-	oof.frequency.exponentialRampToValueAtTime(midiToFreq(beatRootMidi - 16), start + 0.09);
-	oofGain.gain.setValueAtTime(0.0001, start);
-	oofGain.gain.exponentialRampToValueAtTime(0.34, start + 0.003);
-	oofGain.gain.exponentialRampToValueAtTime(0.0001, start + 0.12);
-	oof.connect(oofGain);
-	oofGain.connect(pan);
-	oof.start(start);
-	oof.stop(start + 0.13);
 
 	const boing = ctx.createOscillator();
 	const boingGain = ctx.createGain();

@@ -9,7 +9,7 @@
   1. Current state assessment
   2. Proposed plan
   3. Exact files that would be touched
-- Wait for the user to reply exactly: `APPROVE CHANGES`
+- Wait for the user to reply exactly: `Approved`
 - If that exact approval is not given, remain read-only.
 
 ## Response Formatting Rules

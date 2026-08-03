@@ -35,6 +35,7 @@ import { scoreToTickets } from "./ticketRules.js";
 const body = document.body;
 
 const homeContent = document.getElementById("homeContent");
+const homeHeading = homeContent?.querySelector("h1") || null;
 const gameArea = document.getElementById("gameArea");
 const resultsArea = document.getElementById("resultsArea");
 const footer = document.querySelector("footer");
@@ -1409,9 +1410,10 @@ function setGameState(state) {
 
 		setCurrentMoleId(0);
 
-		if (startButton) {
+		if (homeHeading) {
 			requestAnimationFrame(() => {
-				safeFocus(startButton);
+				homeHeading.setAttribute("tabindex", "-1");
+				safeFocus(homeHeading);
 			});
 		}
 		return;
