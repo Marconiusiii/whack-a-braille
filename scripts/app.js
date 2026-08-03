@@ -107,6 +107,9 @@ const customMoleClearGrade1Button = document.getElementById("customMoleClearGrad
 const customMoleClearGrade2Button = document.getElementById("customMoleClearGrade2Button");
 const moleReconDialog = document.getElementById("moleReconDialog");
 const moleReconTitle = document.getElementById("moleReconTitle");
+const moleReconModeFieldset = document.getElementById("moleReconModeFieldset");
+const moleReconModeRecon = document.getElementById("moleReconModeRecon");
+const moleReconModeGrudge = document.getElementById("moleReconModeGrudge");
 const moleReconBlurb = document.getElementById("moleReconBlurb");
 const moleReconList = document.getElementById("moleReconList");
 const moleReconWarning = document.getElementById("moleReconWarning");
@@ -152,7 +155,8 @@ let customMoleSnapshot = null;
 let lastRoundResultDetail = null;
 let lastRoundStartConfig = null;
 let moleReconItems = [];
-let moleReconUsesAllShown = false;
+let moleGrudgeMatchItems = [];
+let moleReconSelectedMode = "recon";
 let moleReconSelectedItemIDs = new Set();
 let moleReconTriggerId = null;
 
@@ -202,8 +206,27 @@ function getItemDotPatternText(item) {
 	return formatDotSets(dotSets);
 }
 
-function getMoleReconBlurb(usesAllShownMoles) {
-	if (usesAllShownMoles) {
+function isWordPracticeItem(item) {
+	if (!item) return false;
+	if (typeof item.sourceModeId === "string" && isWordMode(item.sourceModeId)) return true;
+	if (Array.isArray(item.modeTags) && item.modeTags.some(tag => isWordMode(tag))) return true;
+	return item.kind === "blitzWord" || item.kind === "wordyWord";
+}
+
+function getActiveMoleReconItems() {
+	return moleReconSelectedMode === "grudge" ? moleGrudgeMatchItems : moleReconItems;
+}
+
+function getMoleReconBlurb(practiceMode, items) {
+	const isWordContext = (Array.isArray(items) ? items : []).some(isWordPracticeItem);
+	if (isWordContext) {
+		if (practiceMode === "grudge") {
+			return "Have a grudge against these particular words? Choose the ones you want back on the board, then spell them into a proper mole panic.";
+		}
+		return "These words remain at large. Study their letter patterns and begin a training round so the whole gang doesn't get away twice.";
+	}
+
+	if (practiceMode === "grudge") {
 		return "Have a grudge against these particular moles? Show them what's what in this training session! Choose the moles you want to whack:";
 	}
 
@@ -1126,14 +1149,16 @@ function getFilteredMoleReconItems(items) {
 function renderMoleReconList() {
 	if (!moleReconList) return;
 	moleReconList.innerHTML = "";
+	const activeItems = getActiveMoleReconItems();
+	const isGrudgeMode = moleReconSelectedMode === "grudge";
 
-	moleReconItems.forEach(item => {
+	activeItems.forEach(item => {
 		const row = document.createElement("li");
 		row.className = "moleReconRow";
 		const dotPatternText = getItemDotPatternText(item);
 		const itemText = `${item.displayLabel || item.announceText || item.id}, ${dotPatternText}`;
 
-		if (moleReconUsesAllShown) {
+		if (isGrudgeMode) {
 			const label = document.createElement("label");
 			const input = document.createElement("input");
 			input.type = "checkbox";
@@ -1163,12 +1188,37 @@ function renderMoleReconList() {
 	});
 }
 
+function syncMoleReconModeUI() {
+	const hasReconItems = moleReconItems.length > 0;
+	const hasGrudgeItems = moleGrudgeMatchItems.length > 0;
+
+	if (!hasReconItems && hasGrudgeItems) {
+		moleReconSelectedMode = "grudge";
+	} else if (!hasGrudgeItems && hasReconItems) {
+		moleReconSelectedMode = "recon";
+	}
+
+	if (moleReconModeFieldset) {
+		moleReconModeFieldset.hidden = !(hasReconItems && hasGrudgeItems);
+	}
+	if (moleReconModeRecon) {
+		moleReconModeRecon.disabled = !hasReconItems;
+		moleReconModeRecon.checked = moleReconSelectedMode === "recon";
+	}
+	if (moleReconModeGrudge) {
+		moleReconModeGrudge.disabled = !hasGrudgeItems;
+		moleReconModeGrudge.checked = moleReconSelectedMode === "grudge";
+	}
+}
+
 function openMoleReconDialog(triggerId = "moleReconButton") {
-	if (!moleReconDialog || !moleReconItems.length) return;
+	if (!moleReconDialog || (!moleReconItems.length && !moleGrudgeMatchItems.length)) return;
 	moleReconTriggerId = triggerId;
-	moleReconSelectedItemIDs = new Set(moleReconItems.map(item => item.id));
+	moleReconSelectedItemIDs = new Set(moleGrudgeMatchItems.map(item => item.id));
+	syncMoleReconModeUI();
+	const activeItems = getActiveMoleReconItems();
 	if (moleReconBlurb) {
-		moleReconBlurb.textContent = getMoleReconBlurb(moleReconUsesAllShown);
+		moleReconBlurb.textContent = getMoleReconBlurb(moleReconSelectedMode, activeItems);
 	}
 	if (moleReconWarning) {
 		moleReconWarning.hidden = true;
@@ -1197,6 +1247,7 @@ function beginMoleReconRound(items) {
 	const selectedItems = getFilteredMoleReconItems(items);
 	if (!selectedItems.length) return;
 	const reconSourceModeId = selectedItems[0]?.sourceModeId || "";
+	const openingAnnouncement = moleReconSelectedMode === "grudge" ? "Grudge match." : "Training round.";
 
 	const roundConfig = {
 		modeId: "moleRecon",
@@ -1211,16 +1262,17 @@ function beginMoleReconRound(items) {
 		customMoleIDs: selectedItems.map(item => item.id),
 		customItems: selectedItems,
 		reconSourceModeId,
-		openingAnnouncement: "Training round."
+		openingAnnouncement
 	};
 
 	beginRound(roundConfig);
 }
 
 function beginMoleReconFromDialog() {
-	const selectedItems = moleReconUsesAllShown
-		? moleReconItems.filter(item => moleReconSelectedItemIDs.has(item.id))
-		: moleReconItems.slice();
+	const activeItems = getActiveMoleReconItems();
+	const selectedItems = moleReconSelectedMode === "grudge"
+		? activeItems.filter(item => moleReconSelectedItemIDs.has(item.id))
+		: activeItems.slice();
 
 	if (!selectedItems.length) {
 		if (moleReconWarning) {
@@ -2007,6 +2059,20 @@ if (cancelCashOutButton) {
 		});
 	}
 
+	document.querySelectorAll("input[name='moleReconMode']").forEach(radio => {
+		radio.addEventListener("change", event => {
+			const mode = event.target instanceof HTMLInputElement ? event.target.value : "recon";
+			moleReconSelectedMode = mode === "grudge" ? "grudge" : "recon";
+			if (moleReconWarning) {
+				moleReconWarning.hidden = true;
+			}
+			if (moleReconBlurb) {
+				moleReconBlurb.textContent = getMoleReconBlurb(moleReconSelectedMode, getActiveMoleReconItems());
+			}
+			renderMoleReconList();
+		});
+	});
+
 	if (cashOutHomeButton) {
 		cashOutHomeButton.addEventListener("click", () => {
 			setGameState("home");
@@ -2053,9 +2119,10 @@ if (cancelCashOutButton) {
 	const lettersWhacked = Number.isFinite(detail.lettersWhacked) ? detail.lettersWhacked : 0;
 
 	const ticketBreakdown = detail.tickets || null;
-	moleReconUsesAllShown = detail.usesAllShownMolesForRecon === true;
 	moleReconItems = getFilteredMoleReconItems(detail.moleReconItems);
-	moleReconSelectedItemIDs = new Set(moleReconItems.map(item => item.id));
+	moleGrudgeMatchItems = getFilteredMoleReconItems(detail.grudgeMatchItems);
+	moleReconSelectedMode = moleReconItems.length ? "recon" : "grudge";
+	moleReconSelectedItemIDs = new Set(moleGrudgeMatchItems.map(item => item.id));
 
 	const ticketsThisRound = ticketBreakdown
 		? (Number(ticketBreakdown.total) || 0)
@@ -2104,7 +2171,7 @@ if (cancelCashOutButton) {
 	}
 
 	if (moleReconButton) {
-		moleReconButton.hidden = isTraining || moleReconItems.length === 0;
+		moleReconButton.hidden = isTraining || (moleReconItems.length === 0 && moleGrudgeMatchItems.length === 0);
 	}
 
 	if (cashOutButton) {

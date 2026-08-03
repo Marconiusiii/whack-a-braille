@@ -420,6 +420,13 @@
 <dialog id="moleReconDialog" aria-labelledby="moleReconTitle">
 <div id="moleReconContent">
 <h2 id="moleReconTitle" tabindex="-1">Mole Recon</h2>
+<fieldset id="moleReconModeFieldset" hidden>
+<legend>Practice Mode</legend>
+<input type="radio" name="moleReconMode" id="moleReconModeRecon" value="recon" checked>
+<label for="moleReconModeRecon">Mole Recon</label>
+<input type="radio" name="moleReconMode" id="moleReconModeGrudge" value="grudge">
+<label for="moleReconModeGrudge">Grudge Match</label>
+</fieldset>
 <p id="moleReconBlurb"></p>
 <ul id="moleReconList"></ul>
 <p id="moleReconWarning" hidden>Pick at least one mole. An empty recon mission is just dramatic standing around with nothing to whack.</p>

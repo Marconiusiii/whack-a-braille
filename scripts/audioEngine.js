@@ -1703,9 +1703,23 @@ function playSillyBlitzImpact(ctx, start, panValue, letterIndex, impactDuration,
 	const pan = ctx.createStereoPanner();
 	pan.pan.value = panValue;
 	const master = ctx.createGain();
-	master.gain.value = normalization * 1.2;
+	master.gain.value = normalization * 1.3;
 	pan.connect(master);
 	master.connect(ctx.destination);
+	const rootBassFreq = midiToFreq(beatRootMidi - 12);
+
+	const bass = ctx.createOscillator();
+	const bassGain = ctx.createGain();
+	bass.type = "triangle";
+	bass.frequency.setValueAtTime(rootBassFreq * 1.18, start);
+	bass.frequency.exponentialRampToValueAtTime(rootBassFreq, start + 0.1);
+	bassGain.gain.setValueAtTime(0.0001, start);
+	bassGain.gain.exponentialRampToValueAtTime(0.16, start + 0.004);
+	bassGain.gain.exponentialRampToValueAtTime(0.0001, start + 0.16);
+	bass.connect(bassGain);
+	bassGain.connect(pan);
+	bass.start(start);
+	bass.stop(start + 0.17);
 
 	const bubble = ctx.createOscillator();
 	const bubbleGain = ctx.createGain();
@@ -1754,7 +1768,7 @@ function playGoofyBlitzImpact(ctx, start, panValue, letterIndex, impactDuration,
 	const pan = ctx.createStereoPanner();
 	pan.pan.value = panValue;
 	const master = ctx.createGain();
-	master.gain.value = normalization * 1.42;
+	master.gain.value = normalization * 1.58;
 	pan.connect(master);
 	master.connect(ctx.destination);
 
@@ -1766,6 +1780,20 @@ function playGoofyBlitzImpact(ctx, start, panValue, letterIndex, impactDuration,
 	};
 	const noteOffsets = offsetsByLength[wordLength] || offsetsByLength[3];
 	const springFreq = midiToFreq(voicedRootMidi + (noteOffsets[letterIndex] ?? noteOffsets[noteOffsets.length - 1]));
+	const bassFreq = midiToFreq(beatRootMidi - 10);
+
+	const bass = ctx.createOscillator();
+	const bassGain = ctx.createGain();
+	bass.type = "triangle";
+	bass.frequency.setValueAtTime(bassFreq * 1.1, start);
+	bass.frequency.exponentialRampToValueAtTime(bassFreq, start + 0.14);
+	bassGain.gain.setValueAtTime(0.0001, start);
+	bassGain.gain.exponentialRampToValueAtTime(0.22, start + 0.004);
+	bassGain.gain.exponentialRampToValueAtTime(0.0001, start + 0.2);
+	bass.connect(bassGain);
+	bassGain.connect(pan);
+	bass.start(start);
+	bass.stop(start + 0.22);
 
 	const oof = ctx.createOscillator();
 	const oofGain = ctx.createGain();

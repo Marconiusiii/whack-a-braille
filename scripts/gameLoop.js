@@ -432,6 +432,7 @@ function endRoundNow(canceled) {
 
 	const usesAllShownMolesForRecon = !isTrainingMode && moleReconItems.length === 0 && shownMoleReconItems.length > 0;
 	const reconItems = usesAllShownMolesForRecon ? shownMoleReconItems.slice() : moleReconItems.slice();
+	const grudgeMatchItems = shownMoleReconItems.slice();
 
 	stopRoundBeat();
 
@@ -453,6 +454,7 @@ function endRoundNow(canceled) {
 			streakBonusCount,
 			canceled: !!canceled,
 			moleReconItems: reconItems,
+			grudgeMatchItems,
 			usesAllShownMolesForRecon,
 			tickets: {
 				base: baseTickets,
