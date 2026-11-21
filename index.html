@@ -6,6 +6,8 @@
 <title>Whack a Braille!</title>
 <meta name="description" content="Whack a Braille is a braille-first arcade game where fast fingers, sharp ears, and solid braille skills win tickets and prizes.">
 <meta name="author" content="Marco Salsiccia">
+<link rel="preload" href="files/moles/MoleReady.png" as="image">
+<link rel="preload" href="files/moles/MoleHole.png" as="image">
 <link rel="stylesheet" href="css/wab.css">
 </head>
 
@@ -18,8 +20,10 @@
 <p>By Marco Salsiccia</p>
 
 <details>
-<summary>Aug 2, 2026 Update Log</summary>
+<summary>Nov 20, 2026 Update Log</summary>
 <ul>
+<li>The expressive mole characters, reactions, animations, and visual styling from Whack A Braille for iOS have arrived on the web.</li>
+<li>Sound-alike words are now spelled automatically in Mole Battle and Wordy Mole Mayhem.</li>
 <li>Mole Battles and Wordy Mole Mayhem have been added! Choose these modes to type words and bonk multiple moles at once.</li>
 <li>Mole Recon and Training modes now work with the new word modes.</li>
 <li>Grudge Match has been added to Mole Recon mode.</li>
@@ -248,7 +252,14 @@
 </details>
 
 <button id="homeCashInButton" type="button">Cash In Tickets: 0 Available</button>
-<button id="startGameButton" type="button">Start Whacking</button>
+<button id="startGameButton" type="button">
+<span class="homeMoleArt">
+<img class="homeMoleHoleBack" src="files/moles/MoleHole.png" alt="">
+<img class="homeMoleCharacter" src="files/moles/MoleReady.png" alt="">
+<img class="homeMoleHoleFront" src="files/moles/MoleHole.png" alt="">
+</span>
+<span>Start Whacking</span>
+</button>
 
 <details id="prizeShelf">
 	<summary>Prize Shelf, <span id="prizeShelfCountBadge" aria-live="polite">0 prizes</span></summary>
@@ -338,11 +349,11 @@
 </div>
 
 <div id="gameBoard" aria-hidden="true">
-<div class="mole" data-hole="1"></div>
-<div class="mole" data-hole="2"></div>
-<div class="mole" data-hole="3"></div>
-<div class="mole" data-hole="4"></div>
-<div class="mole" data-hole="5"></div>
+<div class="mole" data-hole="1"><div class="moleArtwork"><img class="moleHoleBack" src="files/moles/MoleHole.png" alt=""><img class="moleCharacter" src="files/moles/MoleReady.png" alt=""><img class="moleHoleFront" src="files/moles/MoleHole.png" alt=""></div><span class="moleLabel"></span></div>
+<div class="mole" data-hole="2"><div class="moleArtwork"><img class="moleHoleBack" src="files/moles/MoleHole.png" alt=""><img class="moleCharacter" src="files/moles/MoleReady.png" alt=""><img class="moleHoleFront" src="files/moles/MoleHole.png" alt=""></div><span class="moleLabel"></span></div>
+<div class="mole" data-hole="3"><div class="moleArtwork"><img class="moleHoleBack" src="files/moles/MoleHole.png" alt=""><img class="moleCharacter" src="files/moles/MoleReady.png" alt=""><img class="moleHoleFront" src="files/moles/MoleHole.png" alt=""></div><span class="moleLabel"></span></div>
+<div class="mole" data-hole="4"><div class="moleArtwork"><img class="moleHoleBack" src="files/moles/MoleHole.png" alt=""><img class="moleCharacter" src="files/moles/MoleReady.png" alt=""><img class="moleHoleFront" src="files/moles/MoleHole.png" alt=""></div><span class="moleLabel"></span></div>
+<div class="mole" data-hole="5"><div class="moleArtwork"><img class="moleHoleBack" src="files/moles/MoleHole.png" alt=""><img class="moleCharacter" src="files/moles/MoleReady.png" alt=""><img class="moleHoleFront" src="files/moles/MoleHole.png" alt=""></div><span class="moleLabel"></span></div>
 </div>
 
 <div id="desktopBrailleDisplayEntry" hidden>

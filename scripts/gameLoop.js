@@ -14,6 +14,7 @@ import {
 import { speak, cancelSpeech } from "./speechEngine.js";
 import { computeMoleWindowMs, computeRoundEndGraceMs } from "./speechTuning.js";
 import { scoreToTickets } from "./ticketRules.js";
+import { buildWordPrompt } from "./wordPrompt.js";
 import {
 	compactDotPatternText,
 	getBlitzItemsForMode,
@@ -26,7 +27,24 @@ import {
 } from "./wordCatalogs.js";
 
 let moleElements = [];
+let moleReactionTimeouts = [];
 let characterEchoEnabled = false;
+
+const MOLE_READY_ARTWORK = "files/moles/MoleReady.png";
+const MOLE_BONK_ARTWORK = [
+	"files/moles/MoleBonkTongue.png",
+	"files/moles/MoleBonkCheeks.png",
+	"files/moles/MoleBonkSurprise.png",
+	"files/moles/MoleBonkGrimace.png"
+];
+const MOLE_ESCAPE_ARTWORK = [
+	"files/moles/MoleEscapeSmug.png",
+	"files/moles/MoleEscapeWave.png",
+	"files/moles/MoleEscapeRaspberry.png"
+];
+const MOLE_REACTION_DURATION_MS = 320;
+let lastBonkArtwork = "";
+let lastEscapeArtwork = "";
 
 let availableItems = [];
 let roundItems = [];
@@ -122,6 +140,8 @@ const qwertyLaneMap = new Map([
 
 function initGameLoop(options) {
 	moleElements = options.moleElements || [];
+	moleReactionTimeouts = Array.from({ length: moleElements.length }, () => null);
+	resetAllMoleVisuals();
 }
 
 function getEffectiveModeId() {
@@ -271,6 +291,7 @@ function startRound(modeId, durationSeconds, inputMode, difficulty = "normal", o
 	sameLaneRunCount = 0;
 	lastWordItemId = "";
 	clearWordState();
+	resetAllMoleVisuals();
 
 	difficultyMultiplier = DIFFICULTY_MULTIPLIERS[difficulty] ?? 1.0;
 
@@ -278,6 +299,12 @@ function startRound(modeId, durationSeconds, inputMode, difficulty = "normal", o
 	availableItems = getItemsForRoundMode(modeId, inputMode);
 	roundItems = isCurrentWordMode() ? [] : pickRoundItems(modeId, availableItems, spatialMoleMappingEnabled);
 	roundLaneItems = isCurrentWordMode() ? Array.from({ length: 5 }, () => null) : buildRoundLaneItems(modeId, roundItems, spatialMoleMappingEnabled);
+	const gameBoard = document.getElementById("gameBoard");
+	if (gameBoard) {
+		gameBoard.classList.toggle("singleMoleBoard", isCurrentWordyMode());
+		gameBoard.classList.toggle("wordBattleBoard", isCurrentBlitzMode());
+		gameBoard.style.removeProperty("--word-length");
+	}
 
 	isRunning = true;
 	roundEnding = false;
@@ -598,11 +625,7 @@ function buildAnnounceText(item) {
 
 function buildWordAnnounceText(item) {
 	if (!item) return "";
-	const parts = [item.announceText];
-
-	if (spellWordEnabled && Array.isArray(item.letters) && item.letters.length) {
-		parts.push(item.letters.map(letter => letter.toUpperCase()).join(" "));
-	}
+	const parts = [buildWordPrompt(item.announceText, spellWordEnabled)];
 
 	if (isTrainingMode && speakBrailleDotsEnabled) {
 		const dotsText = compactDotPatternText(item.perkinsSequenceDots);
@@ -732,11 +755,7 @@ async function showRandomMole() {
 		recordMoleReconItem(moleItem);
 		hitStreak = 0;
 
-		const mole = moleElements[activeMoleIndex];
-		if (mole) {
-			mole.classList.add("isMiss");
-		}
-
+		showMoleReaction(activeMoleIndex, "escape");
 		playRetreatSound(activeMoleIndex);
 
 		clearActivePresentation();
@@ -884,12 +903,83 @@ function recordShownMoleReconItem(item) {
 	shownMoleReconItems.push(item);
 }
 
+function moleCharacterFor(mole) {
+	return mole?.querySelector(".moleCharacter") || null;
+}
+
+function setMoleArtwork(mole, source) {
+	const character = moleCharacterFor(mole);
+	if (character) character.src = source;
+}
+
+function clearMoleReaction(index, resetArtwork = true) {
+	const timeoutId = moleReactionTimeouts[index];
+	if (timeoutId) clearTimeout(timeoutId);
+	moleReactionTimeouts[index] = null;
+	const mole = moleElements[index];
+	if (!mole) return;
+	mole.classList.remove("isReacting", "isHit", "isEscape", "isMiss");
+	if (resetArtwork) setMoleArtwork(mole, MOLE_READY_ARTWORK);
+}
+
+function resetMoleVisual(index) {
+	clearMoleReaction(index);
+	const mole = moleElements[index];
+	if (!mole) return;
+	mole.classList.remove("isUp", "isUnusedLane");
+	delete mole.dataset.label;
+	const label = mole.querySelector(".moleLabel");
+	if (label) label.textContent = "";
+}
+
+function resetAllMoleVisuals() {
+	for (let index = 0; index < moleElements.length; index++) {
+		resetMoleVisual(index);
+	}
+}
+
+function pickReactionArtwork(candidates, previous) {
+	const choices = candidates.filter(source => source !== previous);
+	return choices[Math.floor(Math.random() * choices.length)] || candidates[0];
+}
+
+function showMoleReaction(index, kind) {
+	const mole = moleElements[index];
+	if (!mole) return;
+	clearMoleReaction(index, false);
+
+	if (kind === "miss") {
+		mole.classList.add("isMiss");
+		moleReactionTimeouts[index] = setTimeout(() => {
+			mole.classList.remove("isMiss");
+			moleReactionTimeouts[index] = null;
+		}, MOLE_REACTION_DURATION_MS);
+		return;
+	}
+
+	const isHit = kind === "hit";
+	const artwork = isHit
+		? pickReactionArtwork(MOLE_BONK_ARTWORK, lastBonkArtwork)
+		: pickReactionArtwork(MOLE_ESCAPE_ARTWORK, lastEscapeArtwork);
+	if (isHit) lastBonkArtwork = artwork;
+	else lastEscapeArtwork = artwork;
+	setMoleArtwork(mole, artwork);
+	mole.classList.add("isReacting", isHit ? "isHit" : "isEscape");
+	mole.classList.remove("isUp");
+	moleReactionTimeouts[index] = setTimeout(() => {
+		resetMoleVisual(index);
+	}, MOLE_REACTION_DURATION_MS);
+}
+
 function activateMoleVisual(index, label = null) {
 	const mole = moleElements[index];
 	if (!mole) return;
 
+	clearMoleReaction(index);
 	const item = activeMoleIndex === index ? activeMoleItem : roundLaneItems[index];
 	mole.dataset.label = label ?? (item?.id || "");
+	const labelElement = mole.querySelector(".moleLabel");
+	if (labelElement) labelElement.textContent = mole.dataset.label;
 	mole.classList.add("isUp");
 }
 
@@ -897,8 +987,13 @@ function deactivateMoleVisual(index) {
 	const mole = moleElements[index];
 	if (!mole) return;
 
-	mole.classList.remove("isUp", "isHit", "isMiss");
+	mole.classList.remove("isUp");
 	delete mole.dataset.label;
+	const label = mole.querySelector(".moleLabel");
+	if (label) label.textContent = "";
+	if (!mole.classList.contains("isReacting")) {
+		clearMoleReaction(index);
+	}
 }
 
 function pickNextWordItem() {
@@ -928,6 +1023,12 @@ function pickNextWordItem() {
 
 function showBlitzWordVisual(wordItem) {
 	const laneIndices = getWordLaneIndices(wordItem.letters.length);
+	const laneIndexSet = new Set(laneIndices);
+	const gameBoard = document.getElementById("gameBoard");
+	if (gameBoard) gameBoard.style.setProperty("--word-length", String(laneIndices.length));
+	for (let index = 0; index < moleElements.length; index++) {
+		moleElements[index].classList.toggle("isUnusedLane", !laneIndexSet.has(index));
+	}
 	activeWordLaneIndices = laneIndices;
 	activeMoleIndex = laneIndices[0] ?? 2;
 	for (let i = 0; i < laneIndices.length; i++) {
@@ -1023,8 +1124,9 @@ async function showWordTarget(trainingOnly) {
 	setCurrentMoleId(thisMoleId);
 
 	const announceText = buildWordAnnounceText(wordItem);
+	const spellsWord = announceText !== wordItem.announceText;
 	const speechPromise = speak(announceText, {
-		timeoutMs: 600,
+		timeoutMs: spellsWord ? Math.max(1200, wordItem.letters.length * 500) : 600,
 		cancelPrevious: true,
 		dedupe: false
 	});
@@ -1074,18 +1176,12 @@ function handleWordEscape() {
 		const remainingLanes = activeWordLaneIndices.slice(activeWordLetterIndex);
 		for (let i = 0; i < remainingLanes.length; i++) {
 			const laneIndex = remainingLanes[i];
-			const mole = moleElements[laneIndex];
-			if (mole) {
-				mole.classList.add("isMiss");
-			}
+			showMoleReaction(laneIndex, "escape");
 			playRetreatSound(laneIndex);
 		}
 	} else {
 		const laneIndex = currentWordAudioLane();
-		const mole = moleElements[laneIndex];
-		if (mole) {
-			mole.classList.add("isMiss");
-		}
+		showMoleReaction(laneIndex, "escape");
 		playRetreatSound(laneIndex);
 	}
 
@@ -1239,10 +1335,7 @@ function handleBlitzLetterHit(playSound, completionContext = null) {
 	const isFinalLetter = activeWordLetterIndex === (activeWordItem.letters.length - 1);
 	const shouldPlayLetterSound = playSound && !isFinalLetter;
 	const laneIndex = activeWordLaneIndices[activeWordLetterIndex] ?? currentWordAudioLane();
-	const mole = moleElements[laneIndex];
-	if (mole) {
-		mole.classList.add("isHit");
-	}
+	showMoleReaction(laneIndex, "hit");
 	if (shouldPlayLetterSound) {
 		playHitSound(score, laneIndex);
 	}
@@ -1313,6 +1406,7 @@ function handleBlitzMiss() {
 	hitStreak = 0;
 	score = Math.max(0, score - 2);
 	playMissSound(currentWordAudioLane());
+	showMoleReaction(currentWordAudioLane(), "miss");
 	dispatchScoreUpdated();
 }
 
@@ -1379,6 +1473,7 @@ function handleWordyCompleted() {
 	if (isTrainingMode) {
 		hitsThisRound += 1;
 		trainingMolesCompleted += 1;
+		showMoleReaction(currentWordAudioLane(), "hit");
 		playBlitzCompletionSound(wordLength, scoreBeforeCompletion, scoreBeforeCompletion, 0);
 		clearActivePresentation();
 		scheduleNextTrainingMole(TRAINING_POST_HIT_DELAY_MS);
@@ -1390,6 +1485,7 @@ function handleWordyCompleted() {
 	score += 10 + (activeWordItem.letters.length * 2);
 	applyStreakAndSpeedBonuses();
 	dispatchScoreUpdated();
+	showMoleReaction(currentWordAudioLane(), "hit");
 	playBlitzCompletionSound(wordLength, scoreBeforeCompletion, score, 0);
 	clearActivePresentation();
 	scheduleNextMole(0);
@@ -1436,6 +1532,7 @@ function handleWordyMiss() {
 	hitStreak = 0;
 	score = Math.max(0, score - 2);
 	playMissSound(currentWordAudioLane());
+	showMoleReaction(currentWordAudioLane(), "miss");
 	dispatchScoreUpdated();
 }
 
@@ -1446,10 +1543,7 @@ function handleHit() {
 		hitsThisRound += 1;
 		trainingMolesCompleted += 1;
 
-		const mole = moleElements[activeMoleIndex];
-		if (mole) {
-			mole.classList.add("isHit");
-		}
+		showMoleReaction(activeMoleIndex, "hit");
 
 		clearTimeout(moleUpTimer);
 		moleUpTimer = null;
@@ -1487,10 +1581,7 @@ function handleHit() {
 		}
 	}
 
-	const mole = moleElements[activeMoleIndex];
-	if (mole) {
-		mole.classList.add("isHit");
-	}
+	showMoleReaction(activeMoleIndex, "hit");
 
 	clearTimeout(moleUpTimer);
 	moleUpTimer = null;
@@ -1508,6 +1599,7 @@ function handleTrainingMiss(laneIndex = activeMoleIndex) {
 	if (now - lastTrainingMissAtMs < 200) return;
 	lastTrainingMissAtMs = now;
 	playMissSound(laneIndex ?? 2);
+	showMoleReaction(laneIndex ?? 2, "miss");
 }
 
 function handleMiss() {
@@ -1517,6 +1609,7 @@ function handleMiss() {
 	score = Math.max(0, score - 2);
 
 	playMissSound(activeMoleIndex);
+	showMoleReaction(activeMoleIndex, "miss");
 	dispatchScoreUpdated();
 }
 

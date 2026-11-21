@@ -756,3 +756,631 @@ dialog::backdrop {
 	gap: 0.75rem;
 	margin-top: 1.25rem;
 }
+
+/* iOS visual parity refresh */
+
+:root {
+	color-scheme: light dark;
+	--background-top: #fbf8ff;
+	--background-bottom: #f1ebfa;
+	--card: #ffffff;
+	--card-muted: #f5f0fa;
+	--text: #22182f;
+	--text-secondary: #594965;
+	--title: #502478;
+	--heading: #643090;
+	--accent: #643090;
+	--control-border: #775091;
+	--card-border: #d8cbe4;
+	--primary: #ffc45c;
+	--primary-pressed: #edaa39;
+	--primary-text: #2d1835;
+	--reward: #fff0d2;
+	--reward-text: #633600;
+	--board: #f0e5fa;
+	--input: #ffffff;
+	--miss: #725268;
+	--shadow: rgba(45, 24, 53, 0.14);
+	--backdrop: rgba(28, 20, 43, 0.68);
+}
+
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+@media (prefers-color-scheme: dark) {
+	:root {
+		--background-top: #1c142b;
+		--background-bottom: #100d19;
+		--card: #292035;
+		--card-muted: #201729;
+		--text: #faf6ff;
+		--text-secondary: #d1c4de;
+		--title: #ffd076;
+		--heading: #dec1ff;
+		--accent: #dec1ff;
+		--control-border: #bb92e8;
+		--card-border: #554463;
+		--reward: #39291d;
+		--reward-text: #ffda96;
+		--board: #241932;
+		--input: #292035;
+		--miss: #d6abca;
+		--shadow: rgba(0, 0, 0, 0.45);
+		--backdrop: rgba(8, 5, 13, 0.78);
+	}
+}
+
+html {
+	min-height: 100%;
+	background: var(--background-bottom);
+}
+
+body {
+	min-height: 100vh;
+	background: linear-gradient(180deg, var(--background-top), var(--background-bottom));
+	color: var(--text);
+}
+
+main {
+	max-width: 68rem;
+	padding: clamp(1rem, 3vw, 2rem);
+}
+
+h1,
+h2,
+h3,
+h4,
+legend,
+summary,
+button {
+	font-family: ui-rounded, "SF Pro Rounded", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+h1 {
+	color: var(--title);
+	font-size: clamp(2.25rem, 7vw, 3.5rem);
+	font-weight: 900;
+	line-height: 1.05;
+	text-align: center;
+}
+
+h2,
+h3,
+h4 {
+	color: var(--heading);
+}
+
+a {
+	color: var(--accent);
+	text-underline-offset: 0.16em;
+}
+
+button {
+	min-height: 3.25rem;
+	padding: 0.7rem 1rem;
+	border: 2px solid var(--control-border);
+	border-radius: 0.9rem;
+	background: var(--card);
+	color: var(--text);
+	font-weight: 750;
+	box-shadow: 0 0.28rem 0.7rem var(--shadow);
+}
+
+button:hover {
+	background: var(--card-muted);
+}
+
+button:active {
+	transform: translateY(1px);
+}
+
+button:focus-visible,
+a:focus-visible,
+summary:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+	outline: 3px solid var(--accent);
+	outline-offset: 3px;
+}
+
+button:disabled {
+	opacity: 0.55;
+	cursor: default;
+}
+
+#startGameButton,
+#cashOutButton,
+#confirmPrizeButton {
+	border-color: var(--primary-text);
+	background: var(--primary);
+	color: var(--primary-text);
+}
+
+#startGameButton:hover,
+#cashOutButton:hover,
+#confirmPrizeButton:hover {
+	background: var(--primary-pressed);
+}
+
+input,
+select,
+textarea {
+	box-sizing: border-box;
+	max-width: 100%;
+	border: 2px solid var(--control-border);
+	border-radius: 0.65rem;
+	background: var(--input);
+	color: var(--text);
+	font: inherit;
+	accent-color: var(--accent);
+}
+
+select,
+textarea,
+input[type="number"],
+input[type="search"],
+input[type="text"] {
+	min-height: 2.75rem;
+	padding: 0.55rem 0.7rem;
+}
+
+fieldset,
+#homeContent > details,
+#iosPromo,
+#resultsArea,
+#cashOutArea {
+	margin-block: 1rem;
+	padding: clamp(1rem, 3vw, 1.4rem);
+	border: 1px solid var(--card-border);
+	border-radius: 1.35rem;
+	background: var(--card);
+	box-shadow: 0 0.7rem 1.5rem var(--shadow);
+}
+
+fieldset {
+	min-width: 0;
+}
+
+fieldset fieldset {
+	box-shadow: none;
+}
+
+.brailleReferenceTableWrap {
+	width: 100%;
+	min-width: 0;
+	max-width: 100%;
+}
+
+legend,
+summary {
+	color: var(--heading);
+	font-weight: 800;
+}
+
+summary {
+	padding: 0.35rem 0;
+}
+
+#homeContent > p:first-of-type {
+	margin-top: 0;
+	text-align: center;
+	color: var(--text-secondary);
+}
+
+#homeCashInButton,
+#startGameButton {
+	display: flex;
+	width: min(100%, 38rem);
+	margin: 1rem auto;
+	justify-content: center;
+}
+
+#startGameButton {
+	flex-direction: column;
+	align-items: center;
+	gap: 0.5rem;
+	min-height: 15rem;
+	font-size: clamp(1.6rem, 5vw, 2.4rem);
+}
+
+.homeMoleArt {
+	position: relative;
+	display: block;
+	width: clamp(7rem, 24vw, 10rem);
+	aspect-ratio: 1;
+	overflow: hidden;
+}
+
+.homeMoleArt img,
+.moleArtwork img {
+	position: absolute;
+	inset: 0;
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: contain;
+}
+
+.homeMoleHoleBack,
+.homeMoleHoleFront,
+.moleHoleBack,
+.moleHoleFront {
+	transform: translateY(28%);
+}
+
+.homeMoleHoleFront,
+.moleHoleFront {
+	clip-path: inset(57% 0 0 0);
+	z-index: 3;
+}
+
+.homeMoleCharacter,
+.moleCharacter {
+	z-index: 2;
+}
+
+#gameArea {
+	text-align: center;
+}
+
+#gameHeading {
+	margin-top: 0;
+	font-size: clamp(2rem, 6vw, 3rem);
+}
+
+#scoreDisplay {
+	margin-top: 0.5rem;
+	border: 1px solid var(--primary-text);
+	background: linear-gradient(135deg, #ffd68a, var(--primary));
+	box-shadow: 0 0.4rem 0.9rem var(--shadow);
+}
+
+#scoreText {
+	color: var(--primary-text);
+}
+
+#gameBoard {
+	display: grid;
+	grid-template-columns: repeat(5, minmax(0, 1fr));
+	gap: clamp(0.35rem, 1.5vw, 0.8rem);
+	margin-top: 1.25rem;
+	padding: clamp(0.7rem, 2vw, 1rem);
+	border: 1px solid color-mix(in srgb, var(--accent) 24%, transparent);
+	border-radius: 1.65rem;
+	background: linear-gradient(135deg, var(--board), var(--background-bottom));
+}
+
+#gameBoard.singleMoleBoard {
+	grid-template-columns: minmax(8rem, 14rem);
+	justify-content: center;
+}
+
+#gameBoard.wordBattleBoard {
+	grid-template-columns: repeat(var(--word-length, 5), minmax(0, 1fr));
+}
+
+#gameBoard.singleMoleBoard .mole:not(:nth-child(3)) {
+	display: none;
+}
+
+.mole {
+	position: relative;
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	width: 100%;
+	height: auto;
+	min-width: 0;
+	align-content: start;
+	gap: 0.3rem;
+	border-radius: 0;
+	background: none;
+	box-shadow: none;
+	transform: none;
+	opacity: 1;
+	filter: none;
+	transition: none;
+}
+
+.mole::before,
+.mole::after {
+	content: none;
+}
+
+.mole.isUp,
+.mole.isReacting {
+	transform: none;
+	opacity: 1;
+	filter: none;
+	box-shadow: none;
+}
+
+.mole.isHit {
+	animation: none;
+}
+
+.mole.isHit::before {
+	content: none;
+	animation: none;
+}
+
+.wordBattleBoard .mole.isUnusedLane {
+	display: none;
+}
+
+.moleArtwork {
+	position: relative;
+	display: block;
+	width: 100%;
+	aspect-ratio: 1;
+	overflow: hidden;
+	border: 2px solid transparent;
+	border-radius: 0.9rem;
+}
+
+.moleCharacter {
+	transform: translateY(42%);
+	opacity: 0;
+	transition: transform 160ms ease-out, opacity 120ms linear;
+}
+
+.mole.isUp .moleCharacter,
+.mole.isReacting .moleCharacter {
+	transform: translateY(0);
+	opacity: 1;
+}
+
+.mole.isHit .moleCharacter {
+	animation: characterBonk 170ms ease-out 1;
+}
+
+.mole.isEscape .moleCharacter {
+	animation: characterEscape 320ms ease-in 1;
+}
+
+.mole.isMiss .moleArtwork {
+	border-color: var(--miss);
+}
+
+.moleLabel {
+	min-height: 1.3em;
+	padding: 0.3rem 0.2rem;
+	border: 2px solid transparent;
+	border-radius: 0.65rem;
+	background: var(--input);
+	color: var(--text);
+	font-family: ui-rounded, "SF Pro Rounded", system-ui, sans-serif;
+	font-size: clamp(1.1rem, 3.8vw, 2rem);
+	font-weight: 900;
+	line-height: 1.05;
+	overflow-wrap: anywhere;
+	opacity: 0;
+}
+
+.mole.isUp .moleLabel {
+	opacity: 1;
+}
+
+.mole.isMiss .moleLabel {
+	border-color: var(--miss);
+}
+
+@keyframes characterBonk {
+	0% { transform: translateY(0) scaleY(1); }
+	45% { transform: translateY(5%) scaleY(0.87); }
+	100% { transform: translateY(0) scaleY(1); }
+}
+
+@keyframes characterEscape {
+	0% { transform: translateY(0); opacity: 1; }
+	70% { transform: translateY(8%); opacity: 1; }
+	100% { transform: translateY(42%); opacity: 0; }
+}
+
+#desktopBrailleDisplayEntry,
+#mobileBsiEntry {
+	padding: 1rem;
+	border: 1px solid var(--card-border);
+	border-radius: 1.2rem;
+	background: var(--card);
+	box-shadow: 0 0.6rem 1.2rem var(--shadow);
+}
+
+#desktopBrailleDisplayEntry label,
+#mobileBsiEntry label {
+	color: var(--heading);
+}
+
+#desktopBrailleDisplayInput,
+#mobileBsiInput {
+	border-color: var(--control-border);
+	background: var(--input);
+	color: var(--text);
+}
+
+#resultsArea,
+#cashOutArea {
+	max-width: 52rem;
+	margin-inline: auto;
+}
+
+#resultsHeading,
+#cashOutHeading {
+	margin-top: 0;
+}
+
+#resultsFlavorText,
+#cashOutSummaryText {
+	font-size: 1.1rem;
+	font-weight: 650;
+	color: var(--text-secondary);
+}
+
+#resultsSummary {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 0.65rem;
+}
+
+#resultsSummary [role="text"],
+#cashOutSummary {
+	padding: 0.85rem 1rem;
+	border-radius: 0.9rem;
+	background: var(--card-muted);
+}
+
+#resultsActions,
+#cashOutActions,
+#prizeDetailActions,
+#customMoleInvasionActions,
+#customMolesActions,
+#moleReconActions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.75rem;
+	justify-content: center;
+}
+
+#prizeShelf,
+#iosPromo {
+	border: 1px solid var(--card-border);
+	background: var(--card);
+	color: var(--text);
+	box-shadow: 0 0.7rem 1.5rem var(--shadow);
+}
+
+#prizeShelf summary,
+#iosPromoBody h2,
+#iosPromoBody p {
+	color: var(--text);
+}
+
+#prizeShelfCountBadge {
+	background: var(--primary);
+	color: var(--primary-text);
+}
+
+#prizeList button,
+.cashOutPrize,
+.cashOutPrize[data-selected="true"] {
+	border: 2px solid var(--control-border);
+	background: var(--reward);
+	color: var(--reward-text);
+	box-shadow: 0 0.35rem 0.8rem var(--shadow);
+}
+
+.cashOutPrize[data-selected="true"] {
+	outline: 3px solid var(--accent);
+	outline-offset: 2px;
+}
+
+dialog,
+#prizeDetailDialog {
+	border: 1px solid var(--card-border);
+	border-radius: 1.35rem;
+	background: var(--card);
+	color: var(--text);
+	box-shadow: 0 1.25rem 2.75rem var(--shadow);
+}
+
+dialog::backdrop,
+#prizeDetailDialog::backdrop {
+	background: var(--backdrop);
+}
+
+.customMoleSlotRow,
+.customMoleSectionBlock,
+.moleReconRow {
+	background: var(--card-muted);
+}
+
+.customMoleSlotRow select,
+.customMoleSectionBlock input[type="search"] {
+	border-color: var(--control-border);
+	background: var(--input);
+	color: var(--text);
+}
+
+footer {
+	border-top-color: var(--primary);
+	background: var(--background-bottom);
+	color: var(--text-secondary);
+}
+
+.footer-links a {
+	color: var(--accent);
+}
+
+@media (max-width: 700px) {
+	#gameBoard:not(.singleMoleBoard) {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+
+	#gameBoard.wordBattleBoard {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	#resultsSummary {
+		grid-template-columns: 1fr;
+	}
+
+	#resultsActions > button,
+	#cashOutActions > button {
+		width: 100%;
+	}
+}
+
+@media (max-width: 430px) {
+	main {
+		padding: 0.8rem;
+	}
+
+	#gameBoard:not(.singleMoleBoard) {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	#gameBoard:not(.singleMoleBoard) .mole:last-child {
+		grid-column: 1 / -1;
+		width: 50%;
+		justify-self: center;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		scroll-behavior: auto !important;
+		transition-duration: 0.01ms !important;
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+	}
+
+	.moleCharacter,
+	.mole.isUp .moleCharacter,
+	.mole.isReacting .moleCharacter,
+	.mole.isHit .moleCharacter,
+	.mole.isEscape .moleCharacter {
+		transform: none;
+	}
+}
+
+@media (forced-colors: active) {
+	button,
+	fieldset,
+	#homeContent > details,
+	#gameBoard,
+	.moleArtwork,
+	.moleLabel,
+	dialog {
+		border: 2px solid CanvasText;
+	}
+
+	.mole.isMiss .moleArtwork,
+	.mole.isMiss .moleLabel {
+		border: 3px solid Mark;
+	}
+}
