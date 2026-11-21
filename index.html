@@ -30,33 +30,53 @@
 </ul>
 </details>
 
-<details open>
-<summary>How to Play</summary>
-<h2>How to Play</h2>
-<ol>
-<li>Listen for the letter, number, or braille character and whack it by tapping the matching key or braille chord before the mole disappears. The game defaults to QWERTY input, and you can change input to Perkins Home Row keys in the Game Settings.</li>
-<li>For Perkins input: Dot 1 in F, Dot 2 is D, Dot 3 is S, Dot 4 is J, Dot 5 is K, and Dot 6 is L.
-<ul class="mobileBsiOnly"><li>For iPhone and Android screen reader braille input: in the game area, focus the Braille Entry field, type your letter or contraction, and if your device does not send it right away, press Return to submit it.</li>
-<li>For external braille displays, type the right chord and press dot 8 or space bar to whack the current mole.</li>
-<li>Make sure to change your braille entry mode to Uncontracted if playing in the Grade 1 modes, and contracted for the Grade 2 or Invasion modes. In Invasion mode, you will have to type the letter sign before a grade 1 letter so it interprets correctly.</li>
-</ul></li>
-<li>Make sure to use the braille number sign to whack the number moles!</li>
-<li>The moles pop up faster and faster as the round goes on, so stay sharp.</li>
-<li>At the end of the round, cash in your tickets for a prize or keep playing to whack more moles.</li>
-<li>You get bonus tickets per round for hitting a streak of 5 moles or more, and Speed bonuses for how fast you hit the moles when they pop up.</li>
-<li>Mole Recon appears after a round when certain moles have been getting away with entirely too much. Use it to practice the troublemakers, or start a grudge match if they somehow all escaped justice.</li>
-<li>Enjoy your prizes on your Prize Shelf, which will persist every time you come back to the game until you clear the shelf.</li>
-<li>Custom Moles lets you hand-pick 5 favorite targets or assemble your own Invasion Army when certain moles have simply had it too good for too long.</li>
-<li>Mole Battle sends short words across the board. Spell them in order before the whole word ducks away.</li>
-<li>If you flub a letter in a Mole Battle word, it counts as a miss, but the whole word stays up until you finish it or it gets away.</li>
-<li>Wordy Mole Mayhem drops one full word right in the middle. Type the whole thing correctly before it escapes.</li>
-<li>In Wordy Mole Mayhem, Perkins Home Row can use either the full uncontracted spelling or the word's contracted braille form.</li>
-<li>Spell Word can be turned on for the word modes if you want the game to say the word and then spell it out for a little extra backup.</li>
-<li>Training Mode Difficulty: practice your typing or braille entry by whacking 15 moles without a timer. You don't get a score nor any tickets, but it's a great way to work on your skills before going into the main game. Training mode also has a Speak Braille Dots toggle in Game Settings, further helping you learn along the way. Training mode works with any Braille and Typing mode.</li>
-<li>For Jaws and NVDA users on Windows: be sure to enter Forms or Focus mode when the game starts.</li>
-<li>This game can be played with any standard or Bluetooth keyboard for both desktop and mobile.  External braille displays will require you to hit dot 8 or the space bar to whack the current mole after entering the chord.</li>
-<li>Choose your preferred voice and speech rate based on your system language in Game Settings.</li>
-</ol>
+<div class="homeActionRow">
+<button id="openHowToPlayButton" type="button">How to Play</button>
+<button id="openSettingsButton" type="button">Settings</button>
+</div>
+
+<dialog id="howToPlayDialog" class="homeDialog" aria-labelledby="howToPlayHeading">
+<div class="homeDialogContent">
+<h2 id="howToPlayHeading" tabindex="-1">How to Play</h2>
+<h3>Play a round</h3>
+<ul>
+<li>Listen for the letter, number, or braille character. Press the matching key or enter the matching braille chord before the mole disappears.</li>
+<li>The game starts with QWERTY input. Choose another input method in Settings.</li>
+<li>Moles get faster as the round continues. Streaks of 5 or more and fast hits earn bonus tickets.</li>
+<li>After the round, keep playing or cash in your tickets for a prize. Your Prize Shelf stays with you until you clear it.</li>
+</ul>
+
+<h3>Braille input</h3>
+<ul>
+<li>Perkins Home Row uses F, D, S for dots 1, 2, 3 and J, K, L for dots 4, 5, 6.</li>
+<li>Use the braille number sign before numbers.</li>
+<li>With an external braille display, enter the chord and press dot 8 or Space to whack the mole.</li>
+<li>Use uncontracted input for Grade 1 modes and contracted input for Grade 2 modes. In Invasion mode, enter the letter sign before a Grade 1 letter.</li>
+</ul>
+<ul class="mobileBsiOnly">
+<li>With screen-reader braille input on iPhone or Android, focus Braille Entry and type the character or contraction. Press Return if your device does not submit it automatically.</li>
+</ul>
+
+<h3>Word modes</h3>
+<ul>
+<li>Mole Battle places a short word across the board. Enter its letters in order before the word escapes. A wrong letter counts as a miss, but the word stays up.</li>
+<li>Wordy Mole Mayhem places one complete word in the middle. Enter the whole word correctly before it escapes.</li>
+<li>With Perkins Home Row, Wordy Mole Mayhem accepts either the uncontracted spelling or the contracted braille form.</li>
+<li>Sound-alike words are spelled automatically. Turn on Spell Word to have every word spoken and then spelled.</li>
+</ul>
+
+<h3>Practice and custom games</h3>
+<ul>
+<li>Training uses 15 untimed moles without scores or tickets. Speak Braille Dots is available in Settings.</li>
+<li>Mole Recon lets you practice troublesome moles or start a Grudge Match after they all escape.</li>
+<li>Custom Moles lets you choose 5 targets or build an Invasion Army.</li>
+</ul>
+
+<h3>Screen readers and speech</h3>
+<ul>
+<li>With JAWS or NVDA on Windows, enter Forms or Focus mode when the game starts.</li>
+<li>Choose the system voice, speech rate, and speech volume in Settings.</li>
+</ul>
 <details id="brailleReferenceDetails">
 <summary>Braille Reference</summary>
 <div id="brailleReferenceContent">
@@ -96,11 +116,15 @@
 </div>
 </div>
 </details>
-</details>
+<div class="homeDialogActions">
+<button id="closeHowToPlayButton" type="button">Close</button>
+</div>
+</div>
+</dialog>
 
-<details open>
-<summary>Game Settings</summary>
-<h2>Game Settings</h2>
+<dialog id="settingsDialog" class="homeDialog" aria-labelledby="settingsHeading">
+<div class="homeDialogContent">
+<h2 id="settingsHeading" tabindex="-1">Settings</h2>
 <form id="gameSettings">
 
 <fieldset id="grade1InputModeFieldset">
@@ -249,9 +273,12 @@
 </fieldset>
 
 </form>
-</details>
+<div class="homeDialogActions">
+<button id="closeSettingsButton" type="button">Done</button>
+</div>
+</div>
+</dialog>
 
-<button id="homeCashInButton" type="button">Cash In Tickets: 0 Available</button>
 <button id="startGameButton" type="button">
 <span class="homeMoleArt">
 <img class="homeMoleHoleBack" src="files/moles/MoleHole.png" alt="">
@@ -261,9 +288,14 @@
 <span>Start Whacking</span>
 </button>
 
-<details id="prizeShelf">
-	<summary>Prize Shelf, <span id="prizeShelfCountBadge" aria-live="polite">0 prizes</span></summary>
-<h2>Prize Shelf</h2>
+<div class="homeActionRow">
+<button id="homeCashInButton" type="button">Cash In Tickets: 0 Available</button>
+<button id="openPrizeShelfButton" type="button">Prize Shelf, <span id="prizeShelfCountBadge" aria-live="polite">0 prizes</span></button>
+</div>
+
+<dialog id="prizeShelfDialog" class="homeDialog" aria-labelledby="prizeShelfHeading">
+<div class="homeDialogContent">
+<h2 id="prizeShelfHeading" tabindex="-1">Prize Shelf</h2>
 	<p id="prizeShelfHelp">Select a prize to view details. Press Delete while focused on a prize to remove one from your shelf.</p>
 	<p id="noPrizesMessage">You haven't won any prizes yet!</p>
 
@@ -272,7 +304,11 @@
 	<button type="button" id="clearPrizeShelf">
 		Clear Prize Shelf
 	</button>
-</details>
+	<div class="homeDialogActions">
+		<button id="closePrizeShelfButton" type="button">Done</button>
+	</div>
+</div>
+</dialog>
 
 <div id="iosPromo" >
 <img src="files/wab_Icon_1.png" alt="" aria-hidden="true" width="56" height="56">

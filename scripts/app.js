@@ -78,6 +78,18 @@ const trainingHomeButton = document.getElementById("trainingHomeButton");
 
 const startButton = document.getElementById("startGameButton");
 const homeCashInButton = document.getElementById("homeCashInButton");
+const openHowToPlayButton = document.getElementById("openHowToPlayButton");
+const howToPlayDialog = document.getElementById("howToPlayDialog");
+const howToPlayHeading = document.getElementById("howToPlayHeading");
+const closeHowToPlayButton = document.getElementById("closeHowToPlayButton");
+const openSettingsButton = document.getElementById("openSettingsButton");
+const settingsDialog = document.getElementById("settingsDialog");
+const settingsHeading = document.getElementById("settingsHeading");
+const closeSettingsButton = document.getElementById("closeSettingsButton");
+const openPrizeShelfButton = document.getElementById("openPrizeShelfButton");
+const prizeShelfDialog = document.getElementById("prizeShelfDialog");
+const prizeShelfHeading = document.getElementById("prizeShelfHeading");
+const closePrizeShelfButton = document.getElementById("closePrizeShelfButton");
 const playAgainButton = document.getElementById("playAgainButton");
 const cashOutButton = document.getElementById("cashOutButton");
 const saveTicketsHomeButton = document.getElementById("saveTicketsHomeButton");
@@ -878,7 +890,7 @@ function focusPrizeShelfAfterDelete(deletedButtonId) {
 			return;
 		}
 	}
-	const target = document.getElementById("prizeShelf")?.querySelector("summary") || document.getElementById("clearPrizeShelf");
+	const target = document.getElementById("clearPrizeShelf") || closePrizeShelfButton;
 	if (target) {
 		requestAnimationFrame(() => {
 			safeFocus(target);
@@ -1764,6 +1776,51 @@ function startGameFromSettings() {
 }
 
 function setupEventListeners() {
+	if (openHowToPlayButton && howToPlayDialog) {
+		openHowToPlayButton.addEventListener("click", () => {
+			howToPlayDialog.showModal();
+			requestAnimationFrame(() => {
+				safeFocus(howToPlayHeading);
+			});
+		});
+	}
+
+	if (closeHowToPlayButton && howToPlayDialog) {
+		closeHowToPlayButton.addEventListener("click", () => {
+			howToPlayDialog.close();
+		});
+	}
+
+	if (openSettingsButton && settingsDialog) {
+		openSettingsButton.addEventListener("click", () => {
+			settingsDialog.showModal();
+			requestAnimationFrame(() => {
+				safeFocus(settingsHeading);
+			});
+		});
+	}
+
+	if (closeSettingsButton && settingsDialog) {
+		closeSettingsButton.addEventListener("click", () => {
+			settingsDialog.close();
+		});
+	}
+
+	if (openPrizeShelfButton && prizeShelfDialog) {
+		openPrizeShelfButton.addEventListener("click", () => {
+			prizeShelfDialog.showModal();
+			requestAnimationFrame(() => {
+				safeFocus(prizeShelfHeading);
+			});
+		});
+	}
+
+	if (closePrizeShelfButton && prizeShelfDialog) {
+		closePrizeShelfButton.addEventListener("click", () => {
+			prizeShelfDialog.close();
+		});
+	}
+
 	if (startButton) {
 		startButton.addEventListener("click", () => {
 			primeSpeech();
