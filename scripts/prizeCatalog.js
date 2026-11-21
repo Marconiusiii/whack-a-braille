@@ -346,6 +346,54 @@ const prizeCatalog = [
 		flavorText: "Happily nostalgic, if you could ever find your Walkman or a way to play these tapes again."
 	},
 	{
+		id: "tier1_crustOffSomebodysVictoryToast",
+		label: "The Crust Off Somebody’s Victory Toast",
+		minTickets: 0,
+		maxTickets: 9,
+		category: "joke",
+		flavorText: "Slightly burnt with a light dusting of powedered sadness."
+	},
+	{
+		id: "tier1_fortuneCookieFortuneWithATypo",
+		label: "A Fortune Cookie Fortune With a Typo",
+		minTickets: 0,
+		maxTickets: 9,
+		category: "joke",
+		flavorText: "Somehow, the moles snuck in a horrorscope into the cookie and have scared you away."
+	},
+	{
+		id: "tier1_premiumPieceOfPocketLint",
+		label: "One Premium Piece of Pocket Lint",
+		minTickets: 0,
+		maxTickets: 9,
+		category: "absurd",
+		flavorText: "This lint contains history of past receipts, tissues, snack crumbs, and just manifests extra dry abundance overall."
+	},
+	{
+		id: "tier1_paperClipBentIntoAWorsePaperClip",
+		label: "A Paper Clip Bent Into a Worse Paper Clip",
+		minTickets: 0,
+		maxTickets: 9,
+		category: "absurd",
+		flavorText: "It tries to be so helpful while being deliberately unhelpful."
+	},
+	{
+		id: "tier1_napkinWithTheManagersChiliRecipe",
+		label: "A Napkin With the Manager’s Chili Recipe",
+		minTickets: 0,
+		maxTickets: 9,
+		category: "joke",
+		flavorText: "Coated in arcade kitchen grease, with some steps being hard to read, but will assuredly win in a chili cook-off!"
+	},
+	{
+		id: "tier1_freeSniffOfThePretzelWarmer",
+		label: "A Free Sniff of the Pretzel Warmer",
+		minTickets: 0,
+		maxTickets: 9,
+		category: "joke",
+		flavorText: "Salty, buttery, and mouthwatering, but you still have to pay $5 for the actual pretzel."
+	},
+	{
 		id: "tier2_nearWin",
 		label: "Official Recognition of Being Very Close",
 		minTickets: 10,
@@ -656,6 +704,62 @@ const prizeCatalog = [
 		maxTickets: 24,
 		category: "joke",
 		flavorText: "The package may be shiny foil, but nothing but common un-tradeable cards inside. Phooey."
+	},
+	{
+		id: "tier2_malletCozyKnittedByAMole",
+		label: "A Mallet Cozy Knitted by a Mole",
+		minTickets: 10,
+		maxTickets: 24,
+		category: "absurd",
+		flavorText: "Will keep your mallet warm in the Wintry months of mole whacking."
+	},
+	{
+		id: "tier2_sixDotWaffleMold",
+		label: "A Six-Dot Waffle Mold",
+		minTickets: 10,
+		maxTickets: 24,
+		category: "tactile",
+		flavorText: "Practicing braille never tasted so good, now with a side of slate and stylus syrup!"
+	},
+	{
+		id: "tier2_moleSizedBathrobe",
+		label: "A Mole-Sized Bathrobe",
+		minTickets: 10,
+		maxTickets: 24,
+		category: "absurd",
+		flavorText: "Keeping the moles comfy between rounds. Perhaps this could fit on an invisible stuffed mole..."
+	},
+	{
+		id: "tier2_punchCardWithTheHardestPunchAlreadyPunched",
+		label: "A Punch Card With the Hardest Punch Already Punched",
+		minTickets: 10,
+		maxTickets: 24,
+		category: "joke",
+		flavorText: "Someone already went to town on the punch card spot that gave them free Arcade Punch, the punch that punches back."
+	},
+	{
+		id: "tier2_popcornScoopWithARacingStripe",
+		label: "A Popcorn Scoop With a Racing Stripe",
+		minTickets: 10,
+		maxTickets: 24,
+		category: "absurd",
+		flavorText: "Perfect for making world records in popcorn delivery speeds!"
+	},
+	{
+		id: "tier2_rubberStampThatSaysBonked",
+		label: "A Rubber Stamp That Says “Bonked”",
+		minTickets: 10,
+		maxTickets: 24,
+		category: "joke",
+		flavorText: "Mail, bills, invoices, and the foreheads of your siblings will never be the same again."
+	},
+	{
+		id: "tier2_tinyFoamFingerForYourPinky",
+		label: "A Tiny Foam Finger for Your Pinky",
+		minTickets: 10,
+		maxTickets: 24,
+		category: "joke",
+		flavorText: "The daintiest way to say that you are number 1!"
 	},
 	{
 		id: "tier3_moleHistorian",
@@ -978,6 +1082,70 @@ const prizeCatalog = [
 		flavorText: "A deeply serious visor for counting victories, missed swings, and snack breaks with professional flair."
 	},
 	{
+		id: "tier3_pocketSizedSkeeBallLane",
+		label: "A Pocket-Sized Skee-Ball Lane",
+		minTickets: 25,
+		maxTickets: 49,
+		category: "tactile",
+		flavorText: "Great for practicing between rounds of mole whacking."
+	},
+	{
+		id: "tier3_talkingTapeMeasureThatRoundsUp",
+		label: "A Talking Tape Measure That Rounds Up",
+		minTickets: 25,
+		maxTickets: 49,
+		category: "joke",
+		flavorText: "For all those handy folks who want to measure once and cut twice."
+	},
+	{
+		id: "tier3_deskGongForMinorAccomplishments",
+		label: "A Desk Gong for Minor Accomplishments",
+		minTickets: 25,
+		maxTickets: 49,
+		category: "absurd",
+		flavorText: "Answered an email? Gong. Found the stapler? Gong! Put the gong away? One last gong!"
+	},
+	{
+		id: "tier3_brailleLabelMakerThatSignsItsWork",
+		label: "A Braille Label Maker That Signs Its Work",
+		minTickets: 25,
+		maxTickets: 49,
+		category: "tactile",
+		flavorText: "It eats up cell spaces like whoa, but is always incredibly proud of itself."
+	},
+	{
+		id: "tier3_windUpMoleThatStopsForLunch",
+		label: "A Wind-Up Mole That Stops for Lunch",
+		minTickets: 25,
+		maxTickets: 49,
+		category: "absurd",
+		flavorText: "It will wander your desk, shooting sparks from its mouth while receiving bonks, but will always let you know when its time for a break."
+	},
+	{
+		id: "tier3_thermosWithASeparateGravyCompartment",
+		label: "A Thermos With a Separate Gravy Compartment",
+		minTickets: 25,
+		maxTickets: 49,
+		category: "joke",
+		flavorText: "Comes in plaid and is great for portable poutine."
+	},
+	{
+		id: "tier3_clawMachinesEmployeeDiscount",
+		label: "The Claw Machine’s Employee Discount",
+		minTickets: 25,
+		maxTickets: 49,
+		category: "brag",
+		flavorText: "It's really just the secret to yoinking prizes out of the machine from the prize chute."
+	},
+	{
+		id: "tier3_malletCarryingCaseWithRoomForSnacks",
+		label: "A Mallet Carrying Case With Room for Snacks",
+		minTickets: 25,
+		maxTickets: 49,
+		category: "absurd",
+		flavorText: "Whack a Mole is hungry work."
+	},
+	{
 		id: "tier4_arcadeOracle",
 		label: "Arcade Oracle Status (Predictions Unreliable)",
 		minTickets: 50,
@@ -1224,6 +1392,30 @@ const prizeCatalog = [
 		maxTickets: 99,
 		category: "absurd",
 		flavorText: "Returns only when it feels emotionally ready, which frankly makes it more relatable than expected."
+	},
+	{
+		id: "tier4_pinballFlipperRepurposedAsADoorbell",
+		label: "A Pinball Flipper Repurposed as a Doorbell",
+		minTickets: 50,
+		maxTickets: 99,
+		category: "absurd",
+		flavorText: "This will totally put your house on tilt!"
+	},
+	{
+		id: "tier4_velvetRopeForYourFavoriteChair",
+		label: "A Velvet Rope for Your Favorite Chair",
+		minTickets: 50,
+		maxTickets: 99,
+		category: "brag",
+		flavorText: "Keeps your throne exclusive, plus keeps all the moles and paparazzi away."
+	},
+	{
+		id: "tier4_jukeboxThatTakesHummedRequests",
+		label: "A Jukebox That Takes Hummed Requests",
+		minTickets: 50,
+		maxTickets: 99,
+		category: "absurd",
+		flavorText: "When you just can't remember the lyrics and just need to get that song out of your head!"
 	},
 	{
 		id: "tier5_moleTruceDay",
@@ -1562,6 +1754,46 @@ const prizeCatalog = [
 		flavorText: "Soft enough for recovery, dignified enough for plotting, and loud enough in spirit to count as furniture with confidence."
 	},
 	{
+		id: "tier5_pinballMachineThatTiltsTheBuilding",
+		label: "A Pinball Machine That Tilts the Building",
+		minTickets: 100,
+		maxTickets: 499,
+		category: "absurd",
+		flavorText: "This is for real pinball wizards, or intrepid architecture students."
+	},
+	{
+		id: "tier5_originalMasterTapesOfTheBonk",
+		label: "The Original Master Tapes of the Bonk",
+		minTickets: 100,
+		maxTickets: 499,
+		category: "legend",
+		flavorText: "Collector's edition of all the bonks of the past."
+	},
+	{
+		id: "tier5_recordingSessionWithTheHouseBand",
+		label: "A Recording Session With the House Band",
+		minTickets: 100,
+		maxTickets: 499,
+		category: "legend",
+		flavorText: "They are looking for 8-bit chiptune drummers."
+	},
+	{
+		id: "tier5_sparklyBowlingBallWithAMalletInside",
+		label: "A sparkly bowling ball with a mallet inside",
+		minTickets: 100,
+		maxTickets: 499,
+		category: "absurd",
+		flavorText: "This glossy and sparkly bowling ball contains a mole mallet. Guaranteed strikes every time if the pins are moles."
+	},
+	{
+		id: "tier5_namingRightsToTheSeventhBrailleDot",
+		label: "Naming Rights to the Seventh Braille Dot",
+		minTickets: 100,
+		maxTickets: 499,
+		category: "brag",
+		flavorText: "The delete key is now all yours to rename!"
+	},
+	{
 		id: "tier6_masterMoleTradingCard",
 		label: "Master Mole Trading Card",
 		minTickets: 500,
@@ -1648,6 +1880,38 @@ const prizeCatalog = [
 		maxTickets: null,
 		category: "legend",
 		flavorText: "Contains maps, seals, and an unreasonable number of ceremonial stamps for reclaiming underground territory."
+	},
+	{
+		id: "tier6_moonWithASmallMoleProblem",
+		label: "The Moon, With a Small Mole Problem",
+		minTickets: 500,
+		maxTickets: null,
+		category: "legend",
+		flavorText: "All these newly forming craters are suspicious."
+	},
+	{
+		id: "tier6_planetWithSixDotsYouCanReadFromOrbit",
+		label: "A Planet With Six Dots You Can Read From Orbit",
+		minTickets: 500,
+		maxTickets: null,
+		category: "legend",
+		flavorText: "The planetary cosmic version of an e-Reader!"
+	},
+	{
+		id: "tier6_extraSaturdayRedeemableThisWeekend",
+		label: "An Extra Saturday, Redeemable This Weekend",
+		minTickets: 500,
+		maxTickets: null,
+		category: "legend",
+		flavorText: "Use the extra day to study your braille!"
+	},
+	{
+		id: "tier6_secondMoonToDistractTheMolesOnTheFirstMoon",
+		label: "A Second Moon to Distract the Moles on the First Moon",
+		minTickets: 500,
+		maxTickets: null,
+		category: "legend",
+		flavorText: "All those suspicious craters and noises have now moved away to give you peace and quiet."
 	}
 ];
 
